@@ -461,7 +461,7 @@ load_splash() {
           fbset -g 1024 768 1024 768 32
         fi
       fi
-
+export SPLASHIMAGE="/storage/.config/splash/boot.png"
       # load splash
       if [ -f /splash/splash.conf ]; then
         . /splash/splash.conf
