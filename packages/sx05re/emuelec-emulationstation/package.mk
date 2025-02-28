@@ -4,7 +4,7 @@
 PKG_NAME="emuelec-emulationstation"
 #PKG_VERSION="e46506db99d688be25f08624f319fd2a77c89fb2"
 PKG_VERSION="d6341f429a444c0fcb42cfca642feb1f2177f05a"
-PKG_GIT_CLONE_BRANCH="worstcase-scenario-FR-patch"
+PKG_GIT_CLONE_BRANCH="EmuELEC"
 
 PKG_REV="1"
 PKG_ARCH="any"
