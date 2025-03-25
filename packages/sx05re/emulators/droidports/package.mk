@@ -2,12 +2,9 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="droidports"
-# PKG_VERSION="9e43646b43ca3bf80a50edfc1a212d2c702b617d"
-# PKG_ARCH="arm"
-# PKG_SITE="https://github.com/JohnnyonFlame/droidports"
- PKG_VERSION="83b5d27c29f56d4bdb38c7576b1ba830f3a48e84"
- PKG_ARCH="arm"
- PKG_SITE="https://github.com/JohnnyonFlame/gmloader-next"
+PKG_VERSION="9e43646b43ca3bf80a50edfc1a212d2c702b617d"
+PKG_ARCH="arm"
+PKG_SITE="https://github.com/JohnnyonFlame/droidports"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_image openal-soft bzip2 libzip libpng"
 PKG_LONGDESC="A repository for experimenting with elf loading and in-place patching of android native libraries on non-android operating systems."
