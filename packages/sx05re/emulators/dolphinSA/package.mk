@@ -3,7 +3,8 @@
 
 PKG_NAME="dolphinSA"
 #PKG_VERSION="3c4d4fcd09173ea070dc812ab5d64ca3a3af5f29"
-PKG_VERSION="fd94ff252d700fb6594bb4eeadfe92e23cd881e9"
+#PKG_VERSION="Oct 31, 2024, 92608073eff2b1d8e2b279ac02778585b2432bad"
+PKG_VERSION="a68ae37df7168464459f395d2af3bee979a146ad"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/dolphin-emu/dolphin"
