@@ -2,14 +2,12 @@
 # Copyright (C) 2019 Trond Haugland (trondah@gmail.com)
 
 PKG_NAME="multiemu"
-PKG_VERSION="750b36ca4cc65e7142f97d0ffd0235085bbd20f7"
-#PKG_SHA256="59e87dae8daa7dbbed104c4b7776a24cb7c2067748f48e5b852bae4830204b0b"
-PKG_SHA256="d7e67d9c9dad1131cd1fafde745120624549d151d480dad5fe07274760c9b85d"
+PKG_VERSION="20db0f242e4e11a476b548dd57d2ef9cc3e84f03"
+PKG_SHA256="8c414d6dea547d6819cc91be5bfbe1a6ce8d7ec71083e42046c489ebff7c4c73"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mame"
-#PKG_URL="https://github.com/libretro/mame/archive/$PKG_VERSION.tar.gz"
-PKG_URL="https://github.com/libretro/mame/archive/750b36ca4cc65e7142f97d0ffd0235085bbd20f7.tar.gz"
+PKG_URL="https://github.com/libretro/mame/archive/$PKG_VERSION.tar.gz"
 PKG_DEPENDS_TARGET="toolchain zlib flac sqlite expat"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="Apple 2, Fmtowns and pgm2 MAME -  Multiple Arcade Machine Emulator"
