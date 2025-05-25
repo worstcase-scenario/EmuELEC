@@ -1,35 +1,28 @@
 #!/bin/sh
 """:"
-# Shell part
+# Shell-Teil
 /usr/bin/systemctl stop eventlircd
 exec python3 "$0" "$@"
 """
-# Python code starts here
 
-import os
+
 import sysconfig
-import evdev
-import uinput
-
-# Automatically detect screen resolution
-SCREEN_WIDTH = int(os.popen("xrandr | grep '*' | awk '{print $1}' | cut -d 'x' -f1").read().strip())
-SCREEN_HEIGHT = int(os.popen("xrandr | grep '*' | awk '{print $1}' | cut -d 'x' -f2").read().strip())
-
-# Maximum IR coordinates
-MAX_IR_X = 1023
-MAX_IR_Y = 767
-IR_DEVICE_NAME = "Nintendo Wii Remote IR"
-
-# Ensure sysconfig recognizes the .so extension
 if sysconfig.get_config_var("SO") is None:
     import sys
     sysconfig._CONFIG_VARS["SO"] = ".so"
 
-# Function to normalize coordinates
+import evdev
+import uinput
+
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1080
+MAX_IR_X = 1023
+MAX_IR_Y = 767
+IR_DEVICE_NAME = "Nintendo Wii Remote IR"
+
 def normalize(val, max_val, screen_size):
     return int((val / max_val) * screen_size)
 
-# Find IR device
 def find_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for dev in devices:
@@ -38,7 +31,6 @@ def find_ir_device():
             return dev
     raise RuntimeError("❌ Wiimote IR device not found")
 
-# Main function
 def main():
     ir_dev = find_ir_device()
 
@@ -46,7 +38,7 @@ def main():
         uinput.ABS_X + (0, SCREEN_WIDTH, 0, 0),
         uinput.ABS_Y + (0, SCREEN_HEIGHT, 0, 0),
         uinput.BTN_LEFT
-    ], name="Wiimote IR")  # Set device name
+    ], name="Wiimote IR")  # Hier kannst du den Gerätenamen setzen
 
     x = SCREEN_WIDTH // 2
     y = SCREEN_HEIGHT // 2
@@ -66,3 +58,4 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("Exit.")
+
