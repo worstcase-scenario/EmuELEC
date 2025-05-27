@@ -1,6 +1,6 @@
 #!/bin/sh
 """:"
-# Shell-Teil
+
 /usr/bin/systemctl stop eventlircd
 exec python3 "$0" "$@"
 """
@@ -38,7 +38,7 @@ def main():
         uinput.ABS_X + (0, SCREEN_WIDTH, 0, 0),
         uinput.ABS_Y + (0, SCREEN_HEIGHT, 0, 0),
         uinput.BTN_LEFT
-    ], name="Wiimote IR")  # Hier kannst du den Gerätenamen setzen
+    ], name="Wiimote IR")  
 
     x = SCREEN_WIDTH // 2
     y = SCREEN_HEIGHT // 2
