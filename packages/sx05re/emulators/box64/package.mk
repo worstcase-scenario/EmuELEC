@@ -2,7 +2,7 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="box64"
-PKG_VERSION="127d72da17a076beb564d0f21f14bbad5b27d755"
+PKG_VERSION="f7302ecb1b08831037cb067bd62863b90768604a"
 
 # amlogic-old uses older linux headers not compatible with newer versions
 [ "${DEVICE}" == "Amlogic-old" ] && PKG_VERSION="6392550208eadf07419692920acc2955bb844af7"

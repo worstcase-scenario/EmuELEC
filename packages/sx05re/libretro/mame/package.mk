@@ -65,4 +65,11 @@ makeinstall_target() {
   cp *.so ${INSTALL}/usr/lib/libretro/
   mkdir -p ${INSTALL}/usr/config/retroarch/savefiles/mame/hi
   cp plugins/hiscore/hiscore.dat ${INSTALL}/usr/config/retroarch/savefiles/mame/hi
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/mame
+  cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/mame
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/mame/hash
+  cp -rf $PKG_BUILD/hash/fmtowns_cd.xml ${INSTALL}/usr/config/emuelec/configs/mame/hash
+  cp -rf $PKG_BUILD/hash/apple*.xml ${INSTALL}/usr/config/emuelec/configs/mame/hash
+  mkdir -p ${INSTALL}/usr/bin
+  cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
 }
