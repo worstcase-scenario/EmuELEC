@@ -356,8 +356,6 @@ case ${PLATFORM} in
         esac
 elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
-"$EMU">>/emuelec/bin/text
-"$PLATFORM">>/emuelec/bin/plat
 
 case ${PLATFORM} in
 "fmtmarty")
