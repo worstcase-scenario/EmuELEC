@@ -19,8 +19,8 @@
 ################################################################################
 
 PKG_NAME="gearcoleco"
-PKG_VERSION="1d92a163a4965327241502a366771638acdec348"
-PKG_SHA256="ab36262c6451a8bc92e0ee2f7a83af7ab8b7a40e51715cca2884f004d9e8551e"
+PKG_VERSION="e8a68a171763d1a98e026cd8a34a6f6c94002c7e"
+PKG_SHA256="8107f9d5969c02fd1823176a91c54d8ff360c55f18af73ecd696f5a9bcab7e77"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv3"
