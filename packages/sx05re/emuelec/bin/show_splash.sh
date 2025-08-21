@@ -194,7 +194,7 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
         else
                if [[ "$EXTENSION" == "mp4" || "$EXTENSION" == "MP4" ]]; then
                     if [[ -f "tmp/Plibretro.p" ]]; then
-                         ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
+                         ${PLAYER} -fs -autoexit ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                      else
                          ${PLAYER} -fs -autoexit ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                     fi
@@ -203,7 +203,7 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
                 ${PLAYER} -fs ${SIZE} -vf scale=${SCALE}  "${SPLASH}" > /dev/null 2>&1 & sleep 3 && ACTION_TYPE="stopplayer"
                 else
                    if [[ -f "tmp/Plibretro.p" ]]; then
-                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
+                     ${PLAYER} -fs -autoexit ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                    else
                      ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 & sleep 3 
                    fi
