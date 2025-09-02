@@ -1,0 +1,20 @@
+[Unit]
+Description=Librespot (Spotify Connect)
+After=local-fs.target sound.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/storage/roms/ports/librespot
+Environment=HOME=/storage
+Environment=XDG_DATA_HOME=/storage/roms/ports/librespot/conf
+Environment=LD_LIBRARY_PATH=/storage/roms/ports/librespot/libs
+ExecStart=/storage/roms/ports/librespot/librespot \
+  --name PORTMASTER --bitrate 320 \
+  --cache /storage/roms/ports/librespot/cache \
+  --device-type gameconsole --backend rodio
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
