@@ -144,4 +144,13 @@
 		<genre>script</genre>
 		<image>./setup_images/scummvm.png</image>
 	</game>
+        <game>
+                <path>./bluetoothaudio.py</path>
+                <name>Bluetooth Audio</name>
+                <desc>Setup Bluetooth audio devices</desc>
+                <developer>Emuelec</developer>
+                <publisher>Emuelec</publisher>
+                <genre>script</genre>
+                <image>./setup_images/wifi.png</image>
+        </game>
 </gameList>

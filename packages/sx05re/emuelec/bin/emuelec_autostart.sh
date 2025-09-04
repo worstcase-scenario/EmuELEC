@@ -128,6 +128,12 @@ systemctl restart bluetooth
 emuelec-bluetooth ${BTSCANTIME} &
 fi
 
+# Start Bluetooth audio helper if enabled
+BTAUDIO=$(get_ee_setting ee_bluetooth_audio.enabled)
+if [[ "${BTAUDIO}" == "1" ]]; then
+    /emuelec/bin/scripts/scriptmodules/supplementary/bluetoothaudio.py --reconnect &
+fi
+
 # What to start at boot?
 DEFE=$(get_ee_setting ee_boot)
 

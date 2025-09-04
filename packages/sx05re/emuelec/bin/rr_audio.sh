@@ -49,6 +49,12 @@ pulseaudio_sink_load() {
         fi
       fi
     fi
+    BLUETOOTH_SINK="$(pactl list short sinks | awk '/bluez_sink/{print $2; exit}')"
+    if [ -n "${BLUETOOTH_SINK}" ] && ! pactl info | grep -q "Default Sink: ${BLUETOOTH_SINK}"; then
+      pactl set-default-sink "${BLUETOOTH_SINK}"
+      pactl set-sink-volume "${BLUETOOTH_SINK}" ${RR_AUDIO_VOLUME}%
+      echo "Set-Audio: PulseAudio will use sink ${BLUETOOTH_SINK}"
+    fi
   fi
 }
 
