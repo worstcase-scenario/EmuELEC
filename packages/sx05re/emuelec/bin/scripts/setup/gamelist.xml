@@ -16,7 +16,7 @@
 		<developer>worstcase_scenario </developer>
 		<genre>script</genre>
 		<image>./setup_images/btconnect.png</image>
-	</game
+	</game>
 	<game>
 		<path>./create_rom_dirs.sh</path>
 		<name>Create ROM Dirs</name>
