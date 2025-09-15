@@ -6,7 +6,7 @@ PKG_NAME="emuelec-emulationstation"
 #last_EmuELEC_PKG_VERSION="a107a53ac050e4cb0dbefa7e74e74448567a93ed"
 
 PKG_GIT_CLONE_BRANCH="EmuELEC"
-PKG_VERSION="c776ede342fb767f2875f6733616c7b15920240c"
+PKG_VERSION="bb4408fc8703dd959747d628bc8d49dd40c43001"
 
 #PKG_GIT_CLONE_BRANCH="codex/add-video-file-support-for-loading-screens-b55emm"
 #PKG_VERSION="a5c79b8ffae2bc74ce741d148fda9c03a94ae41b"
