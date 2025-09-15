@@ -1,11 +1,12 @@
 #!/bin/bash
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2019-present SumavisionQ5 (https://github.com/SumavisionQ5)
-# Modifications by Shanti Gilbert (https://github.com/shantigilbert)
-# 2025-present Mod by DiegroSan
 
-# 12/07/2019 use mpv for all splash 
-# 19/01/2020 use ffplay for all splash 
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Original Copyright (C) 2019-present SumavisionQ5
+# Modifications by Shanti Gilbert
+# 2025-present Mod by DiegroSan + fullscreen fixes
+
+# 12/07/2019 use mpv for all splash
+# 19/01/2020 use ffplay for all splash
 # 06/02/2020 move splash to roms folder and add global splash support
 
 . /etc/profile
@@ -187,9 +188,9 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ "${VIDEO}" != "1" ]
   else
     # ffplay branch
     if [[ "${EXTENSION,,}" = "mp4" ]]; then
-      ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" "${SPLASH}" > /dev/null 2>&1
+      ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -an "${SPLASH}" > /dev/null 2>&1
     else
-      ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -loop 1 -t 3 "${SPLASH}" > /dev/null 2>&1
+      ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -loop 1 -t 3 -an "${SPLASH}" > /dev/null 2>&1
     fi
   fi
 else

@@ -154,8 +154,13 @@ CLOUD_PID=$!
 
 # Loading start
 rm "tmp/Plibretro.p"
-[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p" && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}" & 
-[[ "${LIBRETRO}" != "yes" ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+rm -f "/tmp/Plibretro.p"
+if [[ "${LIBRETRO}" = "yes" ]]; then
+   touch "/tmp/Plibretro.p"
+   emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+ else
+   emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+ fi
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
@@ -611,6 +616,5 @@ else
     echo "exit 0" >> ${EMUELECLOG}
     echo "return_from_game" > /tmp/es_return_from_game
     blank_buffer
-	echo "return_from_game" > /tmp/es_return_from_game
     exit 0
 fi
