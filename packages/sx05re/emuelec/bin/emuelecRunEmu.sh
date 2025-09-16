@@ -155,12 +155,6 @@ CLOUD_PID=$!
 # Loading start
 rm "tmp/Plibretro.p"
 rm -f "/tmp/Plibretro.p"
-if [[ "${LIBRETRO}" = "yes" ]]; then
-   touch "/tmp/Plibretro.p"
-   emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
- else
-   emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
- fi
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
@@ -492,9 +486,18 @@ if [ "${USELOG}" == "1" ]; then # No need to do all this if log is disabled
     eval echo ${RUNTHIS} >> ${EMUELECLOG}
 fi
 
-gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
-
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
+
+# Prepare the video output as late as possible so the loading splash covers
+# most of the setup work instead of leaving a long black screen before
+# launching the emulator (especially RetroArch).
+if [[ "${LIBRETRO}" = "yes" ]]; then
+    touch "/tmp/Plibretro.p"
+fi
+
+emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+
+gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 # Execute the command and try to output the results to the log file if it was not disabled.
 if [[ ${LOGEMU} == "Yes" ]]; then
