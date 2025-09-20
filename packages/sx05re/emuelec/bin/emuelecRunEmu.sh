@@ -75,6 +75,45 @@ set_kill_keys() {
     KILLSIGNAL=${2}
 }
 
+monitor_loading_output() {
+    local triggered=0
+    local timeout="${EE_SPLASH_TIMEOUT:-15}"
+    local pattern_default='Video @|Average audio buffer saturation|Set audio driver to|Environ SET_PIXEL_FORMAT'
+    local pattern="${EE_SPLASH_PATTERN:-$pattern_default}"
+    local timer_pid=""
+
+    if [[ -n "${timeout}" ]] && [[ "${timeout}" =~ ^[0-9]+$ ]] && [[ "${timeout}" -gt 0 ]]; then
+        (
+            sleep "${timeout}"
+            ${TBASH} show_splash.sh stopplayer >/dev/null 2>&1
+        ) &
+        timer_pid=$!
+    fi
+
+    while IFS= read -r line; do
+        if [[ ${triggered} -eq 0 ]] && [[ -n "${pattern}" ]]; then
+            if [[ "${line}" =~ ${pattern} ]]; then
+                triggered=1
+                if [[ -n "${timer_pid}" ]]; then
+                    kill "${timer_pid}" >/dev/null 2>&1
+                    wait "${timer_pid}" 2>/dev/null
+                    timer_pid=""
+                fi
+                ${TBASH} show_splash.sh stopplayer >/dev/null 2>&1
+            fi
+        fi
+    done
+
+    if [[ ${triggered} -eq 0 ]]; then
+        ${TBASH} show_splash.sh stopplayer >/dev/null 2>&1
+    fi
+
+    if [[ -n "${timer_pid}" ]]; then
+        kill "${timer_pid}" >/dev/null 2>&1
+        wait "${timer_pid}" 2>/dev/null
+    fi
+}
+
 # Extract the platform name from the arguments
 PLATFORM="${arguments##*-P}"  # read from -P onwards
 PLATFORM="${PLATFORM%% *}"  # until a space is found
@@ -98,6 +137,15 @@ if [[ "${CORE}" == *"_32b"* ]]; then
     RABIN="retroarch32"
 else
     BIT32="No"
+fi
+
+SPLASH_DYNAMIC=$(get_ee_setting ee_splash.dynamic_stop)
+if [[ "${SPLASH_DYNAMIC}" == "1" ]]; then
+    export EE_SPLASH_DYNAMIC="1"
+    EE_SPLASH_PATTERN=$(get_ee_setting ee_splash.dynamic_stop_pattern)
+    export EE_SPLASH_PATTERN
+    EE_SPLASH_TIMEOUT=$(get_ee_setting ee_splash.dynamic_timeout)
+    export EE_SPLASH_TIMEOUT
 fi
 
 if [[ "${EMULATOR}" = "libretro" ]]; then
@@ -154,7 +202,7 @@ CLOUD_PID=$!
 
 # Loading start
 rm "tmp/Plibretro.p"
-[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p" && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}" & 
+[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p" && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}" &
 [[ "${LIBRETRO}" != "yes" ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
@@ -527,12 +575,26 @@ gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 # Execute the command and try to output the results to the log file if it was not disabled.
 if [[ ${LOGEMU} == "Yes" ]]; then
    echo "Emulator Output is:" >> ${EMUELECLOG}
-   eval ${RUNTHIS} >> ${EMUELECLOG} 2>&1
-   ret_error=${?}
+   if [[ "${SPLASH_DYNAMIC}" == "1" && "${LIBRETRO}" == "yes" ]]; then
+        set -o pipefail
+        eval ${RUNTHIS} 2>&1 | tee >(monitor_loading_output) >> ${EMUELECLOG}
+        ret_error=${PIPESTATUS[0]}
+        set +o pipefail
+   else
+        eval ${RUNTHIS} >> ${EMUELECLOG} 2>&1
+        ret_error=${?}
+   fi
 else
    echo "Emulator log was dissabled" >> ${EMUELECLOG}
-   eval ${RUNTHIS} > /dev/null 2>&1
-   ret_error=${?}
+   if [[ "${SPLASH_DYNAMIC}" == "1" && "${LIBRETRO}" == "yes" ]]; then
+        set -o pipefail
+        eval ${RUNTHIS} 2>&1 | tee >(monitor_loading_output) > /dev/null
+        ret_error=${PIPESTATUS[0]}
+        set +o pipefail
+   else
+        eval ${RUNTHIS} > /dev/null 2>&1
+        ret_error=${?}
+   fi
 fi
 
 #blank_buffer
