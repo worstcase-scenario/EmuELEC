@@ -227,14 +227,13 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
                         touch "${SPLASH_MARKER}"
                         ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} ${PLAYER_LOOP_OPTS} "${SPLASH}" > /dev/null 2>&1 &
                     else
-                        if [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
-                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
-                        elif [[ "${ACTION_TYPE}" == "exit" ]]; then
+                        if [[ "${ACTION_TYPE}" == "exit" ]]; then
                             ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1
                             blank_buffer
+                        elif [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                         else
-                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 &
-                            sleep 3
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1
                         fi
                     fi
                 elif [ "${ACTION_TYPE}" == "exit" ]; then
