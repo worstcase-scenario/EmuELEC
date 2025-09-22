@@ -140,7 +140,16 @@ else
     BIT32="No"
 fi
 
-SPLASH_DYNAMIC=$(get_ee_setting ee_splash.dynamic_stop)
+SPLASH_DYNAMIC_RAW=$(get_ee_setting ee_splash.dynamic_stop)
+case "${SPLASH_DYNAMIC_RAW,,}" in
+    1|true|yes|on|enabled)
+        SPLASH_DYNAMIC="1"
+        ;;
+    *)
+        SPLASH_DYNAMIC="0"
+        ;;
+esac
+
 if [[ "${SPLASH_DYNAMIC}" == "1" ]]; then
     export EE_SPLASH_DYNAMIC="1"
     EE_SPLASH_PATTERN=$(get_ee_setting ee_splash.dynamic_stop_pattern)
