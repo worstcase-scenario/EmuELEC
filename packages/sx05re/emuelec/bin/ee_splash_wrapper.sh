@@ -25,6 +25,37 @@ is_shell_like() {
     return 1
 }
 
+has_non_shell_descendant() {
+    local root_pid=$1
+    local -A seen=()
+    local queue=("${root_pid}")
+    local idx=0
+
+    while (( idx < ${#queue[@]} )); do
+        local current_pid=${queue[idx]}
+        ((idx++))
+
+        while IFS= read -r child_pid; do
+            child_pid=${child_pid//[[:space:]]/}
+            [[ -z "${child_pid}" ]] && continue
+            if [[ ${seen[${child_pid}]+_} ]]; then
+                continue
+            fi
+            seen["${child_pid}"]=1
+
+            local child_exe
+            child_exe=$(readlink -f "/proc/${child_pid}/exe" 2>/dev/null || true)
+            if [[ -n "${child_exe}" ]] && ! is_shell_like "${child_exe}"; then
+                return 0
+            fi
+
+            queue+=("${child_pid}")
+        done < <(ps -o pid= --ppid "${current_pid}" 2>/dev/null)
+    done
+
+    return 1
+}
+
 monitor_pid() {
     local target_pid=$1
     local timeout="${EE_SPLASH_TIMEOUT:-15}"
@@ -38,16 +69,10 @@ monitor_pid() {
             return
         fi
 
-        local children
-        children=$(cat "/proc/${target_pid}/task/${target_pid}/children" 2>/dev/null || true)
-        for child in ${children}; do
-            local child_exe
-            child_exe=$(readlink -f "/proc/${child}/exe" 2>/dev/null || true)
-            if [[ -n "${child_exe}" ]] && ! is_shell_like "${child_exe}"; then
-                stop_splash
-                return
-            fi
-        done
+        if has_non_shell_descendant "${target_pid}"; then
+            stop_splash
+            return
+        fi
 
         if [[ -n "${timeout}" && "${timeout}" =~ ^[0-9]+$ ]]; then
             local now=$(date +%s)
