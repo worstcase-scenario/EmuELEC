@@ -46,6 +46,8 @@ if [ "${ACTION_TYPE}" == "stopplayer" ] ; then
         rm -f "${SPLASH_MARKER}"
     fi
     killall "${PLAYER}" > /dev/null 2>&1
+    sleep 0.1
+    blank_buffer
     exit 0
 fi
 
@@ -227,13 +229,16 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
                     else
                         if [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
                             ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
+                        elif [[ "${ACTION_TYPE}" == "exit" ]]; then
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1
+                            blank_buffer
                         else
                             ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 &
                             sleep 3
                         fi
                     fi
                 elif [ "${ACTION_TYPE}" == "exit" ]; then
-                    # Game over presentation, 3 seconds for images or video duration + 3 seconds.
+                    # Game over presentation, show static art for 3 seconds before clearing the buffer.
                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE}  "${SPLASH}" > /dev/null 2>&1 & sleep 3 && ACTION_TYPE="stopplayer"
                 else
                     if [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
@@ -270,6 +275,8 @@ if [ "${ACTION_TYPE}" == "stopplayer" ] ; then
         rm -f "${SPLASH_MARKER}"
     fi
     killall "${PLAYER}" > /dev/null 2>&1
+    sleep 0.1
+    blank_buffer
 fi
 
 # Wait for the duration specified by ee_splash.delay in emuelec.conf
