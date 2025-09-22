@@ -13,6 +13,7 @@
 
 ACTION_TYPE="${1}"
 PLATFORM="${2}"
+EXTRA_FLAG="${4}"
 >/emuelec/logs/logx.txt
 echo ${PLATFORM} >> /emuelec/logs/logx.txt
 
@@ -22,6 +23,10 @@ DEFAULTSPLASH="/storage/.config/splash/splash-1080.png"
 VIDEOSPLASH="/usr/config/splash/emuelec_intro_1080p.mp4"
 RANDOMVIDEO="/storage/roms/splash/introvideos"
 DURATION="5"
+SPLASH_MARKER="/tmp/EE_SPLASH_ACTIVE"
+LIBRETRO_MARKER="/tmp/Plibretro.p"
+LOOP_MODE=0
+[[ "${EXTRA_FLAG}" == "loop" ]] && LOOP_MODE=1
 
 if [ -f "/storage/roms/splash/intro.mp4" ]; then
     VIDEOSPLASH="/storage/roms/splash/intro.mp4"
@@ -35,6 +40,16 @@ fi
 PLATFORM=${PLATFORM,,}
 PLAYER="ffplay"
 echo ${PLATFORM} >> /emuelec/logs/logx.txt
+
+if [ "${ACTION_TYPE}" == "stopplayer" ] ; then
+    if [[ -f "${SPLASH_MARKER}" ]]; then
+        rm -f "${SPLASH_MARKER}"
+    fi
+    killall "${PLAYER}" > /dev/null 2>&1
+    sleep 0.1
+    blank_buffer
+    exit 0
+fi
 
 case ${PLATFORM} in
  "arcade"|"fba"|"fbn"|"neogeo"|"mame"|cps*)
@@ -184,6 +199,21 @@ declare -a RES=( ${MODE} )
 SIZE=" -x ${RES[0]} -y ${RES[1]}"
 SCALE="${RES[0]}:${RES[1]}"
 EXTENSION="${SPLASH##*.}"
+EXTENSION_LOWER=$(echo "${EXTENSION}" | tr '[:upper:]' '[:lower:]')
+PLAYER_LOOP_OPTS=""
+if [[ "${PLAYER}" == "ffplay" ]]; then
+    PLAYER_LOOP_OPTS="-loop 0"
+elif [[ "${PLAYER}" == "mpv" ]]; then
+    PLAYER_LOOP_OPTS="--loop-file=inf --no-terminal"
+fi
+
+LIBRETRO_ACTIVE=0
+if [[ -f "${LIBRETRO_MARKER}" ]]; then
+    LIBRETRO_ACTIVE=1
+fi
+if [[ "${ACTION_TYPE}" == "exit" ]]; then
+    LIBRETRO_ACTIVE=0
+fi
 
 [[ "${ACTION_TYPE}" != "intro" ]] && VIDEO=0 || VIDEO=$(get_ee_setting ee_bootvideo.enabled)
 
@@ -192,24 +222,32 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
         if [ "${SS_DEVICE}" == 1 ]; then
             ${PLAYER} "${SPLASH}" > /dev/null 2>&1
         else
-               if [[ "$EXTENSION" == "mp4" || "$EXTENSION" == "MP4" ]]; then
-                    if [[ -f "tmp/Plibretro.p" ]]; then
-                         ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
-                     else
-                         ${PLAYER} -fs -autoexit ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
+                if [[ "${EXTENSION_LOWER}" == "mp4" ]]; then
+                    if [[ "${LOOP_MODE}" == "1" && -n "${PLAYER_LOOP_OPTS}" ]]; then
+                        touch "${SPLASH_MARKER}"
+                        ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} ${PLAYER_LOOP_OPTS} "${SPLASH}" > /dev/null 2>&1 &
+                    else
+                        if [[ "${ACTION_TYPE}" == "exit" ]]; then
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1
+                            blank_buffer
+                        elif [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
+                        else
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1
+                        fi
                     fi
                 elif [ "${ACTION_TYPE}" == "exit" ]; then
-                # Game over presentation, 3 seconds for images or video duration + 3 seconds.
-                ${PLAYER} -fs ${SIZE} -vf scale=${SCALE}  "${SPLASH}" > /dev/null 2>&1 & sleep 3 && ACTION_TYPE="stopplayer"
+                    # Game over presentation, show static art for 3 seconds before clearing the buffer.
+                    ${PLAYER} -fs ${SIZE} -vf scale=${SCALE}  "${SPLASH}" > /dev/null 2>&1 & sleep 3 && ACTION_TYPE="stopplayer"
                 else
-                   if [[ -f "tmp/Plibretro.p" ]]; then
-                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
-                   else
-                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 & sleep 3 
-                   fi
+                    if [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
+                        ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
+                    else
+                        ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 & sleep 3
+                    fi
                 fi
             fi
-        fi 
+        fi
 else
     # Display intro video
     RND=$(get_ee_setting "ee_randombootvideo.enabled" == "1")
@@ -230,9 +268,14 @@ else
     # [ -e /storage/.config/asound.confs ] && mv /storage/.config/asound.confs /storage/.config/asound.conf
 fi
 
+# Handle deferred stop requests (e.g. exit splash sleep)
 if [ "${ACTION_TYPE}" == "stopplayer" ] ; then
-    killall "${PLAYER}"
-    #blank_buffer
+    if [[ -f "${SPLASH_MARKER}" ]]; then
+        rm -f "${SPLASH_MARKER}"
+    fi
+    killall "${PLAYER}" > /dev/null 2>&1
+    sleep 0.1
+    blank_buffer
 fi
 
 # Wait for the duration specified by ee_splash.delay in emuelec.conf

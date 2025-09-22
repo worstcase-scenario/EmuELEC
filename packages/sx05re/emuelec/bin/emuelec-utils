@@ -453,9 +453,10 @@ function createMultidisc() {
 }
 
 function init_app_video() {
-	local PLATFORM=$1
-	local ROMNAME=$2
-	local BASEROMNAME=${ROMNAME##*/}
+        local PLATFORM=$1
+        local ROMNAME=$2
+        local BASEROMNAME=${ROMNAME##*/}
+        local LIBRETRO_MARKER="/tmp/Plibretro.p"
 
 	blank_buffer
 
@@ -466,8 +467,21 @@ function init_app_video() {
 	[[ -z "$VIDEO_EMU" ]] && VIDEO_EMU=$(cat /tmp/EE_LASTVIDEO)
 
 	# Show splash screen if enabled
-	local SPL=$(get_ee_setting ee_splash.enabled)
-	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+        local SPL=$(get_ee_setting ee_splash.enabled)
+        if [ "${SPL}" -eq "1" ]; then
+                local SPLASH_FLAG=""
+                if [[ "${EE_SPLASH_DYNAMIC}" == "1" ]]; then
+                        if [[ -f "${LIBRETRO_MARKER}" || "${EE_SPLASH_STANDALONE}" == "1" ]]; then
+                                SPLASH_FLAG="loop"
+                        fi
+                fi
+
+                if [[ -n "${SPLASH_FLAG}" ]]; then
+                        ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}" "${SPLASH_FLAG}"
+                else
+                        ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+                fi
+        fi
 
 	# Set the display video to that of the emulator setting.
 	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}" # set display
@@ -481,8 +495,11 @@ function end_app_video() {
 	# Return to default mode
 	${TBASH} setres.sh ${LAST_VIDEO}
 
-	# Show exit splash
-	${TBASH} show_splash.sh exit
+        # Ensure any pending splash player is stopped before showing the exit splash
+        ${TBASH} show_splash.sh stopplayer > /dev/null 2>&1
+
+        # Show exit splash
+        ${TBASH} show_splash.sh exit
 
 	rm /tmp/EE_LASTVIDEO
 }
