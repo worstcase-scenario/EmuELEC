@@ -468,8 +468,13 @@ function init_app_video() {
 	# Show splash screen if enabled
         local SPL=$(get_ee_setting ee_splash.enabled)
         if [ "${SPL}" -eq "1" ]; then
-                if [[ "${EE_SPLASH_DYNAMIC}" == "1" ]]; then
-                        ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}" loop
+                local SPLASH_FLAG=""
+                if [[ "${EE_SPLASH_DYNAMIC}" == "1" && -f "tmp/Plibretro.p" ]]; then
+                        SPLASH_FLAG="loop"
+                fi
+
+                if [[ -n "${SPLASH_FLAG}" ]]; then
+                        ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}" "${SPLASH_FLAG}"
                 else
                         ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
                 fi
@@ -487,8 +492,11 @@ function end_app_video() {
 	# Return to default mode
 	${TBASH} setres.sh ${LAST_VIDEO}
 
-	# Show exit splash
-	${TBASH} show_splash.sh exit
+        # Ensure any pending splash player is stopped before showing the exit splash
+        ${TBASH} show_splash.sh stopplayer > /dev/null 2>&1
+
+        # Show exit splash
+        ${TBASH} show_splash.sh exit
 
 	rm /tmp/EE_LASTVIDEO
 }
