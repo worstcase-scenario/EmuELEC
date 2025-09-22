@@ -46,6 +46,7 @@ TBASH="/usr/bin/bash"
 RACONF="/storage/.config/retroarch/retroarch.cfg"
 NETPLAY="No"
 RABIN="retroarch"
+LIBRETRO_MARKER="/tmp/Plibretro.p"
 
 init_game
 
@@ -140,12 +141,15 @@ else
 fi
 
 SPLASH_DYNAMIC=$(get_ee_setting ee_splash.dynamic_stop)
-if [[ "${SPLASH_DYNAMIC}" == "1" ]]; then
+if [[ "${SPLASH_DYNAMIC}" == "1" && "${EMULATOR}" == "libretro" ]]; then
     export EE_SPLASH_DYNAMIC="1"
     EE_SPLASH_PATTERN=$(get_ee_setting ee_splash.dynamic_stop_pattern)
     export EE_SPLASH_PATTERN
     EE_SPLASH_TIMEOUT=$(get_ee_setting ee_splash.dynamic_timeout)
     export EE_SPLASH_TIMEOUT
+else
+    SPLASH_DYNAMIC="0"
+    unset EE_SPLASH_DYNAMIC EE_SPLASH_PATTERN EE_SPLASH_TIMEOUT
 fi
 
 if [[ "${EMULATOR}" = "libretro" ]]; then
@@ -201,8 +205,8 @@ CLOUD_SYNC=$(get_ee_setting "${PLATFORM}.cloudsave")
 CLOUD_PID=$!
 
 # Loading start
-rm "tmp/Plibretro.p"
-[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p" && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}" &
+rm -f "${LIBRETRO_MARKER}"
+[[ "${LIBRETRO}" = "yes" ]] && touch "${LIBRETRO_MARKER}" && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}" &
 [[ "${LIBRETRO}" != "yes" ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
@@ -605,7 +609,10 @@ fi
         reset > /dev/console < /dev/null 2>&1
         
 # END loading
-[[ "${LIBRETRO}" = "yes" ]] && ${TBASH} show_splash.sh "stopplayer"
+if [[ "${LIBRETRO}" = "yes" ]]; then
+    ${TBASH} show_splash.sh "stopplayer"
+    rm -f "${LIBRETRO_MARKER}"
+fi
 
 emuelec-utils end_app_video
 

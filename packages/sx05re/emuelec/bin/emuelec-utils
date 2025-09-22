@@ -453,9 +453,10 @@ function createMultidisc() {
 }
 
 function init_app_video() {
-	local PLATFORM=$1
-	local ROMNAME=$2
-	local BASEROMNAME=${ROMNAME##*/}
+        local PLATFORM=$1
+        local ROMNAME=$2
+        local BASEROMNAME=${ROMNAME##*/}
+        local LIBRETRO_MARKER="/tmp/Plibretro.p"
 
 	blank_buffer
 
@@ -469,7 +470,7 @@ function init_app_video() {
         local SPL=$(get_ee_setting ee_splash.enabled)
         if [ "${SPL}" -eq "1" ]; then
                 local SPLASH_FLAG=""
-                if [[ "${EE_SPLASH_DYNAMIC}" == "1" && -f "tmp/Plibretro.p" ]]; then
+                if [[ "${EE_SPLASH_DYNAMIC}" == "1" && -f "${LIBRETRO_MARKER}" ]]; then
                         SPLASH_FLAG="loop"
                 fi
 

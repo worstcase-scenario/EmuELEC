@@ -24,6 +24,7 @@ VIDEOSPLASH="/usr/config/splash/emuelec_intro_1080p.mp4"
 RANDOMVIDEO="/storage/roms/splash/introvideos"
 DURATION="5"
 SPLASH_MARKER="/tmp/EE_SPLASH_ACTIVE"
+LIBRETRO_MARKER="/tmp/Plibretro.p"
 LOOP_MODE=0
 [[ "${EXTRA_FLAG}" == "loop" ]] && LOOP_MODE=1
 
@@ -42,11 +43,9 @@ echo ${PLATFORM} >> /emuelec/logs/logx.txt
 
 if [ "${ACTION_TYPE}" == "stopplayer" ] ; then
     if [[ -f "${SPLASH_MARKER}" ]]; then
-        killall "${PLAYER}" > /dev/null 2>&1
         rm -f "${SPLASH_MARKER}"
-    else
-        killall "${PLAYER}" > /dev/null 2>&1
     fi
+    killall "${PLAYER}" > /dev/null 2>&1
     exit 0
 fi
 
@@ -206,6 +205,14 @@ elif [[ "${PLAYER}" == "mpv" ]]; then
     PLAYER_LOOP_OPTS="--loop-file=inf --no-terminal"
 fi
 
+LIBRETRO_ACTIVE=0
+if [[ -f "${LIBRETRO_MARKER}" ]]; then
+    LIBRETRO_ACTIVE=1
+fi
+if [[ "${ACTION_TYPE}" == "exit" ]]; then
+    LIBRETRO_ACTIVE=0
+fi
+
 [[ "${ACTION_TYPE}" != "intro" ]] && VIDEO=0 || VIDEO=$(get_ee_setting ee_bootvideo.enabled)
 
 if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]]; then
@@ -214,27 +221,22 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
             ${PLAYER} "${SPLASH}" > /dev/null 2>&1
         else
                 if [[ "${EXTENSION_LOWER}" == "mp4" ]]; then
-                    if [[ -f "tmp/Plibretro.p" ]]; then
-                        if [[ "${LOOP_MODE}" == "1" && -n "${PLAYER_LOOP_OPTS}" ]]; then
-                            touch "${SPLASH_MARKER}"
-                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} ${PLAYER_LOOP_OPTS} "${SPLASH}" > /dev/null 2>&1
-                        else
-                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
-                        fi
+                    if [[ "${LOOP_MODE}" == "1" && -n "${PLAYER_LOOP_OPTS}" ]]; then
+                        touch "${SPLASH_MARKER}"
+                        ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} ${PLAYER_LOOP_OPTS} "${SPLASH}" > /dev/null 2>&1 &
                     else
-                        if [[ "${LOOP_MODE}" == "1" && -n "${PLAYER_LOOP_OPTS}" ]]; then
-                            touch "${SPLASH_MARKER}"
-                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} ${PLAYER_LOOP_OPTS} "${SPLASH}" > /dev/null 2>&1 &
+                        if [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
+                            ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                         else
                             ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 &
+                            sleep 3
                         fi
-                        [[ "${LOOP_MODE}" != "1" ]] && sleep 3
                     fi
                 elif [ "${ACTION_TYPE}" == "exit" ]; then
                     # Game over presentation, 3 seconds for images or video duration + 3 seconds.
                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE}  "${SPLASH}" > /dev/null 2>&1 & sleep 3 && ACTION_TYPE="stopplayer"
                 else
-                    if [[ -f "tmp/Plibretro.p" ]]; then
+                    if [[ "${LIBRETRO_ACTIVE}" == "1" ]]; then
                         ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                     else
                         ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 & sleep 3
