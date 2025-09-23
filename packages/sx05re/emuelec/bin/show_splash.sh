@@ -19,63 +19,34 @@ PLATFORM="${2}"
 
 SPLASH_PID_FILE="/tmp/ee_splash_player.pid"
 
-stop_splash_player() {
-  local pid pgid attempt
+reset_video_overlay() {
+  local disable_video osd_clear
 
-  if [[ ! -f "${SPLASH_PID_FILE}" ]]; then
-    if type blank_buffer >/dev/null 2>&1; then
-      blank_buffer >/dev/null 2>&1
-    fi
-    return 0
+  disable_video="/sys/class/video/disable_video"
+  if [[ -w "${disable_video}" ]]; then
+    echo 1 > "${disable_video}" 2>/dev/null
+    echo 0 > "${disable_video}" 2>/dev/null
   fi
 
-  while read -r pid; do
-    [[ -z "${pid}" ]] && continue
-    if ! kill -0 "${pid}" 2>/dev/null; then
-      continue
-    fi
+  osd_clear="/sys/class/graphics/fb0/osd_clear"
+  if [[ -w "${osd_clear}" ]]; then
+    echo 1 > "${osd_clear}" 2>/dev/null
+  fi
+}
 
-    pgid="$(ps -o pgid= -p "${pid}" 2>/dev/null | tr -d ' ')"
+stop_splash_player() {
+  if [[ -f "${SPLASH_PID_FILE}" ]]; then
+    start-stop-daemon --stop \
+      --pidfile "${SPLASH_PID_FILE}" \
+      --retry TERM/5/KILL/5 >/dev/null 2>&1
+    rm -f "${SPLASH_PID_FILE}"
+  fi
 
-    if [[ -n "${pgid}" ]] && [[ "${pgid}" =~ ^[0-9]+$ ]]; then
-      kill -TERM -"${pgid}" 2>/dev/null
-    fi
-    kill -TERM "${pid}" 2>/dev/null
-
-    attempt=0
-    while kill -0 "${pid}" 2>/dev/null && (( attempt < 20 )); do
-      sleep 0.05
-      attempt=$((attempt + 1))
-    done
-
-    if kill -0 "${pid}" 2>/dev/null; then
-      if [[ -n "${pgid}" ]] && [[ "${pgid}" =~ ^[0-9]+$ ]]; then
-        kill -KILL -"${pgid}" 2>/dev/null
-      fi
-      kill -KILL "${pid}" 2>/dev/null
-    fi
-
-    attempt=0
-    while kill -0 "${pid}" 2>/dev/null && (( attempt < 40 )); do
-      sleep 0.05
-      attempt=$((attempt + 1))
-    done
-
-    if ! kill -0 "${pid}" 2>/dev/null; then
-      wait "${pid}" 2>/dev/null
-    fi
-  done < "${SPLASH_PID_FILE}"
-
-  rm -f "${SPLASH_PID_FILE}"
+  reset_video_overlay
 
   if type blank_buffer >/dev/null 2>&1; then
     blank_buffer >/dev/null 2>&1
   fi
-}
-
-record_splash_pid() {
-  local pid="${1}"
-  echo "${pid}" > "${SPLASH_PID_FILE}"
 }
 
 run_player_command() {
@@ -83,8 +54,19 @@ run_player_command() {
   shift
 
   if [[ "${background_mode}" -eq 1 ]]; then
-    nohup "$@" >/dev/null 2>&1 &
-    record_splash_pid "$!"
+    local -a cmd=("$@")
+    local exec_path
+
+    exec_path="$(command -v "${cmd[0]}")" || return 127
+
+    rm -f "${SPLASH_PID_FILE}"
+    start-stop-daemon --start \
+      --background \
+      --make-pidfile \
+      --pidfile "${SPLASH_PID_FILE}" \
+      --stdout /dev/null \
+      --stderr /dev/null \
+      --exec "${exec_path}" -- "${cmd[@]:1}"
   else
     "$@" >/dev/null 2>&1
   fi
