@@ -55,18 +55,22 @@ run_player_command() {
 
   if [[ "${background_mode}" -eq 1 ]]; then
     local -a cmd=("$@")
-    local exec_path
+    local exec_path splash_pid
 
     exec_path="$(command -v "${cmd[0]}")" || return 127
 
     rm -f "${SPLASH_PID_FILE}"
-    start-stop-daemon --start \
-      --background \
-      --make-pidfile \
-      --pidfile "${SPLASH_PID_FILE}" \
-      --stdout /dev/null \
-      --stderr /dev/null \
-      --exec "${exec_path}" -- "${cmd[@]:1}"
+
+    if command -v nohup >/dev/null 2>&1; then
+      nohup "${exec_path}" "${cmd[@]:1}" >/dev/null 2>&1 &
+    else
+      "${exec_path}" "${cmd[@]:1}" >/dev/null 2>&1 &
+    fi
+
+    splash_pid=$!
+    if [[ -n "${splash_pid}" ]] && kill -0 "${splash_pid}" >/dev/null 2>&1; then
+      echo "${splash_pid}" > "${SPLASH_PID_FILE}"
+    fi
   else
     "$@" >/dev/null 2>&1
   fi
