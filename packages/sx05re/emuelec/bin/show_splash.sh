@@ -20,25 +20,49 @@ PLATFORM="${2}"
 SPLASH_PID_FILE="/tmp/ee_splash_player.pid"
 
 stop_splash_player() {
-  local pid pgid
+  local pid pgid attempt
 
-  [ ! -f "${SPLASH_PID_FILE}" ] && return 0
+  if [[ ! -f "${SPLASH_PID_FILE}" ]]; then
+    if type blank_buffer >/dev/null 2>&1; then
+      blank_buffer >/dev/null 2>&1
+    fi
+    return 0
+  fi
 
   while read -r pid; do
     [[ -z "${pid}" ]] && continue
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      continue
+    fi
+
+    pgid="$(ps -o pgid= -p "${pid}" 2>/dev/null | tr -d ' ')"
+
+    if [[ -n "${pgid}" ]] && [[ "${pgid}" =~ ^[0-9]+$ ]]; then
+      kill -TERM -"${pgid}" 2>/dev/null
+    fi
+    kill -TERM "${pid}" 2>/dev/null
+
+    attempt=0
+    while kill -0 "${pid}" 2>/dev/null && (( attempt < 20 )); do
+      sleep 0.05
+      attempt=$((attempt + 1))
+    done
+
     if kill -0 "${pid}" 2>/dev/null; then
-      pgid="$(ps -o pgid= -p "${pid}" 2>/dev/null | tr -d ' ')"
-      if [[ -n "${pgid}" ]] && [[ "${pgid}" == "${pid}" ]]; then
-        kill -TERM -"${pgid}" 2>/dev/null
+      if [[ -n "${pgid}" ]] && [[ "${pgid}" =~ ^[0-9]+$ ]]; then
+        kill -KILL -"${pgid}" 2>/dev/null
       fi
-      kill -TERM "${pid}" 2>/dev/null
-      sleep 0.2
-      if kill -0 "${pid}" 2>/dev/null; then
-        if [[ -n "${pgid}" ]] && [[ "${pgid}" == "${pid}" ]]; then
-          kill -KILL -"${pgid}" 2>/dev/null
-        fi
-        kill -KILL "${pid}" 2>/dev/null
-      fi
+      kill -KILL "${pid}" 2>/dev/null
+    fi
+
+    attempt=0
+    while kill -0 "${pid}" 2>/dev/null && (( attempt < 40 )); do
+      sleep 0.05
+      attempt=$((attempt + 1))
+    done
+
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      wait "${pid}" 2>/dev/null
     fi
   done < "${SPLASH_PID_FILE}"
 
