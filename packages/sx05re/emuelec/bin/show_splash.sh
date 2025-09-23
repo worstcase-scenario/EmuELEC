@@ -20,22 +20,33 @@ PLATFORM="${2}"
 SPLASH_PID_FILE="/tmp/ee_splash_player.pid"
 
 stop_splash_player() {
-  local pid
+  local pid pgid
 
   [ ! -f "${SPLASH_PID_FILE}" ] && return 0
 
   while read -r pid; do
     [[ -z "${pid}" ]] && continue
     if kill -0 "${pid}" 2>/dev/null; then
-      kill -TERM -"${pid}" 2>/dev/null || kill -TERM "${pid}" 2>/dev/null
+      pgid="$(ps -o pgid= -p "${pid}" 2>/dev/null | tr -d ' ')"
+      if [[ -n "${pgid}" ]] && [[ "${pgid}" == "${pid}" ]]; then
+        kill -TERM -"${pgid}" 2>/dev/null
+      fi
+      kill -TERM "${pid}" 2>/dev/null
       sleep 0.2
       if kill -0 "${pid}" 2>/dev/null; then
-        kill -KILL -"${pid}" 2>/dev/null || kill -KILL "${pid}" 2>/dev/null
+        if [[ -n "${pgid}" ]] && [[ "${pgid}" == "${pid}" ]]; then
+          kill -KILL -"${pgid}" 2>/dev/null
+        fi
+        kill -KILL "${pid}" 2>/dev/null
       fi
     fi
   done < "${SPLASH_PID_FILE}"
 
   rm -f "${SPLASH_PID_FILE}"
+
+  if type blank_buffer >/dev/null 2>&1; then
+    blank_buffer >/dev/null 2>&1
+  fi
 }
 
 record_splash_pid() {
@@ -48,11 +59,7 @@ run_player_command() {
   shift
 
   if [[ "${background_mode}" -eq 1 ]]; then
-    if command -v setsid >/dev/null 2>&1; then
-      setsid "$@" >/dev/null 2>&1 &
-    else
-      "$@" >/dev/null 2>&1 &
-    fi
+    nohup "$@" >/dev/null 2>&1 &
     record_splash_pid "$!"
   else
     "$@" >/dev/null 2>&1
