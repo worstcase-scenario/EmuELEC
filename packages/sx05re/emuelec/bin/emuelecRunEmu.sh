@@ -524,12 +524,21 @@ gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 # Execute the command and try to output the results to the log file if it was not disabled.
 if [[ ${LOGEMU} == "Yes" ]]; then
    echo "Emulator Output is:" >> ${EMUELECLOG}
-   eval ${RUNTHIS} >> ${EMUELECLOG} 2>&1
-   ret_error=${?}
+   eval ${RUNTHIS} >> ${EMUELECLOG} 2>&1 &
+   EMULATOR_PID=$!
 else
    echo "Emulator log was dissabled" >> ${EMUELECLOG}
-   eval ${RUNTHIS} > /dev/null 2>&1
+   eval ${RUNTHIS} > /dev/null 2>&1 &
+   EMULATOR_PID=$!
+fi
+
+${TBASH} show_splash.sh "stopplayer"
+
+if [[ -n "${EMULATOR_PID}" ]]; then
+   wait "${EMULATOR_PID}"
    ret_error=${?}
+else
+   ret_error=1
 fi
 
 #blank_buffer
@@ -540,7 +549,7 @@ fi
         reset > /dev/console < /dev/null 2>&1
 
 # END loading
-[[ "${LIBRETRO}" = "yes" ]] && ${TBASH} show_splash.sh "stopplayer"
+${TBASH} show_splash.sh "stopplayer"
 
 emuelec-utils end_app_video
 

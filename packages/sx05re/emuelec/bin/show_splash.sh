@@ -17,6 +17,53 @@
 ACTION_TYPE="${1}"
 PLATFORM="${2}"
 
+SPLASH_PID_FILE="/tmp/ee_splash_player.pid"
+
+stop_splash_player() {
+  local pid
+
+  [ ! -f "${SPLASH_PID_FILE}" ] && return 0
+
+  while read -r pid; do
+    [[ -z "${pid}" ]] && continue
+    if kill -0 "${pid}" 2>/dev/null; then
+      kill -TERM -"${pid}" 2>/dev/null || kill -TERM "${pid}" 2>/dev/null
+      sleep 0.2
+      if kill -0 "${pid}" 2>/dev/null; then
+        kill -KILL -"${pid}" 2>/dev/null || kill -KILL "${pid}" 2>/dev/null
+      fi
+    fi
+  done < "${SPLASH_PID_FILE}"
+
+  rm -f "${SPLASH_PID_FILE}"
+}
+
+record_splash_pid() {
+  local pid="${1}"
+  echo "${pid}" > "${SPLASH_PID_FILE}"
+}
+
+run_player_command() {
+  local background_mode="${1}"
+  shift
+
+  if [[ "${background_mode}" -eq 1 ]]; then
+    if command -v setsid >/dev/null 2>&1; then
+      setsid "$@" >/dev/null 2>&1 &
+    else
+      "$@" >/dev/null 2>&1 &
+    fi
+    record_splash_pid "$!"
+  else
+    "$@" >/dev/null 2>&1
+  fi
+}
+
+[[ "${ACTION_TYPE}" = "stopplayer" ]] && {
+  stop_splash_player
+  exit 0
+}
+
 GAMELOADINGSPLASH="/storage/.config/splash/loading-game.png"
 BLANKSPLASH="/storage/.config/splash/blank.png"
 DEFAULTSPLASH="/storage/.config/splash/splash-1080.png"
@@ -28,6 +75,8 @@ RANDOMVIDEO="/storage/roms/splash/introvideos"
 PLATFORM=${PLATFORM,,}
 PLAYER_VID="ffplay"
 PLAYER_IMG="mpv"
+
+ASYNC_PLAY=0
 
 have_mpv=0; command -v mpv >/dev/null 2>&1 && have_mpv=1
 
@@ -65,9 +114,11 @@ elif [ "${ACTION_TYPE}" = "blank" ]; then
   SPLASH="${BLANKSPLASH}"
 
 elif [ "${ACTION_TYPE}" = "gameloading" ]; then
+  ASYNC_PLAY=1
+  stop_splash_player
   [[ "${MODE}" == *"x"* ]] && GAMELOADINGSPLASH="/storage/.config/splash/loading-game-std.png"
 
-	EE_SPLASH_LOADING="$(get_ee_setting ee_splashloading)"
+        EE_SPLASH_LOADING="$(get_ee_setting ee_splashloading)"
 	[[ -z "${EE_SPLASH_LOADING}" ]] && EE_SPLASH_LOADING=6
 	
 	CUSTOM_SPLASH_IMAGE="$(get_ee_setting ee_customsplashimage)"
@@ -132,24 +183,31 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
 
     if is_image "${SPLASH}"; then
       if [ "${have_mpv}" -eq 1 ]; then
-        ${PLAYER_IMG} --fullscreen --no-keepaspect --vf="${MPV_VF}" --image-display-duration=${DURATION} "${SPLASH}" >/dev/null 2>&1
+        CMD=("${PLAYER_IMG}" --fullscreen --no-keepaspect "--vf=${MPV_VF}")
+        [[ -n "${DURATION}" ]] && CMD+=("--image-display-duration=${DURATION}")
+        CMD+=("${SPLASH}")
+        run_player_command "${ASYNC_PLAY}" "${CMD[@]}"
       else
-        ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -t ${DURATION} -loop 1 -framerate 1 -i "${SPLASH}" >/dev/null 2>&1
+        CMD=(ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}")
+        [[ -n "${DURATION}" ]] && CMD+=(-t "${DURATION}")
+        CMD+=(-loop 1 -framerate 1 -i "${SPLASH}")
+        run_player_command "${ASYNC_PLAY}" "${CMD[@]}"
       fi
     elif is_video "${SPLASH}"; then
-      if [ -n "${DURATION}" ] && [ "${DURATION}" -gt 0 ]; then
-        if [ "${PLAYER_VID}" = "ffplay" ]; then
-          ${PLAYER_VID} -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -t ${DURATION} -i "${SPLASH}" >/dev/null 2>&1
-        else
-          ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" --length=${DURATION} "${SPLASH}" >/dev/null 2>&1
+      if [ "${PLAYER_VID}" = "ffplay" ]; then
+        CMD=("${PLAYER_VID}" -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}")
+        if [ -n "${DURATION}" ] && [ "${DURATION}" -gt 0 ]; then
+          CMD+=(-t "${DURATION}")
         fi
+        CMD+=(-i "${SPLASH}")
       else
-        if [ "${PLAYER_VID}" = "ffplay" ]; then
-          ${PLAYER_VID} -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
-        else
-          ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1
+        CMD=("${PLAYER_VID}" --fullscreen --no-keepaspect "--vf=${MPV_VF}")
+        if [ -n "${DURATION}" ] && [ "${DURATION}" -gt 0 ]; then
+          CMD+=("--length=${DURATION}")
         fi
+        CMD+=("${SPLASH}")
       fi
+      run_player_command "${ASYNC_PLAY}" "${CMD[@]}"
     fi
   fi
 else
@@ -164,13 +222,20 @@ else
   set_audio alsa
 
   if [ ${SS_DEVICE} -eq 1 ]; then
-    ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1
+    CMD=("${PLAYER_VID}" --fullscreen --no-keepaspect "--vf=${MPV_VF}")
+    CMD+=("${SPLASH}")
+    run_player_command "${ASYNC_PLAY}" "${CMD[@]}"
   else
-    ${PLAYER_VID} -fs -autoexit -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
+    CMD=("${PLAYER_VID}" -fs -autoexit -vf "${FILTER_FILL}" -i "${SPLASH}")
+    run_player_command "${ASYNC_PLAY}" "${CMD[@]}"
   fi
 
   touch "/storage/.config/emuelec/configs/novideo"
 fi
 
-SPLASHTIME="$(get_ee_setting ee_splash.delay)"
-[ -n "${SPLASHTIME}" ] && sleep "${SPLASHTIME}"
+if [[ "${ASYNC_PLAY}" -eq 0 ]]; then
+  SPLASHTIME="$(get_ee_setting ee_splash.delay)"
+  [ -n "${SPLASHTIME}" ] && sleep "${SPLASHTIME}"
+fi
+
+exit 0
