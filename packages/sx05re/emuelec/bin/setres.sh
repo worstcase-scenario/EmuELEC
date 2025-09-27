@@ -17,6 +17,12 @@
 
 FILE_MODE="/sys/class/display/mode"
 PLATFORM=""
+SKIP_FB_CLEAR="${EE_SKIP_FB_CLEAR:-0}"
+
+blank_if_allowed() {
+  [[ "${SKIP_FB_CLEAR}" == "1" ]] && return
+  blank_buffer "$@"
+}
 
 #here we look for the best framebuffer; the default is fb0, but on some devices it is fb1. Here we choose the best available,
 #thus achieving the best video performance. 
@@ -44,7 +50,7 @@ switch_resolution()
 
   # Here we first clear the primary display buffer of leftover artifacts then set
   # the secondary small buffers flag to stop copying across.
-  blank_buffer >> /dev/null
+  blank_if_allowed >> /dev/null
 
   case ${MODE} in
     480cvbs|576cvbs|480p*|480i*|576p*|720p*|1080p*|1440p*|2160p*|576i*|720i*|1080i*|1440i*|2160i*|*x*)
@@ -161,7 +167,7 @@ FBH=0
 
 # Here we first clear the primary display buffer of leftover artifacts then set
 # the secondary small buffers flag to stop copying across.
-blank_buffer >> /dev/null
+blank_if_allowed >> /dev/null
 
 # The current display mode before it may get changed below.
 OLD_MODE=$( cat ${FILE_MODE} )
@@ -227,7 +233,7 @@ CURRENT_MODE=$( cat ${FILE_MODE} )
 if [[ "${CURRENT_MODE}" == "${MODE}" ]]; then
   echo "SET MAIN FRAME BUFFER"
   set_main_framebuffer ${FBW} ${FBH} 
-  blank_buffer
+  blank_if_allowed
 fi
 
 # Now that the primary buffer has been acquired we blank it again because the new

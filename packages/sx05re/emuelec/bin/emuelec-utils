@@ -470,7 +470,7 @@ function init_app_video() {
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
 
 	# Set the display video to that of the emulator setting.
-	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}" # set display
+        [ ! -z "${VIDEO_EMU}" ] && EE_SKIP_FB_CLEAR=1 ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}"
 }
 
 function end_app_video() {
