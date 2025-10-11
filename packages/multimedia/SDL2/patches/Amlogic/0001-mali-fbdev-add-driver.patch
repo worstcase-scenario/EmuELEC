@@ -647,7 +647,8 @@ index 000000000..65c81d9a4
 @@ -0,0 +1,54 @@
 +#include "../../SDL_internal.h"
 +
-+#pragma once
++#ifndef _SDL_malivideo_h
++#define _SDL_malivideo_h
 +
 +#include "../SDL_sysvideo.h"
 +
@@ -699,6 +700,8 @@ index 000000000..65c81d9a4
 +
 +/* Event functions */
 +void MALI_PumpEvents(_THIS);
++
++#endif /* _SDL_malivideo_h */
 
 -- 
 2.37.1
