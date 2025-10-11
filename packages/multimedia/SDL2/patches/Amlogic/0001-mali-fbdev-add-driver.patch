@@ -438,11 +438,13 @@ index 000000000..557c13f67
 +
 +    fd = open("/dev/fb0", O_RDWR, 0);
 +    if (fd < 0) {
++        SDL_free(data);
 +        return SDL_SetError("mali-fbdev: Could not open framebuffer device");
 +    }
 +
 +    if (ioctl(fd, FBIOGET_VSCREENINFO, &vinfo) < 0) {
-+        MALI_VideoQuit(_this);
++        close(fd);
++        SDL_free(data);
 +        return SDL_SetError("mali-fbdev: Could not get framebuffer information");
 +    }
 +    /* Enable triple buffering */
@@ -519,8 +521,13 @@ index 000000000..557c13f67
 +{
 +    SDL_WindowData *windowdata;
 +    SDL_DisplayData *displaydata;
++    SDL_VideoDisplay *display;
 +
-+    displaydata = SDL_GetDisplayDriverData(0);
++    display = SDL_GetDisplayForWindow(window);
++    displaydata = (display != NULL) ? (SDL_DisplayData *) display->driverdata : NULL;
++    if (displaydata == NULL) {
++        return SDL_SetError("mali-fbdev: Missing display configuration");
++    }
 +
 +    /* Allocate window internal data */
 +    windowdata = (SDL_WindowData *) SDL_calloc(1, sizeof(SDL_WindowData));
@@ -540,13 +547,14 @@ index 000000000..557c13f67
 +
 +    if (!_this->egl_data) {
 +        if (SDL_GL_LoadLibrary(NULL) < 0) {
++            SDL_free(windowdata);
 +            return -1;
 +        }
 +    }
 +    windowdata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType) &windowdata->native_window);
 +
 +    if (windowdata->egl_surface == EGL_NO_SURFACE) {
-+        MALI_VideoQuit(_this);
++        SDL_free(windowdata);
 +        return SDL_SetError("mali-fbdev: Can't create EGL window surface");
 +    }
 +
@@ -637,8 +645,7 @@ index 000000000..65c81d9a4
 --- /dev/null
 +++ b/src/video/mali-fbdev/SDL_malivideo.h
 @@ -0,0 +1,54 @@
-+#ifndef _SDL_malivideo_h
-+#define _SDL_malivideo_h
++#pragma once
 +
 +#include "../../SDL_internal.h"
 +#include "../SDL_sysvideo.h"
@@ -646,6 +653,7 @@ index 000000000..65c81d9a4
 +#include "SDL_egl.h"
 +
 +#include <EGL/egl.h>
++#include <EGL/fbdev_window.h>
 +#include <linux/vt.h>
 +#include <linux/fb.h>
 +#include <sys/types.h>
@@ -690,8 +698,6 @@ index 000000000..65c81d9a4
 +
 +/* Event functions */
 +void MALI_PumpEvents(_THIS);
-+
-+#endif /* _SDL_malivideo_h */
 +
 -- 
 2.37.1
