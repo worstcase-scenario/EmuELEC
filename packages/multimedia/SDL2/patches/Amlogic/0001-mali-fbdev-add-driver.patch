@@ -531,7 +531,7 @@ index 000000000..557c13f67
 +    /* Windows have one size for now */
 +    window->w = displaydata->width;
 +    window->h = displaydata->height;
-
++
 +    windowdata->native_window.width = window->w;
 +    windowdata->native_window.height = window->h;
 +
