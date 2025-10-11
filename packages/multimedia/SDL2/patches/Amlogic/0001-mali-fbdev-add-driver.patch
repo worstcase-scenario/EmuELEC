@@ -455,8 +455,8 @@ index 000000000..557c13f67
 +    close(fd);
 +    system("setterm -cursor off");
 +
-+    data->native_display.width = vinfo.xres;
-+    data->native_display.height = vinfo.yres;
++    data->width = vinfo.xres;
++    data->height = vinfo.yres;
 +
 +    SDL_zero(current_mode);
 +    current_mode.w = vinfo.xres;
@@ -529,8 +529,11 @@ index 000000000..557c13f67
 +    }
 +
 +    /* Windows have one size for now */
-+    window->w = displaydata->native_display.width;
-+    window->h = displaydata->native_display.height;
++    window->w = displaydata->width;
++    window->h = displaydata->height;
+
++    windowdata->native_window.width = window->w;
++    windowdata->native_window.height = window->h;
 +
 +    /* OpenGL ES is the law here */
 +    window->flags |= SDL_WINDOW_OPENGL;
@@ -540,7 +543,7 @@ index 000000000..557c13f67
 +            return -1;
 +        }
 +    }
-+    windowdata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType) &displaydata->native_display);
++    windowdata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType) &windowdata->native_window);
 +
 +    if (windowdata->egl_surface == EGL_NO_SURFACE) {
 +        MALI_VideoQuit(_this);
@@ -654,11 +657,13 @@ index 000000000..65c81d9a4
 +
 +typedef struct SDL_DisplayData
 +{
-+    struct fbdev_window native_display;
++    int width;
++    int height;
 +} SDL_DisplayData;
 +
 +typedef struct SDL_WindowData
 +{
++    struct fbdev_window native_window;
 +    EGLSurface egl_surface;
 +} SDL_WindowData;
 +
