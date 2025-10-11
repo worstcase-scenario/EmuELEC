@@ -645,8 +645,7 @@ index 000000000..65c81d9a4
 --- /dev/null
 +++ b/src/video/mali-fbdev/SDL_malivideo.h
 @@ -0,0 +1,54 @@
-+#ifndef _SDL_malivideo_h
-+#define _SDL_malivideo_h
++#pragma once
 +
 +#include "../../SDL_internal.h"
 +#include "../SDL_sysvideo.h"
@@ -699,8 +698,6 @@ index 000000000..65c81d9a4
 +
 +/* Event functions */
 +void MALI_PumpEvents(_THIS);
-
-+#endif /* _SDL_malivideo_h */
 +
 -- 
 2.37.1
