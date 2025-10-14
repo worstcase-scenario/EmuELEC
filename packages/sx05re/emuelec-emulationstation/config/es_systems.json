@@ -839,8 +839,12 @@
           "name": "AMIBERRY",
           "cores": [
             {
-              "name": "AMIBERRY",
+              "name": "AMIBERRY-LITE",
               "default": true,
+              "incompatible": [".m3u"]
+            },
+            {
+              "name": "AMIBERRY",              
               "incompatible": [".m3u"]
             }
           ]
@@ -884,8 +888,12 @@
           "name": "AMIBERRY",
           "cores": [
             {
-              "name": "AMIBERRY",
+              "name": "AMIBERRY-LITE",
               "default": true
+            },
+            {
+              "name": "AMIBERRY",              
+              "incompatible": [".m3u"]
             }
           ]
         },
@@ -2833,10 +2841,10 @@
           ]
         },
         {
-          "name": "flycastsa_dojo",
+          "name": "flycast_dojo",
           "cores": [
             {
-              "name": "flycastsa_dojo"
+              "name": "flycast_dojo"
             }
           ]
         },
@@ -2892,10 +2900,10 @@
           ]
         },
         {
-          "name": "flycastsa_dojo",
+          "name": "flycast_dojo",
           "cores": [
             {
-              "name": "flycastsa_dojo"
+              "name": "flycast_dojo"
             }
           ]
         },
@@ -3282,10 +3290,10 @@
           ]
         },
         {
-          "name": "flycastsa_dojo",
+          "name": "flycast_dojo",
           "cores": [
             {
-              "name": "flycastsa_dojo"
+              "name": "flycast_dojo"
             }
           ]
         },

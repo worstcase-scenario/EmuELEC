@@ -198,7 +198,7 @@ case ${PLATFORM} in
                 if [ "${EMU}" = "flycastsa" ]; then
             set_kill_keys "flycast"
             RUNTHIS='${TBASH} flycast.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "flycastsa_dojo" ]; then
+                elif [ "${EMU}" = "flycast_dojo" ]; then
             set_kill_keys "flycastdojo"
             RUNTHIS='flycastdojo.sh "${ROMNAME}"'
                 fi
@@ -238,7 +238,9 @@ case ${PLATFORM} in
         fi
                 ;;
         "amiga"|"amigacd32")
-                if [ "${EMU}" = "AMIBERRY" ]; then
+                if [ "${EMU}" = "AMIBERRY-LITE" ]; then
+            RUNTHIS='${TBASH} amiberry-lite.sh "${ROMNAME}"'
+				elif [ "${EMU}" = "AMIBERRY" ]; then
             RUNTHIS='${TBASH} amiberry.start "${ROMNAME}"'
                 fi
                 ;;
