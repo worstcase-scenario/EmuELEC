@@ -3,10 +3,15 @@ import sys
 import os
 import json
 import time
+import builtins
+from functools import partial
 from evdev import InputDevice, list_devices, ecodes as e
 from evdev import UInput
 
 CONFIG_FILE = "/storage/.config/emuelec/scripts/macro_config.json"
+
+# Ensure console output shows immediately on screen.
+print = partial(builtins.print, flush=True)
 
 
 def load_config():
@@ -62,7 +67,7 @@ def wait_for_controller(preferred_path=None):
 
 
 def clear_console():
-    print("\033c", end="")
+    print("\033[2J\033[H", end="")
 
 
 def controller_menu(dev, title, options):

@@ -3,10 +3,16 @@ from evdev import InputDevice, list_devices, ecodes as e
 import json
 import os
 import time
+import builtins
+from functools import partial
 
 CONFIG_FILE = "/storage/.config/emuelec/scripts/macro_config.json"
 MAX_NAME_LEN = 16
 NAME_ALPHABET = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_")
+
+# Ensure everything printed by the script is flushed immediately so it appears
+# on the on-device console.
+print = partial(builtins.print, flush=True)
 
 
 def map_controller_to_key(code):
@@ -19,6 +25,10 @@ def map_controller_to_key(code):
         e.BTN_EAST: e.KEY_X,
         e.BTN_NORTH: e.KEY_A,
         e.BTN_WEST: e.KEY_S,
+        e.BTN_TL: e.KEY_Q,
+        e.BTN_TR: e.KEY_W,
+        e.BTN_TL2: e.KEY_E,
+        e.BTN_TR2: e.KEY_R,
     }
     return mapping.get(code)
 
@@ -79,7 +89,7 @@ def wait_for_controller(preferred_path=None):
 
 
 def clear_console():
-    print("\033c", end="")
+    print("\033[2J\033[H", end="")
 
 
 def controller_menu(dev, title, options, allow_cancel=False):
