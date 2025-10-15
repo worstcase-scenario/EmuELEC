@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+import atexit
 import sys
 import os
 import json
 import time
 import builtins
-import functools
 from evdev import InputDevice, list_devices, ecodes as e
 from evdev import UInput
 
@@ -17,9 +17,93 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 
-# Every print call should flush immediately so prompts appear on the EmuELEC
-# console even when the script runs through a tee pipeline.
-print = functools.partial(builtins.print, flush=True)
+class ConsoleMirror:
+    """Mirror stdout to the active EmuELEC console if available."""
+
+    def __init__(self):
+        self._fd = None
+        self._candidates = [
+            "/tmp/display",
+            "/dev/tty0",
+            "/dev/tty1",
+            "/dev/console",
+        ]
+
+    def _open_target(self):
+        if self._fd is not None:
+            return True
+
+        for path in self._candidates:
+            try:
+                fd = os.open(path, os.O_WRONLY | os.O_NONBLOCK)
+            except OSError:
+                continue
+
+            self._fd = fd
+            return True
+
+        return False
+
+    def write(self, text):
+        if not text:
+            return
+
+        data = text.encode("utf-8", "replace")
+
+        if self._fd is None and not self._open_target():
+            return
+
+        try:
+            os.write(self._fd, data)
+        except OSError:
+            try:
+                os.close(self._fd)
+            except OSError:
+                pass
+            finally:
+                self._fd = None
+
+            if self._open_target():
+                try:
+                    os.write(self._fd, data)
+                except OSError:
+                    pass
+
+    def close(self):
+        if self._fd is not None:
+            try:
+                os.close(self._fd)
+            except OSError:
+                pass
+            finally:
+                self._fd = None
+
+
+_builtin_print = builtins.print
+_console_mirror = ConsoleMirror()
+atexit.register(_console_mirror.close)
+
+
+def console_print(*args, **kwargs):
+    file = kwargs.get("file", sys.stdout)
+    sep = kwargs.get("sep", " ")
+    end = kwargs.get("end", "\n")
+
+    if file is sys.stdout or file is None:
+        if not args:
+            mirrored = end
+        else:
+            mirrored = sep.join(str(arg) for arg in args) + end
+
+        _console_mirror.write(mirrored)
+
+        kwargs = dict(kwargs)
+        kwargs["flush"] = True
+
+    _builtin_print(*args, **kwargs)
+
+
+print = console_print
 
 
 def load_config():
