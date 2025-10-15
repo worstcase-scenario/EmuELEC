@@ -2,118 +2,14 @@
 from evdev import InputDevice, list_devices, ecodes as e
 import json
 import os
-import stat
 import time
 import builtins
+import functools
 import sys
-from typing import Optional
 
 CONFIG_FILE = "/storage/.config/emuelec/scripts/macro_config.json"
 MAX_NAME_LEN = 16
 NAME_ALPHABET = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_")
-
-# Ensure everything printed by the script is flushed immediately so it appears
-# on the on-device console. When executed from the EmulationStation UI the
-# script's stdout is piped through tee, which prevents text from reaching the
-# TV unless we also write directly to the active console device.  We keep
-# logging through stdout (for /tmp/macrosetup.log) while mirroring all messages
-# to /tmp/display (preferred) or /dev/tty0 / /dev/console as fallbacks.
-
-
-class ConsoleMirror:
-    """Mirror stdout to the active framebuffer console.
-
-    EmuELEC exposes the console via a FIFO at /tmp/display while a couple of
-    devices rely on direct writes to /dev/tty* nodes.  We lazily try each
-    candidate, reopen on failures and write through using os.write so ANSI
-    sequences (e.g. from clear_console) are preserved exactly as emitted.
-    """
-
-    def __init__(self):
-        self._fd: Optional[int] = None
-        self._path: Optional[str] = None
-        self._candidates = (
-            "/tmp/display",
-            "/dev/tty1",
-            "/dev/tty0",
-            "/dev/console",
-        )
-
-    def _open_candidate(self, path: str) -> Optional[int]:
-        try:
-            mode = os.stat(path).st_mode
-        except OSError:
-            return None
-
-        flags = os.O_WRONLY | os.O_CLOEXEC
-        if stat.S_ISFIFO(mode):
-            flags |= os.O_NONBLOCK
-
-        try:
-            fd = os.open(path, flags)
-        except OSError:
-            return None
-
-        return fd
-
-    def _ensure_fd(self) -> bool:
-        if self._fd is not None:
-            return True
-
-        for path in self._candidates:
-            fd = self._open_candidate(path)
-            if fd is not None:
-                self._fd = fd
-                self._path = path
-                return True
-        return False
-
-    def _close_fd(self) -> None:
-        if self._fd is None:
-            return
-
-        try:
-            os.close(self._fd)
-        except OSError:
-            pass
-        self._fd = None
-        self._path = None
-
-    def write(self, text: str) -> None:
-        if not text:
-            return
-
-        if not self._ensure_fd():
-            return
-
-        data = text.encode("utf-8", "replace")
-        try:
-            os.write(self._fd, data)
-        except OSError:
-            self._close_fd()
-
-
-class PrintWrapper:
-    def __init__(self, original_print):
-        self._print = original_print
-        self._mirror = ConsoleMirror()
-
-    def __call__(self, *args, **kwargs):
-        target = kwargs.get("file", sys.stdout)
-        sep = kwargs.get("sep", " ")
-        end = kwargs.get("end", "\n")
-
-        text = sep.join(str(arg) for arg in args) + end
-        kwargs["flush"] = True
-        self._print(*args, **kwargs)
-
-        if target in (None, sys.stdout):
-            self._mirror.write(text)
-
-
-def setup_console_print():
-    return PrintWrapper(builtins.print)
-
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -121,8 +17,9 @@ if hasattr(sys.stdout, "reconfigure"):
     except (ValueError, OSError):
         pass
 
-
-print = setup_console_print()
+# Every print call should flush immediately so prompts appear on the EmuELEC
+# console even when the script runs through a tee pipeline.
+print = functools.partial(builtins.print, flush=True)
 
 
 def map_controller_to_key(code):
