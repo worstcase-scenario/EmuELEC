@@ -5,6 +5,7 @@ import json
 import time
 import stat
 import builtins
+from typing import Optional
 from evdev import InputDevice, list_devices, ecodes as e
 from evdev import UInput
 
@@ -17,19 +18,25 @@ CONFIG_FILE = "/storage/.config/emuelec/scripts/macro_config.json"
 
 
 class ConsoleMirror:
-    def __init__(self, original_print):
-        self._print = original_print
-        self._handle = None
-        self._path = None
-        self._candidates = ("/tmp/display", "/dev/tty0", "/dev/console")
+    """Mirror stdout to the device's active console."""
 
-    def _open_candidate(self, path):
+    def __init__(self):
+        self._fd: Optional[int] = None
+        self._path: Optional[str] = None
+        self._candidates = (
+            "/tmp/display",
+            "/dev/tty1",
+            "/dev/tty0",
+            "/dev/console",
+        )
+
+    def _open_candidate(self, path: str) -> Optional[int]:
         try:
             mode = os.stat(path).st_mode
         except OSError:
             return None
 
-        flags = os.O_WRONLY
+        flags = os.O_WRONLY | os.O_CLOEXEC
         if stat.S_ISFIFO(mode):
             flags |= os.O_NONBLOCK
 
@@ -38,62 +45,65 @@ class ConsoleMirror:
         except OSError:
             return None
 
-        try:
-            handle = os.fdopen(fd, "w", buffering=1, encoding="utf-8", errors="replace")
-        except OSError:
-            os.close(fd)
-            return None
+        return fd
 
-        return handle
-
-    def _ensure_handle(self):
-        if self._handle:
+    def _ensure_fd(self) -> bool:
+        if self._fd is not None:
             return True
 
         for path in self._candidates:
-            handle = self._open_candidate(path)
-            if handle:
-                self._handle = handle
+            fd = self._open_candidate(path)
+            if fd is not None:
+                self._fd = fd
                 self._path = path
                 return True
         return False
 
-    def _close_handle(self):
-        if not self._handle:
+    def _close_fd(self) -> None:
+        if self._fd is None:
             return
+
         try:
-            self._handle.close()
+            os.close(self._fd)
         except OSError:
             pass
-        self._handle = None
+        self._fd = None
         self._path = None
 
-    def print(self, *args, **kwargs):
-        target = kwargs.get("file", sys.stdout)
-        kwargs.pop("flush", None)
-        self._print(*args, **kwargs, flush=True)
-
-        if target not in (None, sys.stdout):
+    def write(self, text: str) -> None:
+        if not text:
             return
 
-        if not self._ensure_handle():
+        if not self._ensure_fd():
             return
 
-        mirror_kwargs = dict(kwargs)
-        mirror_kwargs["file"] = self._handle
+        data = text.encode("utf-8", "replace")
         try:
-            self._print(*args, **mirror_kwargs, flush=True)
+            os.write(self._fd, data)
         except OSError:
-            self._close_handle()
+            self._close_fd()
+
+
+class PrintWrapper:
+    def __init__(self, original_print):
+        self._print = original_print
+        self._mirror = ConsoleMirror()
+
+    def __call__(self, *args, **kwargs):
+        target = kwargs.get("file", sys.stdout)
+        sep = kwargs.get("sep", " ")
+        end = kwargs.get("end", "\n")
+
+        text = sep.join(str(arg) for arg in args) + end
+        kwargs["flush"] = True
+        self._print(*args, **kwargs)
+
+        if target in (None, sys.stdout):
+            self._mirror.write(text)
 
 
 def setup_console_print():
-    mirror = ConsoleMirror(builtins.print)
-
-    def console_print(*args, **kwargs):
-        mirror.print(*args, **kwargs)
-
-    return console_print
+    return PrintWrapper(builtins.print)
 
 
 if hasattr(sys.stdout, "reconfigure"):
