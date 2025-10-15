@@ -4,15 +4,49 @@ import json
 import os
 import time
 import builtins
-from functools import partial
+import sys
 
 CONFIG_FILE = "/storage/.config/emuelec/scripts/macro_config.json"
 MAX_NAME_LEN = 16
 NAME_ALPHABET = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_")
 
 # Ensure everything printed by the script is flushed immediately so it appears
-# on the on-device console.
-print = partial(builtins.print, flush=True)
+# on the on-device console. When executed from the EmulationStation UI the
+# script's stdout is piped through tee, which prevents text from reaching the
+# TV unless we also write directly to the active framebuffer console.  We keep
+# logging through stdout (for /tmp/macrosetup.log) while mirroring all messages
+# to /dev/tty0 (or /dev/console as a fallback).
+
+
+def setup_console_print():
+    original_print = builtins.print
+    tty_handle = None
+
+    for path in ("/dev/tty0", "/dev/console"):
+        try:
+            tty_handle = open(path, "w", buffering=1)
+            break
+        except OSError:
+            continue
+
+    def console_print(*args, **kwargs):
+        target = kwargs.get("file", sys.stdout)
+        kwargs.pop("flush", None)
+        original_print(*args, **kwargs, flush=True)
+
+        if tty_handle and target in (None, sys.stdout):
+            mirror_kwargs = dict(kwargs)
+            mirror_kwargs["file"] = tty_handle
+            try:
+                original_print(*args, **mirror_kwargs, flush=True)
+            except OSError:
+                tty_handle.close()
+                tty_handle = None
+
+    return console_print
+
+
+print = setup_console_print()
 
 
 def map_controller_to_key(code):

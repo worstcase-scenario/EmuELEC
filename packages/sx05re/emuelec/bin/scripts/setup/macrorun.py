@@ -4,14 +4,46 @@ import os
 import json
 import time
 import builtins
-from functools import partial
 from evdev import InputDevice, list_devices, ecodes as e
 from evdev import UInput
 
 CONFIG_FILE = "/storage/.config/emuelec/scripts/macro_config.json"
 
-# Ensure console output shows immediately on screen.
-print = partial(builtins.print, flush=True)
+# Ensure console output shows immediately on screen. When called from the
+# EmulationStation menu the script runs through a tee pipeline, so we mirror all
+# stdout messages to the active framebuffer console to keep them visible on the
+# TV while preserving the log.
+
+
+def setup_console_print():
+    original_print = builtins.print
+    tty_handle = None
+
+    for path in ("/dev/tty0", "/dev/console"):
+        try:
+            tty_handle = open(path, "w", buffering=1)
+            break
+        except OSError:
+            continue
+
+    def console_print(*args, **kwargs):
+        target = kwargs.get("file", sys.stdout)
+        kwargs.pop("flush", None)
+        original_print(*args, **kwargs, flush=True)
+
+        if tty_handle and target in (None, sys.stdout):
+            mirror_kwargs = dict(kwargs)
+            mirror_kwargs["file"] = tty_handle
+            try:
+                original_print(*args, **mirror_kwargs, flush=True)
+            except OSError:
+                tty_handle.close()
+                tty_handle = None
+
+    return console_print
+
+
+print = setup_console_print()
 
 
 def load_config():
