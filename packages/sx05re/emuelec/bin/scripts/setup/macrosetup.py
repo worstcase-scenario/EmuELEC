@@ -30,6 +30,7 @@ def setup_console_print():
             continue
 
     def console_print(*args, **kwargs):
+        nonlocal tty_handle
         target = kwargs.get("file", sys.stdout)
         kwargs.pop("flush", None)
         original_print(*args, **kwargs, flush=True)
