@@ -2,6 +2,7 @@
 from evdev import InputDevice, list_devices, ecodes as e
 import json
 import os
+import stat
 import time
 import builtins
 import sys
@@ -13,38 +14,96 @@ NAME_ALPHABET = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_")
 # Ensure everything printed by the script is flushed immediately so it appears
 # on the on-device console. When executed from the EmulationStation UI the
 # script's stdout is piped through tee, which prevents text from reaching the
-# TV unless we also write directly to the active framebuffer console.  We keep
+# TV unless we also write directly to the active console device.  We keep
 # logging through stdout (for /tmp/macrosetup.log) while mirroring all messages
-# to /dev/tty0 (or /dev/console as a fallback).
+# to /tmp/display (preferred) or /dev/tty0 / /dev/console as fallbacks.
+
+
+class ConsoleMirror:
+    def __init__(self, original_print):
+        self._print = original_print
+        self._handle = None
+        self._path = None
+        self._candidates = ("/tmp/display", "/dev/tty0", "/dev/console")
+
+    def _open_candidate(self, path):
+        try:
+            mode = os.stat(path).st_mode
+        except OSError:
+            return None
+
+        flags = os.O_WRONLY
+        if stat.S_ISFIFO(mode):
+            flags |= os.O_NONBLOCK
+
+        try:
+            fd = os.open(path, flags)
+        except OSError:
+            return None
+
+        try:
+            handle = os.fdopen(fd, "w", buffering=1, encoding="utf-8", errors="replace")
+        except OSError:
+            os.close(fd)
+            return None
+
+        return handle
+
+    def _ensure_handle(self):
+        if self._handle:
+            return True
+
+        for path in self._candidates:
+            handle = self._open_candidate(path)
+            if handle:
+                self._handle = handle
+                self._path = path
+                return True
+        return False
+
+    def _close_handle(self):
+        if not self._handle:
+            return
+        try:
+            self._handle.close()
+        except OSError:
+            pass
+        self._handle = None
+        self._path = None
+
+    def print(self, *args, **kwargs):
+        target = kwargs.get("file", sys.stdout)
+        kwargs.pop("flush", None)
+        self._print(*args, **kwargs, flush=True)
+
+        if target not in (None, sys.stdout):
+            return
+
+        if not self._ensure_handle():
+            return
+
+        mirror_kwargs = dict(kwargs)
+        mirror_kwargs["file"] = self._handle
+        try:
+            self._print(*args, **mirror_kwargs, flush=True)
+        except OSError:
+            self._close_handle()
 
 
 def setup_console_print():
-    original_print = builtins.print
-    tty_handle = None
-
-    for path in ("/dev/tty0", "/dev/console"):
-        try:
-            tty_handle = open(path, "w", buffering=1)
-            break
-        except OSError:
-            continue
+    mirror = ConsoleMirror(builtins.print)
 
     def console_print(*args, **kwargs):
-        nonlocal tty_handle
-        target = kwargs.get("file", sys.stdout)
-        kwargs.pop("flush", None)
-        original_print(*args, **kwargs, flush=True)
-
-        if tty_handle and target in (None, sys.stdout):
-            mirror_kwargs = dict(kwargs)
-            mirror_kwargs["file"] = tty_handle
-            try:
-                original_print(*args, **mirror_kwargs, flush=True)
-            except OSError:
-                tty_handle.close()
-                tty_handle = None
+        mirror.print(*args, **kwargs)
 
     return console_print
+
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(line_buffering=True, write_through=True)
+    except (ValueError, OSError):
+        pass
 
 
 print = setup_console_print()
