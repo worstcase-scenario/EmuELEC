@@ -16,7 +16,8 @@ macro_confirm() {
 macro_start() {
     ee_console enable
     echo "Starting macro run (foreground menu, then daemonize)..."
-    /usr/bin/scripts/setup/macrorun.py
+	
+    /usr/bin/python3 -u /usr/bin/scripts/setup/macrorun.py
     rc=$?
 
    
@@ -29,7 +30,7 @@ macro_start() {
     fi
 
   
-    if pgrep -f "Virtual-Macro" >/dev/null 2>&1 || pgrep -f "macrorun.py" >/dev/null 2>&1; then
+    if pgrep -f "Virtual-Macro" >/dev/null 2>&1 || pgrep -f "/usr/bin/scripts/setup/macrorun.py" >/dev/null 2>&1; then
         ee_console disable
         rm /tmp/display >/dev/null 2>&1
         return 0
