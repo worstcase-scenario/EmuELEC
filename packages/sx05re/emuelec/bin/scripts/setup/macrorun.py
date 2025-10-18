@@ -11,7 +11,7 @@ LOG_FILE = "/tmp/macrorun.log"
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
-        print("❌ No saved configuration found. Please run Setup first!")
+        print("No saved configuration found. Please run Setup first!")
         sys.exit(1)
     with open(CONFIG_FILE, "r") as f:
         data = json.load(f)
@@ -28,17 +28,17 @@ def load_config():
         }
     macros = [m for m in data.get("macros", []) if m.get("macro_keys")]
     if not macros:
-        print("❌ No macros stored in configuration. Please create one with Setup!")
+        print("No macros stored in configuration file. Please create one first with Setup!")
         sys.exit(1)
     data["macros"] = macros
     return data
 
 def wait_for_controller(preferred_path=None):
-    print("\n🔌 Waiting for controller...")
+    print("\nWaiting for controller...")
     if preferred_path:
         try:
             dev = InputDevice(preferred_path)
-            print(f"🎮 Controller found: {dev.name} ({dev.path})")
+            print(f"Controller found: {dev.name} ({dev.path})")
             return dev
         except OSError:
             pass
@@ -48,7 +48,7 @@ def wait_for_controller(preferred_path=None):
             if dev.capabilities().get(e.EV_KEY):
                 keys = dev.capabilities()[e.EV_KEY]
                 if any(btn in keys for btn in [e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST]):
-                    print(f"🎮 Controller found: {dev.name} ({dev.path})")
+                    print(f"Controller found: {dev.name} ({dev.path})")
                     return dev
         time.sleep(1)
 
@@ -63,7 +63,7 @@ def controller_menu(dev, title, options):
         print("\nUse D-Pad to choose a macro and press (A) to confirm.")
         print("Press (B) to cancel and exit.\n")
         for i, option in enumerate(options):
-            prefix = "👉" if i == index else "  "
+            prefix = "->" if i == index else "  "
             print(f"{prefix} {option}")
         for event in dev.read_loop():
             if event.type != e.EV_KEY or event.value != 1:
@@ -75,7 +75,7 @@ def controller_menu(dev, title, options):
             if event.code == e.BTN_SOUTH:
                 return index
             if event.code == e.BTN_EAST:
-                print("\n❌ Macro activation cancelled.")
+                print("\nMacro activation cancelled.")
                 sys.exit(0)
 
 def run_macro_mode(dev, macro):
@@ -85,7 +85,7 @@ def run_macro_mode(dev, macro):
     trigger_pressed = False
     macro_executed = False
     press_start = 0
-    print("\n🚀 Macro active! Press the trigger to execute. Hold for 3 seconds to disable Macro again.")
+    print("\nMacro active! Press the trigger to execute. Hold for 3 seconds to disable Macro again.")
     for event in dev.read_loop():
         if event.type == e.EV_KEY and event.code == trigger_code:
             if event.value == 1:
@@ -96,17 +96,17 @@ def run_macro_mode(dev, macro):
                 hold_time = time.time() - press_start
                 trigger_pressed = False
                 if hold_time >= 3:
-                    print("👋 Exiting...")
+                    print("Exiting...")
                     ui.close()
                     return
                 elif not macro_executed:
-                    print("▶ Executing macro...")
+                    print("Executing macro...")
                     for key in macro_keys:
                         ui.write(e.EV_KEY, key, 1); ui.syn(); time.sleep(0.05)
                         ui.write(e.EV_KEY, key, 0); ui.syn()
         if trigger_pressed and not macro_executed and time.time() - press_start >= 0.1:
             macro_executed = True
-            print("▶ Executing macro...")
+            print("Executing macro...")
             for key in macro_keys:
                 ui.write(e.EV_KEY, key, 1); ui.syn(); time.sleep(0.05)
                 ui.write(e.EV_KEY, key, 0); ui.syn()
@@ -166,23 +166,23 @@ def daemonize(dev_path, macro):
 
 def main():
     if already_running():
-        print("❗ Macro already running. Aborting.")
+        print("Macro already running. Aborting.")
         return 0
 
     cfg = load_config()
     macros = cfg["macros"]
     dev = wait_for_controller(cfg.get("device_path"))
     option_labels = [f"{m['name']} (Trigger {m['trigger_code']})" for m in macros]
-    selection = controller_menu(dev, "🎛  Select macro to activate", option_labels)
+    selection = controller_menu(dev, "Select macro to activate", option_labels)
     chosen_macro = macros[selection]
 
     print("\nStarting macro in background...")
     rc = daemonize(dev.path, chosen_macro)
     if rc == 0:
-        print("✔ Macro is now running in the background. Exiting to Emulationstation...")
+        print("Macro is now running in the background. Exiting to Emulationstation...")
         return 0
     else:
-        print("❌ Macro could not be started in the background.")
+        print("Macro could not be started in the background.")
         return 1
 
 if __name__ == "__main__":

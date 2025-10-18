@@ -70,16 +70,16 @@ def save_config(data):
     ensure_config_dir()
     with open(CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=2)
-    print(f"\n✅ Configuration saved to {CONFIG_FILE}.")
+    print(f"\nConfiguration saved to {CONFIG_FILE}.")
 
 
 def wait_for_controller(preferred_path=None):
-    print("\n🔌 Waiting for controller...")
+    print("\nWaiting for controller...")
 
     if preferred_path:
         try:
             dev = InputDevice(preferred_path)
-            print(f"🎮 Controller found: {dev.name} ({dev.path})")
+            print(f"Controller found: {dev.name} ({dev.path})")
             return dev
         except OSError:
             pass
@@ -90,7 +90,7 @@ def wait_for_controller(preferred_path=None):
             if dev.capabilities().get(e.EV_KEY):
                 keys = dev.capabilities()[e.EV_KEY]
                 if any(btn in keys for btn in [e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST]):
-                    print(f"🎮 Controller found: {dev.name} ({dev.path})")
+                    print(f"Controller found: {dev.name} ({dev.path})")
                     return dev
         time.sleep(1)
 
@@ -111,7 +111,7 @@ def controller_menu(dev, title, options, allow_cancel=False):
         print()
 
         for i, option in enumerate(options):
-            prefix = "👉" if i == index else "  "
+            prefix = "-" if i == index else "  "
             print(f"{prefix} {option}")
 
         if not options:
@@ -147,7 +147,7 @@ def enter_macro_name(dev, default_name):
 
     while True:
         clear_console()
-        print("✏️  Name your macro")
+        print("Name your macro")
         print("\nUse LEFT/RIGHT to move, UP/DOWN to change character.")
         print("Press (A) to accept, (Y) to erase character, (B) to cancel.")
         print()
@@ -197,7 +197,7 @@ def enter_macro_name(dev, default_name):
 
 
 def record_trigger_button(dev):
-    print("\n🎯 Press the button that will later trigger the macro...")
+    print("\nPress the button that will later trigger the macro...")
     while True:
         for event in dev.read_loop():
             if event.type == e.EV_KEY and event.value == 1 and event.code != e.BTN_MODE:
@@ -207,7 +207,7 @@ def record_trigger_button(dev):
 
 
 def record_macro_sequence(dev, trigger_code):
-    print("\n⌨ Press the buttons for your macro. When you are finished, wait three seconds and then press any button to save and exit.")
+    print("\nPress the buttons for your macro. When you are finished, wait three seconds and then press any button to save and exit.")
     macro_keys = []
     last_press_time = time.time()
 
@@ -221,15 +221,15 @@ def record_macro_sequence(dev, trigger_code):
             break
 
     if not macro_keys:
-        print("❌ No buttons recorded!")
+        print("No buttons recorded!")
         return None
 
     mapped = [map_controller_to_key(c) for c in macro_keys if map_controller_to_key(c)]
     if not mapped:
-        print("❌ None of the recorded buttons can be mapped to keyboard keys!")
+        print("None of the recorded buttons can be mapped to keyboard keys!")
         return None
 
-    print(f"🎬 Macro recorded: {len(mapped)} valid keys")
+    print(f"Macro recorded: {len(mapped)} valid keys")
     return mapped
 
 
@@ -243,7 +243,7 @@ def main():
 
     selection = controller_menu(dev, "🎛  Choose macro slot", options, allow_cancel=True)
     if selection is None:
-        print("\n❌ Setup cancelled.")
+        print("\nSetup cancelled.")
         return
 
     creating_new = selection == len(macros)
@@ -252,11 +252,11 @@ def main():
         default_name = f"MACRO {len(macros) + 1}"
         macro_name = enter_macro_name(dev, default_name)
         if macro_name is None:
-            print("\n❌ Setup cancelled.")
+            print("\nSetup cancelled.")
             return
     else:
         macro_name = macros[selection]["name"]
-        print(f"\n⚠️  Overwriting macro '{macro_name}'. Press the trigger to re-record.")
+        print(f"\nOverwriting macro '{macro_name}'. Press the trigger to re-record.")
 
     trigger_code = record_trigger_button(dev)
     macro_keys = record_macro_sequence(dev, trigger_code)
@@ -275,10 +275,10 @@ def main():
 
         config["device_path"] = dev.path
         save_config(config)
-        print("\n✅ Setup complete! You can choose and activate your recorded macros with Macro Enabler.")
+        print("\nSetup complete! You can choose and activate your recorded macros with Macro Enabler.")
         
     else:
-        print("\n❌ Macro recording aborted.")
+        print("\nMacro recording aborted.")
 
 
 if __name__ == "__main__":
