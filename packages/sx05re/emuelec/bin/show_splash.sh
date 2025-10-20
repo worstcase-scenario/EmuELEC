@@ -15,6 +15,7 @@
 . /etc/profile
 
 ENABLE_LOGGING=0
+SPLASH_LOG="/emuelec/logs/splash.log"
 
 ACTION_TYPE="${1}"
 PLATFORM="${2}"
@@ -55,9 +56,23 @@ FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
 
 mkdir -p /tmp/splash
 
+function write_log() {
+	[[ "${ENABLE_LOGGING}" == 1 ]] && echo "${1}" >> "${SPLASH_LOG}"
+}
+
+make_absolute_path() {
+    local PATH="${1}"
+    local BASE="${2}"
+    [[ "${PATH}" == ./* ]] && echo "${BASE}/${PATH#./}" || echo "${PATH}"
+}
+
 function get_file_ext() {
-  local start_time=$(date +%s%3N)
-  local end_time=
+
+	if [ "${ENABLE_LOGGING}" == 1 ]; then
+		local start_time=$(date +%s%3N)
+		local end_time=
+	fi
+
 	local MEDIA_FILES=()
 	if [[ -d "${1}" ]]; then
 		MEDIA_FILES=("$(find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$")")
@@ -69,16 +84,24 @@ function get_file_ext() {
 			if [[ "${CEXT}" == "${FILE_EXT}" ]]; then
         end_time=$(date +%s%3N)
         duration_ms=$(( end_time - start_time ))
-        [[ "${ENABLE_LOGGING}" == 1 ]] && echo "get_file_ext execution time in ms: $duration_ms" >> ${EE_LOG}
+        
+        write_log "get_file_ext execution time in ms: $duration_ms"
+
 			 	echo "${FILE}" && return
 			fi
 		done
 	fi
-  end_time=$(date +%s%3N)
-  duration_ms=$(( end_time - start_time ))
-  [[ "${ENABLE_LOGGING}" == 1 ]] && echo "get_file_ext execution time in ms: $duration_ms" >> ${EE_LOG}
-	echo ""
+
+	if [ "${ENABLE_LOGGING}" == 1 ]; then
+		end_time=$(date +%s%3N)
+		duration_ms=$(( end_time - start_time ))
+		write_log "get_file_ext execution time in ms: $duration_ms" 
+	fi
 }
+
+# Initialize log for each run
+[[ "${ACTION_TYPE}" != "exit" ]] && echo "Splash log for Platorm ${PLATFORM} and game ${ROMNAME}" > ${SPLASH_LOG}
+
 
 if [ "${ACTION_TYPE}" = "intro" ] || [ "${ACTION_TYPE}" = "exit" ]; then
  SPLASH="${DEFAULTSPLASH}"
@@ -124,13 +147,74 @@ elif [ "${ACTION_TYPE}" = "gameloading" ]; then
    [[ ! -d "${EE_SPLASH_RANDOM_PATH}" ]] && EE_SPLASH_RANDOM_PATH="${SPLASHDIR}/random"
 	 [[ -z "${SPLASH}" ]] && SPLASH="$(find "${EE_SPLASH_RANDOM_PATH}" -maxdepth 1 -type f -regex ".*\.\(${FIND_COMBINED_EXT}\)$" 2>/dev/null | sort -R | head -n 1)"
  elif [ "${EE_SPLASH_LOADING}" = "3" ]; then
-   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${PLATFORMDIR}/snap" "${BASEROMNAME_NOEXT}")
-   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${PLATFORMDIR}/images" "${BASEROMNAME_NOEXT}-image")
+ 
+if [ -z "${SPLASH}" ]; then
+ 
+   PLATFORM_GAMELIST="${PLATFORMDIR}/gamelist.xml"
+	
+	if [ -s "${PLATFORM_GAMELIST}" ]; then
+		write_log "Gamelist.xml found: ${PLATFORM_GAMELIST}"
+		
+	EE_SPLASH_SCRAPED_PATH="$(get_ee_setting ee_scrapedsplashpath)"	
+	case "${EE_SPLASH_SCRAPED_PATH}" in
+		image|thumbnail|video|marquee|fanart)
+		write_log "Scraped media: ${EE_SPLASH_SCRAPED_PATH}"
+			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/${EE_SPLASH_SCRAPED_PATH}" "${PLATFORM_GAMELIST}")
+			SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+			;;
+		random)
+			options=(image thumbnail video marquee fanart)
+			random_index=$(( RANDOM % ${#options[@]} ))
+
+			# Create ordered list: random selection first, then remaining options
+			ordered_options=("${options[$random_index]}")
+				for option in "${options[@]}"; do
+					if [[ "$option" != "${options[$random_index]}" ]]; then
+						ordered_options+=("$option")
+					fi
+				done
+
+				write_log "Trying options in order: ${ordered_options[*]}"
+
+			SCRAPED_VIDEO=""
+				for value in "${ordered_options[@]}"; do
+					write_log "Trying: ${value}"
+    
+    					SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/${value}" "${PLATFORM_GAMELIST}")
+						SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+						if [[ -f "${SCRAPED_VIDEO}" ]]; then
+							write_log "Found existing file: ${value} -> ${SCRAPED_VIDEO}"
+						break
+						fi
+				done
+			;;
+			*)
+			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/video" "${PLATFORM_GAMELIST}")
+			SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+		
+			if [ -z "${SCRAPED_VIDEO}" ] && [ "${SCRAPED_VIDEO}" != "${PLATFORMDIR}" ]; then
+				SCRAPED_IMAGE=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/image" "${PLATFORM_GAMELIST}")
+				SCRAPED_IMAGE=$(make_absolute_path "${SCRAPED_IMAGE}" "${PLATFORMDIR}")
+			fi
+			;;
+	esac
+		[[ -f "${SCRAPED_IMAGE}" ]] && SPLASH="${SCRAPED_IMAGE}"
+		# We don't care if image was found as videos take priority, so if a video is found we set that instead to SPLASH
+		[[ -f "${SCRAPED_VIDEO}" ]] && SPLASH="${SCRAPED_VIDEO}"
+	else 
+		write_log "Gamelist.xml NOT found: ${PLATFORM_GAMELIST}"
+		[[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${PLATFORMDIR}/snap" "${BASEROMNAME_NOEXT}")
+		[[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${PLATFORMDIR}/images" "${BASEROMNAME_NOEXT}-image")
+	fi
+fi
+
  else
    SPLASH="${GAMELOADINGSPLASH}"
  fi
  [[ ! -f "${SPLASH}" ]] && SPLASH="${GAMELOADINGSPLASH}"
 fi
+
+write_log "will show SPLASH: ${SPLASH}"
 
 # OGA/GameForce -> mpv
 SS_DEVICE=0
@@ -141,6 +225,11 @@ if [[ "${EE_DEVICE}" == "OdroidGoAdvance" ]] || [[ "${EE_DEVICE}" == "GameForce"
   PLAYER_VID="mpv"
   PLAYER_IMG="mpv"
   have_mpv=1
+fi
+
+if [[ "${EE_DEVICE}" == "OdroidM1" ]]; then
+	PLAYER_IMG="mpv"
+	have_mpv=1
 fi
 
 declare -a RES=( ${MODE} )
