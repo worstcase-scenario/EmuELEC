@@ -461,12 +461,12 @@ load_splash() {
           fbset -g 1024 768 1024 768 32
         fi
       fi
-
+export SPLASHIMAGE="/storage/.config/splash/boot.png"
       # load splash
       if [ -f /splash/splash.conf ]; then
         . /splash/splash.conf
       fi
-
+export SPLASHIMAGE="/storage/.config/splash/boot.png"
       # Select splash image based on current native resolution
       if [ -z "$SPLASHIMAGE" ]; then
         vres="$(fbset 2>/dev/null | awk '/geometry/ { print $3 }')"

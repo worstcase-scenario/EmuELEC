@@ -2,12 +2,15 @@
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="966c711c14b6c77550a633bcfd7ef2bfbd068ab5"
-PKG_GIT_CLONE_BRANCH="EmuELEC"
+#PKG_VERSION="9afa5081e6cf82c2fec99d3923a0f6c40a87e213"
+PKG_VERSION="f352c3313b7be5b467d9752efbb307f26b2c599f"
+#PKG_GIT_CLONE_BRANCH="EmuELEC"
+PKG_GIT_CLONE_BRANCH="EmuOfficial"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
+#PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
+PKG_SITE="https://github.com/worstcase-scenario/emuelec-emulationstation"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak"
 PKG_SECTION="emuelec"

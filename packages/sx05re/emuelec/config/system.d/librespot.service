@@ -1,0 +1,32 @@
+[Unit]
+Description=Librespot (Spotify Connect)
+After=emulationstation.service network-online.target local-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/storage/roms/ports/librespot
+Environment=HOME=/storage
+Environment=XDG_DATA_HOME=/storage/roms/ports/librespot/conf
+Environment=LD_LIBRARY_PATH=/storage/roms/ports/librespot/libs
+Environment=RUST_LOG=librespot=info
+
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 20); do [ -e /dev/snd/controlC0 ] && exit 0; sleep 1; done; exit 0'
+ExecStartPre=/bin/sh -c 'for ctl in "IEC958" "IEC958 Playback Switch" "HDMI" "Master" "PCM"; do amixer -q -c 0 sset "$ctl" unmute >/dev/null 2>&1 || true; done'
+
+ExecStart=/bin/sh -c 'export LD_LIBRARY_PATH=/storage/roms/ports/librespot/libs; exec /storage/roms/ports/librespot/librespot \
+  --backend rodio --mixer softvol --initial-volume 100 \
+  --name PORTMASTER --bitrate 320 \
+  --cache /storage/roms/ports/librespot/cache \
+  --device-type gameconsole --disable-audio-cache -v'
+
+Restart=on-failure
+RestartSec=3
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutStopSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
