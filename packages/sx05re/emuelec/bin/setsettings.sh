@@ -20,6 +20,7 @@ RACORECONF="/storage/.config/retroarch/retroarch-core-options.cfg"
 PLATFORM=${1,,}
 CORE=${3,,}
 ROM="${2##*/}"
+ROM="$(printf '%s' "${ROM}" | sed 's/\([][]\)/\\\1/g')"
 SETF=0
 SHADERSET=0
 AUTOLOAD="false"
@@ -347,7 +348,7 @@ esac
 						echo 'cheevos_auto_screenshot = "true"' >> ${RACONF}
 						set_ra_setting screenshot_directory "/roms/screenshots"
 						mkdir -p "/roms/screenshots"
-                    elif
+                    else
 						echo 'cheevos_auto_screenshot = "false"' >> ${RACONF}
                     fi
                 else

@@ -84,7 +84,7 @@ EMULATOR="${arguments##*--emulator=}"  # read from --emulator= onwards
 EMULATOR="${EMULATOR%% *}"  # until a space is found
 
 ROMNAME="${1}"
-BASEROMNAME=${ROMNAME##*/}
+BASEROMNAME="${ROMNAME##*/}"
 GAMEFOLDER="${ROMNAME//${BASEROMNAME}}"
 
 KILLTHIS="none"
@@ -498,7 +498,7 @@ if [ "${USELOG}" == "1" ]; then # No need to do all this if log is disabled
     eval echo ${RUNTHIS} >> ${EMUELECLOG}
 fi
 
-gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
+[[ "${KILLTHIS}" != "none" ]] && gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
@@ -573,22 +573,13 @@ if [ "${EE_DEVICE}" == "OdroidGoAdvance" ]; then
         esac
 fi
 
-# Dolphin does not like to be killed?
-[[ "${EMU}" = "dolphin" ]] && ret_error="0"
-
-# Chocolate Doom does not like to be killed?
-[[ "${EMU}" = "Chocolate-Doom" ]] && ret_error="0"
-
-# YabasanshiroSA does not like to be killed?
-[[ "${EMU}" = "yabasanshiroSA" ]] && ret_error="0"
-
-[[ "${EMU}" = "yabasanshiroSA1_5" ]] && ret_error="0"
-
-# Temp fix for retrorun always erroing out on exit
+# These emus do not like to be killed by gptokeyb
+case "${EMU}" in
+    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+        ret_error="0"
+        ;;
+esac
 [[ "${RETRORUN}" == "yes" ]] && ret_error=0
-
-# Temp fix for libretro scummvm always erroing out on exit
-[[ "${EMU}" == *"scummvm_libretro"* ]] && ret_error=0
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
