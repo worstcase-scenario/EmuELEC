@@ -1,0 +1,18 @@
+[Unit]
+Description=Spotify Connect (librespot)
+After=network.target sound.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/storage/roms/ports/librespot
+ExecStartPre=/bin/mkdir -p /storage/roms/ports/librespot/cache
+ExecStart=/storage/roms/ports/librespot/librespot --name PORTMASTER --bitrate 320 --cache /storage/roms/ports/librespot/cache --device-type gameconsole --backend sdl
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
