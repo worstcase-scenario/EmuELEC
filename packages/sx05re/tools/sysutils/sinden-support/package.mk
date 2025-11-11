@@ -5,7 +5,7 @@ PKG_VERSION="1.0"
 PKG_LICENSE="GPL2"
 PKG_SITE="https://sindenlightgun.com"
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain systemd python3 pyudev python-evdev"
+PKG_DEPENDS_TARGET="toolchain systemd Python3 pyudev python-evdev"
 PKG_LONGDESC="User-space helpers that integrate the proprietary Sinden Lightgun runtime with EmuELEC."
 PKG_TOOLCHAIN="manual"
 
