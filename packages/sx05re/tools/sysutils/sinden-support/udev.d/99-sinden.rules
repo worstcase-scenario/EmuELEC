@@ -1,0 +1,3 @@
+SUBSYSTEM=="usb", ATTRS{product}=="Sinden Lightgun*", MODE="0660", GROUP="input"
+KERNEL=="hidraw*", ATTRS{product}=="Sinden Lightgun*", TAG+="systemd", ENV{SYSTEMD_WANTS}+="sinden-hotplug@%k.service"
+KERNEL=="event*", ATTRS{name}=="Sinden Lightgun*", MODE="0660", GROUP="input"

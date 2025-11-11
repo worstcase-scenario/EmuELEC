@@ -1,0 +1,111 @@
+#!/bin/bash
+
+set -euo pipefail
+
+LOG_FILE="/var/log/sinden/driver.log"
+RUNTIME_DIR="/run/sinden"
+CONFIG_DIR="/storage/.config/sinden"
+PID_FILE="${RUNTIME_DIR}/driver.pid"
+
+mkdir -p "${LOG_FILE%/*}" >/dev/null 2>&1 || true
+mkdir -p "${RUNTIME_DIR}" >/dev/null 2>&1 || true
+mkdir -p "${CONFIG_DIR}" >/dev/null 2>&1 || true
+
+log() {
+  local level="${1}"
+  shift || true
+  printf '[%(%F %T)T] %-7s %s\n' -1 "${level}" "$*" >> "${LOG_FILE}"
+}
+
+candidate_paths() {
+  local dir
+  for dir in \
+    "${CONFIG_DIR}" \
+    "${CONFIG_DIR}/bin" \
+    "/usr/local/share/sinden" \
+    "/usr/local/lib/sinden" \
+    "/usr/share/sinden" \
+    "/usr/lib/sinden"; do
+    [ -d "${dir}" ] || continue
+    find "${dir}" -maxdepth 1 -type f \
+      \( -iname 'sinden*' -o -iname 'lightgun*' -o -iname '*lightgun*.AppImage' -o -iname '*lightgun*.sh' -o -iname '*lightgun*.py' \) \
+      -print 2>/dev/null
+  done
+}
+
+select_binary() {
+  local candidate
+  while IFS= read -r candidate; do
+    [ -n "${candidate}" ] || continue
+    if [ -x "${candidate}" ]; then
+      echo "${candidate}"
+      return 0
+    fi
+    case "${candidate}" in
+      *.sh|*.py|*.AppImage)
+        echo "${candidate}"
+        return 0
+        ;;
+    esac
+  done < <(candidate_paths | sort -u)
+  return 1
+}
+
+launch_binary() {
+  local binary="${1}"
+  log INFO "Launching Sinden runtime: ${binary}"
+  printf '%d' "$$" > "${PID_FILE}"
+  export SINDEN_CONFIG_DIR="${CONFIG_DIR}"
+  export SINDEN_ASSETS_DIR="/usr/share/sinden"
+  export SINDEN_RUNTIME_DIR="${RUNTIME_DIR}"
+  export SINDEN_LOG_FILE="${LOG_FILE}"
+  case "${binary}" in
+    *.py)
+      exec python3 "${binary}" >> "${LOG_FILE}" 2>&1
+      ;;
+    *.sh)
+      exec /bin/bash "${binary}" >> "${LOG_FILE}" 2>&1
+      ;;
+    *.AppImage)
+      chmod +x "${binary}" 2>/dev/null || true
+      exec "${binary}" >> "${LOG_FILE}" 2>&1
+      ;;
+    *)
+      exec "${binary}" >> "${LOG_FILE}" 2>&1
+      ;;
+  esac
+}
+
+COMMAND="${1:-run}" || true
+case "${COMMAND}" in
+  run)
+    binary=$(select_binary) || {
+      log ERROR "Unable to locate a Sinden runtime binary"
+      exit 1
+    }
+    launch_binary "${binary}"
+    ;;
+  detect)
+    if binary=$(select_binary); then
+      echo "${binary}"
+    else
+      exit 1
+    fi
+    ;;
+  stop)
+    if [ -f "${PID_FILE}" ]; then
+      pid=$(cat "${PID_FILE}")
+      if kill -0 "${pid}" 2>/dev/null; then
+        log INFO "Sending SIGTERM to ${pid}"
+        kill "${pid}"
+      fi
+      rm -f "${PID_FILE}"
+    fi
+    ;;
+  *)
+    cat <<USAGE
+Usage: sinden-driver [run|detect|stop]
+USAGE
+    exit 1
+    ;;
+esac

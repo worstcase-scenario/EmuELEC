@@ -1,0 +1,15 @@
+Sinden Lightgun support for EmuELEC
+===================================
+
+This package ships the glue required to consume the proprietary Sinden runtime
+available from https://sindenlightgun.com/drivers/ and the open-source tooling
+maintained by the community (https://github.com/SindenLightgun/SindenLightgunLinux,
+https://github.com/mdeguzis/sinden-lightgun-linux).
+Pre-built bundles from https://github.com/batocera-linux/batocera-sinden-bundles
+are also supported.
+Drop the official runtime or one of the community builds into
+`/storage/.config/sinden` and the helper scripts will pick it up automatically.
+
+The configuration file lives at `/storage/.config/sinden/sinden.conf` and is
+based on the defaults found in `share/defaults/sinden.conf`.  `sinden-controller`
+can be used from an SSH shell to tweak behaviour or to trigger manual restarts.

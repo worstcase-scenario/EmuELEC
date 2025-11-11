@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ACTION_PARAM="${1:-}"
+ACTION_ENV="${ACTION:-${DEV_ACTION:-}}"
+ACTION="${ACTION_PARAM:-${ACTION_ENV}}"
+
+if [ -z "${ACTION}" ]; then
+  ACTION="change"
+fi
+
+/usr/bin/sinden-controller hotplug "${ACTION}"

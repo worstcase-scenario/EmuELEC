@@ -1,0 +1,152 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SERVICE_NAME="sinden-driver.service"
+STATE_DIR="/run/sinden"
+CONFIG_DIR="/storage/.config/sinden"
+CONFIG_FILE="${CONFIG_DIR}/sinden.conf"
+DEFAULT_CONFIG="/usr/share/sinden/defaults/sinden.conf"
+LOG_FILE="/var/log/sinden/controller.log"
+
+mkdir -p "${STATE_DIR}" >/dev/null 2>&1 || true
+mkdir -p "${CONFIG_DIR}" >/dev/null 2>&1 || true
+mkdir -p "${LOG_FILE%/*}" >/dev/null 2>&1 || true
+
+log() {
+  local level="${1}"
+  shift || true
+  printf '[%(%F %T)T] %-7s %s\n' -1 "${level}" "$*" >> "${LOG_FILE}"
+}
+
+default_config() {
+  AUTOSTART="1"
+  KEEP_RUNNING="0"
+  HOTPLUG_AUTOSTART="1"
+}
+
+load_config() {
+  default_config
+
+  if [ -f "${DEFAULT_CONFIG}" ] && [ ! -f "${CONFIG_FILE}" ]; then
+    mkdir -p "${CONFIG_DIR}"
+    cp "${DEFAULT_CONFIG}" "${CONFIG_FILE}"
+  fi
+
+  if [ -f "${CONFIG_FILE}" ]; then
+    while IFS='=' read -r key value; do
+      case "${key}" in
+        ''|'#'*)
+          continue
+          ;;
+        autostart)
+          AUTOSTART="${value}" ;;
+        keep_running)
+          KEEP_RUNNING="${value}" ;;
+        hotplug_autostart)
+          HOTPLUG_AUTOSTART="${value}" ;;
+      esac
+    done < "${CONFIG_FILE}"
+  fi
+}
+
+systemctl_safe() {
+  local action="${1}"; shift
+  if command -v systemctl >/dev/null 2>&1; then
+    if [ "${action}" = "status" ]; then
+      systemctl status --no-pager "${SERVICE_NAME}" "$@"
+    else
+      systemctl "${action}" "${SERVICE_NAME}" "$@"
+    fi
+  else
+    log WARN "systemctl unavailable for action ${action}"
+    return 1
+  fi
+}
+
+start_service() {
+  load_config
+  log INFO "Starting ${SERVICE_NAME}"
+  systemctl_safe start || true
+}
+
+stop_service() {
+  log INFO "Stopping ${SERVICE_NAME}"
+  systemctl_safe stop || true
+}
+
+usage() {
+  cat <<USAGE
+Usage: sinden-controller <command> [args]
+
+Commands:
+  setup                Ensure configuration files and directories exist
+  start                Start the Sinden driver service
+  stop                 Stop the Sinden driver service
+  restart              Restart the Sinden driver service
+  status               Query the service status
+  game-start           Prepare for launching a game (auto-starts the driver)
+  game-stop            Called when exiting a game (optionally stops the driver)
+  hotplug <action>     React to udev events (action is "add" or "remove")
+USAGE
+}
+
+COMMAND="${1:-}" || true
+case "${COMMAND}" in
+  setup)
+    load_config
+    log INFO "Setup completed"
+    ;;
+  start)
+    start_service
+    ;;
+  stop)
+    stop_service
+    ;;
+  restart)
+    log INFO "Restarting ${SERVICE_NAME}"
+    systemctl_safe restart || true
+    ;;
+  status)
+    systemctl_safe status
+    ;;
+  game-start)
+    load_config
+    touch "${STATE_DIR}/in-game"
+    if [ "${AUTOSTART}" = "1" ]; then
+      start_service
+    else
+      log INFO "Autostart disabled, not starting driver for game"
+    fi
+    ;;
+  game-stop)
+    load_config
+    rm -f "${STATE_DIR}/in-game"
+    if [ "${KEEP_RUNNING}" = "1" ]; then
+      log INFO "Keeping driver alive after game"
+    else
+      stop_service
+    fi
+    ;;
+  hotplug)
+    load_config
+    action="${2:-}"
+    log INFO "Hotplug action: ${action}"
+    case "${action}" in
+      add)
+        if [ "${HOTPLUG_AUTOSTART}" = "1" ]; then
+          start_service
+        fi
+        ;;
+      remove)
+        if [ ! -f "${STATE_DIR}/in-game" ] && [ "${KEEP_RUNNING}" != "1" ]; then
+          stop_service
+        fi
+        ;;
+    esac
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac

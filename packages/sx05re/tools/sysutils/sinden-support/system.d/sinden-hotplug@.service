@@ -1,0 +1,7 @@
+[Unit]
+Description=Sinden Lightgun hotplug handler (%i)
+After=systemd-udevd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sinden-hotplug %i

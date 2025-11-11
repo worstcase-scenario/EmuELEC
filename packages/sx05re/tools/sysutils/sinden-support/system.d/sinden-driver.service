@@ -1,0 +1,15 @@
+[Unit]
+Description=Sinden Lightgun runtime
+After=graphical.target
+ConditionFileIsExecutable=/usr/bin/sinden-driver
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sinden-driver run
+ExecStop=/usr/bin/sinden-driver stop
+ExecStopPost=/bin/rm -f /run/sinden/driver.pid
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

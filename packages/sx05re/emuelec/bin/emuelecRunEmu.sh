@@ -116,6 +116,13 @@ if [[ "${EMULATOR}" = "retrorun" ]]; then
     LIBRETRO=""
 fi
 
+SINDEN_ACTIVE=0
+SINDEN_SUPPORT=$(get_ee_setting "sinden" "${PLATFORM}" "${BASEROMNAME}")
+if [[ "${SINDEN_SUPPORT}" == "1" || "${SINDEN_SUPPORT,,}" == "true" ]] && [[ -x /usr/bin/sinden-controller ]]; then
+    /usr/bin/sinden-controller game-start
+    SINDEN_ACTIVE=1
+fi
+
 ROTATION_OUTPUT=$(get_ee_setting "${EMULATOR}.rotation_output" "${PLATFORM}" "${BASEROMNAME}")
 [[ -z "${ROTATION_OUTPUT}" ]] && ROTATION_OUTPUT=0
 CMD_ROTATE=$(emuelec-utils set_rotation "${ROTATION_OUTPUT}" "${EMULATOR}")
@@ -542,6 +549,10 @@ fi
 
 # reset audio to default
 set_audio default
+
+if [[ "${SINDEN_ACTIVE}" == "1" ]] && [[ -x /usr/bin/sinden-controller ]]; then
+    /usr/bin/sinden-controller game-stop
+fi
 
 if [[ "${BTENABLED}" == "1" ]]; then
         # Restart the bluetooth agent
