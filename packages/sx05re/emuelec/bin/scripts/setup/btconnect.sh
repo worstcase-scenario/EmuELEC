@@ -6,9 +6,41 @@ set -euo pipefail
 LOG="/tmp/btconnect.log"
 ASOUND_RUNTIME="/run/asound.conf"
 . "$(dirname "$0")/btaudio-lib.sh"
+
+print_usage() {
+  cat <<'EOF'
+Usage: btconnect.sh [--no-restart] [AA:BB:CC:DD:EE:FF]
+
+Connects to the last remembered Bluetooth audio device (or the MAC
+supplied on the command line), forces A2DP, and redirects EmulationStation
+plus all emulators through the Bluetooth sink.  Run from the EmulationStation
+Tools -> Bluetooth quick connect entry or manually from an SSH session.
+
+  --no-restart   Do not restart EmulationStation after a successful connect.
+EOF
+}
+
 RESTART=1
 [ "${NO_ES_RESTART:-}" = "1" ] && RESTART=0
-if [ "${1:-}" = "--no-restart" ]; then RESTART=0; shift; fi
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      print_usage
+      exit 0
+      ;;
+    --no-restart)
+      RESTART=0
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 overlay_yes() {
   ee_console disable

@@ -7,6 +7,25 @@ LOG="/tmp/btsetup.log"
 ASOUND_RUNTIME="/run/asound.conf"
 . "$(dirname "$0")/btaudio-lib.sh"
 
+print_usage() {
+  cat <<'EOF'
+Usage: btsetup.sh
+
+Interactive Bluetooth audio pairing tool.  Launch it from
+EmulationStation: Main Menu -> Network & Services -> Bluetooth Audio Setup
+or start manually over SSH with the command above.
+
+Workflow
+  1. Put the headset/speaker in pairing mode.
+  2. Run btsetup.sh and press YES to scan (10 seconds).
+  3. Pick the device, confirm the connection, and it becomes the
+     default audio sink for EmulationStation and all emulators.
+
+The last successful device is stored in /storage/.config/btaudio.last
+so btconnect.sh can reconnect without re-pairing.
+EOF
+}
+
 ee_console enable
 cleanup() {
   ee_console disable
@@ -14,6 +33,11 @@ cleanup() {
   [ -n "${BTCTL_PID:-}" ] && kill "$BTCTL_PID" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  print_usage
+  exit 0
+fi
 
 ask_yes() {
   text_viewer -y -w -t "$1" -f 24 -m "$2"
