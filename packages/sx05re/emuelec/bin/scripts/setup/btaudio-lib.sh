@@ -2,6 +2,7 @@
 # Shared helpers for EmuELEC Bluetooth audio scripts
 
 : "${ASOUND_RUNTIME:=/run/asound.conf}"
+: "${ASOUND_PERSIST:=/storage/.config/asound.conf}"
 
 ensure_pulseaudio() {
   if ! pgrep -f "pulseaudio.*--system" >/dev/null; then
@@ -15,7 +16,7 @@ ensure_pulseaudio() {
 }
 
 configure_alsa_pulse() {
-  mkdir -p "${ASOUND_RUNTIME%/*}"
+  mkdir -p "${ASOUND_RUNTIME%/*}" "${ASOUND_PERSIST%/*}"
   cat >"$ASOUND_RUNTIME" <<'CFG'
 pcm.pulse {
   type pulse
@@ -36,6 +37,8 @@ ctl.!default {
   type pulse
 }
 CFG
+
+  ln -sf "$ASOUND_RUNTIME" "$ASOUND_PERSIST"
 }
 
 is_audio_mac() {
