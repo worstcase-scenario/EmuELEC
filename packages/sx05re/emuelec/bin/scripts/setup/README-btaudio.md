@@ -1,42 +1,34 @@
 # EmuELEC Bluetooth Audio Quick Guide
 
-These helpers live in `Tools -> Network & Services` inside EmulationStation
-and can also be executed from an SSH shell.  They share the same routing
-logic through `btaudio-lib.sh`, so EmulationStation and every emulator will
-output through the Bluetooth sink as soon as a connection succeeds.
+All Bluetooth audio helpers now share a single workflow: `btaudio.sh`.  It
+scans for A2DP-capable devices, pairs/trusts them, connects, then forces
+EmulationStation and every emulator (RetroArch plus stand-alone cores) through
+the PulseAudio sink exposed by the Bluetooth headset/speaker.
 
-## btsetup.sh — interactive pairing
+## btaudio.sh — one-stop pairing and reconnects
 
 1. Put the speaker/headset in pairing mode.
-2. From EmulationStation open **Main Menu → Network & Services → Bluetooth Audio Setup**
-   (or run `btsetup.sh` via SSH).
-3. Press **YES** to start a 10‑second scan.  Only audio‑capable devices are
-   listed.
-4. Choose the device and confirm the dialog.  The script will pair, trust and
-   connect it, then switch PulseAudio/ALSA defaults to the device.
-5. When the success dialog shows the sink name, audio from EmulationStation
-   and all cores is already routed to the Bluetooth output.
+2. From EmulationStation open **Main Menu → Network & Services → Bluetooth Audio
+   Setup** (or run `btaudio.sh` via SSH).
+3. The script scans for 10 seconds and lists only audio-capable devices.
+4. Choose the device to automatically pair, trust, connect and switch the
+   default audio sink.
+5. The successful MAC is stored in `/storage/.config/btaudio.last` for quick
+   re-use.
 
-The successful MAC is stored in `/storage/.config/btaudio.last` for quick
-re-use.
+Additional modes:
 
-## btconnect.sh — reconnect last device
+* `btaudio.sh --last --restart` – reconnects the last saved device (the same
+  behaviour exposed by the "Bluetooth Quick Connect" entry).  The EmulationStation
+  restart can be suppressed with `--no-restart`.
+* `btaudio.sh AA:BB:CC:DD:EE:FF` – skips scanning and connects straight to the
+  supplied MAC (automatically routing audio once the sink is detected).
 
-* Launch **Main Menu → Network & Services → Bluetooth Quick Connect** or run
-  `btconnect.sh` via SSH.
-* The script recalls the MAC from `/storage/.config/btaudio.last` (or accept a
-  MAC on the command line) and forces A2DP mode.
-* After the "Active sink" confirmation, EmulationStation is restarted unless
-  `--no-restart` is supplied (or `NO_ES_RESTART=1` is exported).
+## Backward-compatible launchers
 
-### Command-line usage
+* `btsetup.sh` now simply execs `btaudio.sh --scan` so existing EmulationStation
+  menu entries keep launching the interactive workflow.
+* `btconnect.sh` execs `btaudio.sh --last --restart` to preserve the quick
+  reconnect flow and its default EmulationStation restart.
 
-```bash
-btsetup.sh        # interactive scan/pair route
-btconnect.sh      # reconnect previously paired sink
-btconnect.sh --no-restart AA:BB:CC:DD:EE:FF
-btconnect.sh --help
-btsetup.sh  --help
-```
-
-Logs: `/tmp/btsetup.log` and `/tmp/btconnect.log`.
+Logs: `/tmp/btaudio.log`.
