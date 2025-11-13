@@ -4,6 +4,8 @@ set -euo pipefail
 . /etc/profile
 
 LOG="/tmp/btsetup.log"
+ASOUND_RUNTIME="/run/asound.conf"
+. "$(dirname "$0")/btaudio-lib.sh"
 
 ee_console enable
 cleanup() {
@@ -29,13 +31,6 @@ ask_yes() {
   esac
 }
 
-ensure_pa() {
-  pgrep -f "pulseaudio.*--system" >/dev/null || {
-    pulseaudio --system --disallow-exit --disable-shm --log-level=error &>>"$LOG" &
-    sleep 2
-  }
-}
-
 # Persistent bluetoothctl session for stable pairing
 coproc BTCTL { bluetoothctl >>"$LOG" 2>&1; }
 BTFD="${BTCTL[1]}"     # write fd
@@ -51,14 +46,6 @@ bt_init() {
 
 scan_start() { bt "scan on"; }
 scan_stop()  { bt "scan off"; }
-
-is_audio_mac() {
-  local mac="$1" info
-  info="$(bluetoothctl info "$mac" 2>/dev/null || true)"
-  echo "$info" | grep -qiE 'Icon:\s*audio-' && return 0
-  echo "$info" | grep -qiE 'UUID.*(A2DP|Audio Sink|Headset|Handsfree)' && return 0
-  return 1
-}
 
 scan_audio_devices() {
   scan_start; sleep 10
@@ -106,7 +93,7 @@ pair_trust_connect() {
 }
 
 main() {
-  ensure_pa
+  ensure_pulseaudio
   bt_init
 
   ask_yes "BLUETOOTH SETUP" \
@@ -131,9 +118,13 @@ main() {
           "Name: ${name}\nMAC: ${mac}\n\n[Yes]=Connect   [No]=Cancel"; then
 
         if pair_trust_connect "$mac"; then
-          echo "$mac" > /storage/.config/btaudio.last
-          LAST_MAC="$mac"
-          text_viewer -w -t "SUCCESS" -f 24 -m "Connected: ${name}"
+          if SINK="$(set_bt_audio_sink "$mac")"; then
+            echo "$mac" > /storage/.config/btaudio.last
+            LAST_MAC="$mac"
+            text_viewer -w -t "SUCCESS" -f 24 -m "Connected: ${name}\nSink: ${SINK}"
+          else
+            text_viewer -w -t "ERROR" -f 24 -m "Connected but no A2DP sink. See ${LOG}"
+          fi
         else
           text_viewer -w -t "ERROR" -f 24 -m "Pair/connect failed."
         fi
