@@ -4,6 +4,7 @@ set -euo pipefail
 . /etc/profile
 
 LOG="/tmp/btconnect.log"
+ASOUND_RUNTIME="/run/asound.conf"
 RESTART=1
 [ "${NO_ES_RESTART:-}" = "1" ] && RESTART=0
 if [ "${1:-}" = "--no-restart" ]; then RESTART=0; shift; fi
@@ -16,6 +17,41 @@ overlay_yes() {
 }
 overlay_msg() { ee_console disable; text_viewer -w -t "$1" -f 24 -m "$2"; rm -f /tmp/display; }
 overlay_err() { ee_console disable; text_viewer -e -w -t "$1" -f 24 -m "$2"; rm -f /tmp/display; }
+
+ensure_pulseaudio() {
+  if ! pgrep -f "pulseaudio.*--system" >/dev/null; then
+    pulseaudio --system --disallow-exit --disable-shm --log-level=error &>>"$LOG" &
+    sleep 2
+  fi
+
+  # Make sure bluetooth modules are available so a2dp sinks appear
+  pactl list modules short | grep -q module-bluetooth-discover || \
+    pactl load-module module-bluetooth-discover >/dev/null 2>&1 || true
+}
+
+configure_alsa_pulse() {
+  mkdir -p "${ASOUND_RUNTIME%/*}"
+  cat >"$ASOUND_RUNTIME" <<'EOF'
+pcm.pulse {
+    type pulse
+    fallback "sysdefault"
+}
+
+ctl.pulse {
+    type pulse
+    fallback "sysdefault"
+}
+
+pcm.!default {
+    type plug
+    slave.pcm pulse
+}
+
+ctl.!default {
+    type pulse
+}
+EOF
+}
 
 is_audio_mac() {
   local mac="$1" info
@@ -36,10 +72,7 @@ run_connect() {
   BTID="${BTMAC//:/_}"
   CARD="bluez_card.$BTID"
 
-  pgrep -f "pulseaudio.*--system" >/dev/null || {
-    pulseaudio --system --disallow-exit --disable-shm --log-level=error &>>"$LOG" &
-    sleep 2
-  }
+  ensure_pulseaudio
 
   if ! bluetoothctl info "$BTMAC" 2>/dev/null | grep -q "Paired: yes"; then
     bluetoothctl power on >>"$LOG" 2>&1 || true
@@ -73,6 +106,8 @@ run_connect() {
   pactl set-sink-volume "$SINK" 100% >/dev/null 2>&1 || true
   for id in $(pactl list short sink-inputs | awk '{print $1}'); do pactl move-sink-input "$id" "$SINK" >/dev/null 2>&1 || true; done
   pactl list modules short | grep -q module-switch-on-connect || pactl load-module module-switch-on-connect >/dev/null 2>&1 || true
+
+  configure_alsa_pulse
 
   echo "$BTMAC" > /storage/.config/btaudio.last
   overlay_msg "STATUS" "Active sink: $SINK\n"
