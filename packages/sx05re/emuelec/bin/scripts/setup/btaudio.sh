@@ -174,7 +174,15 @@ overlay_err() { ee_console disable; text_viewer -e -w -t "$1" -f 24 -m "$2"; rm 
 coproc_setup() {
   coproc BTCTL { bluetoothctl >>"$LOG" 2>&1; }
   BTFD="${BTCTL[1]}"
-  BTCTL_PID="$COPROC_PID"
+  BTCTL_PID="${COPROC_PID:-}"
+
+  if [ -z "$BTCTL_PID" ]; then
+    # BusyBox bash may clear COPROC_PID when job-control is disabled; fall back
+    # to querying the coproc job directly so cleanup can still stop it.
+    local job_info
+    job_info="$(jobs -p %BTCTL 2>/dev/null || true)"
+    BTCTL_PID="${job_info%%$'\n'*}"
+  fi
 }
 
 bt() { printf '%s\n' "$*" >&"$BTFD"; }
