@@ -18,6 +18,13 @@ the PulseAudio sink exposed by the Bluetooth headset/speaker.
 5. The successful MAC is stored in `/storage/.config/btaudio.last` for quick
    re-use.
 
+Once a sink is detected the script also writes `/run/asound.conf` (symlinked to
+`/storage/.config/asound.conf`) and creates `/storage/.config/btaudio.force-pulse`.
+That flag keeps EmuELEC’s `set_audio` helper pinned to PulseAudio so video
+previews plus stand-alone emulators like OpenBOR, PPSSPP, Hatari, Stella,
+AdvanceMAME, Amiberry and Ikemen obey the Bluetooth routing without you having
+to change each launcher manually.
+
 Additional modes:
 
 * `btaudio.sh --last --restart` – reconnects the last saved device (the same
@@ -25,6 +32,9 @@ Additional modes:
   restart can be suppressed with `--no-restart`.
 * `btaudio.sh AA:BB:CC:DD:EE:FF` – skips scanning and connects straight to the
   supplied MAC (automatically routing audio once the sink is detected).
+* `btaudio.sh --clear-force` – removes `/storage/.config/btaudio.force-pulse`,
+  restores the stock `/storage/.config/asound.conf` for the current board and
+  hands control of the audio backend back to the default EmuELEC settings.
 
 ## Backward-compatible launchers
 

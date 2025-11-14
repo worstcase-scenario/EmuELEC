@@ -22,7 +22,7 @@ echo "EmuELEC ${AMIBERRY_EXE} Log" > "${AMIBERRY_LOG}"
 echo "Trying to boot this game: ${TARGET_FILE}" >> "${AMIBERRY_LOG}"
 
 # Force SDL audio backend
-export SDL_AUDIODRIVER=alsa
+export SDL_AUDIODRIVER="${SDL_AUDIODRIVER:-alsa}"
 
 # Amiberry loads assets relative to its working directory
 cd "${AMIBERRY_DIR}"

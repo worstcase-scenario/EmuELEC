@@ -6,12 +6,15 @@ set -euo pipefail
 LOG="/tmp/btaudio.log"
 ASOUND_RUNTIME="/run/asound.conf"
 ASOUND_PERSIST="/storage/.config/asound.conf"
+FORCE_PULSE_FLAG="/storage/.config/btaudio.force-pulse"
+AUDIO_PREPARED=0
 
 ensure_pulseaudio() {
-  if ! pgrep -f "pulseaudio.*--system" >/dev/null; then
-    pulseaudio --system --disallow-exit --disable-shm --log-level=error &>>"${LOG}" &
-    sleep 2
-  fi
+  systemctl start pulseaudio >>"${LOG}" 2>&1 || true
+  for _ in {1..8}; do
+    pactl info >/dev/null 2>&1 && break
+    sleep 1
+  done
 
   pactl list modules short | grep -q module-bluetooth-discover || \
     pactl load-module module-bluetooth-discover >/dev/null 2>&1 || true
@@ -25,28 +28,65 @@ pcm.pulse {
   fallback "sysdefault"
 }
 
-ctl.pulse {
-  type pulse
-  fallback "sysdefault"
-}
-
 pcm.!default {
   type plug
   slave.pcm pulse
 }
-
-ctl.!default {
-  type pulse
-}
 CFG
 
   ln -sf "$ASOUND_RUNTIME" "$ASOUND_PERSIST"
+}
+
+prepare_audio_stack() {
+  [ "$AUDIO_PREPARED" -eq 1 ] && return
+
+  configure_alsa_pulse
 
   if command -v set_audio >/dev/null 2>&1; then
-    set_audio pulseaudio
+    set_audio pulseaudio >>"${LOG}" 2>&1 || true
   elif command -v emuelec-utils >/dev/null 2>&1; then
-    emuelec-utils audio pulse
+    emuelec-utils audio pulse >>"${LOG}" 2>&1 || true
   fi
+
+  ensure_pulseaudio
+  AUDIO_PREPARED=1
+}
+
+mark_force_pulse() {
+  mkdir -p "${FORCE_PULSE_FLAG%/*}"
+  printf '%s|%s\n' "$1" "$2" >"$FORCE_PULSE_FLAG"
+}
+
+restore_stock_asound() {
+  rm -f "$ASOUND_RUNTIME"
+  rm -f "$ASOUND_PERSIST"
+
+  local src=""
+  case "${EE_DEVICE:-}" in
+    Amlogic)
+      src="/storage/.config/asound.conf-amlogic"
+      ;;
+    Amlogic-ng|Amlogic-no|OdroidM1)
+      src="/storage/.config/asound.conf-amlogic-ng"
+      ;;
+  esac
+
+  if [ -n "$src" ] && [ -f "$src" ]; then
+    cp "$src" "$ASOUND_PERSIST"
+  fi
+}
+
+clear_force_override() {
+  rm -f "$FORCE_PULSE_FLAG"
+  restore_stock_asound
+
+  if command -v set_audio >/dev/null 2>&1; then
+    set_audio default >>"${LOG}" 2>&1 || true
+  elif command -v emuelec-utils >/dev/null 2>&1; then
+    emuelec-utils audio default >>"${LOG}" 2>&1 || true
+  fi
+
+  echo "Bluetooth audio override cleared." >&2
 }
 
 is_audio_mac() {
@@ -86,7 +126,6 @@ set_bt_audio_sink() {
   pactl list modules short | grep -q module-switch-on-connect || \
     pactl load-module module-switch-on-connect >/dev/null 2>&1 || true
 
-  configure_alsa_pulse
   printf '%s\n' "$SINK"
 }
 
@@ -94,6 +133,7 @@ MODE="scan"
 TARGET_MAC=""
 RESTART=0
 ACTIVE_SINK=""
+CLEAR_ONLY=0
 
 print_usage() {
   cat <<'USAGE'
@@ -108,6 +148,7 @@ Options:
   --mac MAC        Connect directly to MAC (same as passing MAC positionally).
   --restart        Restart EmulationStation after a successful connect.
   --no-restart     Do not restart EmulationStation (default behaviour).
+  --clear-force    Remove the Bluetooth audio override and restore stock audio.
   -h, --help       Display this help.
 
 Examples:
@@ -141,6 +182,10 @@ while [ $# -gt 0 ]; do
       RESTART=0
       shift
       ;;
+    --clear-force)
+      CLEAR_ONLY=1
+      shift
+      ;;
     -h|--help)
       print_usage
       exit 0
@@ -156,6 +201,11 @@ while [ $# -gt 0 ]; do
       ;;
   esac
 done
+
+if [ "$CLEAR_ONLY" -eq 1 ]; then
+  clear_force_override
+  exit 0
+fi
 
 ask_yes() {
   text_viewer -y -w -t "$1" -f 24 -m "$2"
@@ -249,12 +299,13 @@ pair_trust_connect() {
 
 connect_target() {
   local mac="$1"
-  ensure_pulseaudio
+  prepare_audio_stack
   pair_trust_connect "$mac" || return 1
   local sink
   sink="$(set_bt_audio_sink "$mac")" || return 2
   ACTIVE_SINK="$sink"
   echo "$mac" > /storage/.config/btaudio.last
+  mark_force_pulse "$mac" "$sink"
   return 0
 }
 

@@ -77,6 +77,7 @@ emuelec-utils blank_buffer
 
 ARG=$(echo basename ${2} | sed 's/\.[^.]*$//')
 ARG="$(echo ${2} | sed 's=.*/==;s/\.[^.]*$//')"
-SDL_AUDIODRIVER=alsa advmame ${ARG} -quiet
+AUDIO_DRIVER="${SDL_AUDIODRIVER:-alsa}"
+SDL_AUDIODRIVER="${AUDIO_DRIVER}" advmame ${ARG} -quiet
 
 emuelec-utils blank_buffer

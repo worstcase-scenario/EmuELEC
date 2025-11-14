@@ -39,5 +39,5 @@ if [ ! -s "${ROMSPPSSPPFOLDER}/Cheats/cheat.db" ];then
 fi
 
 ARG=${1//[\\]/}
-export SDL_AUDIODRIVER=alsa          
+export SDL_AUDIODRIVER="${SDL_AUDIODRIVER:-alsa}"
 PPSSPPSDL --fullscreen "${ARG}"

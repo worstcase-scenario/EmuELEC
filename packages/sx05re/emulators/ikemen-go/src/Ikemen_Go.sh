@@ -7,9 +7,38 @@
 
 IKEMEN_ALSA_CONF=/storage/.config/asound-ikemen.conf
 ALSA_CONF=/storage/.config/asound.conf
-    
-    mv ${ALSA_CONF} ${ALSA_CONF}.tmp
-    cp ${IKEMEN_ALSA_CONF} ${ALSA_CONF}
+BT_FORCE_FLAG=/storage/.config/btaudio.force-pulse
+RESTORE_ALSA=0
+ALSA_BACKUP=0
+
+swap_alsa_for_ikemen() {
+    [ -f "$BT_FORCE_FLAG" ] && return
+    [ -f "$IKEMEN_ALSA_CONF" ] || return
+
+    RESTORE_ALSA=1
+
+    if [ -f "$ALSA_CONF" ]; then
+        mv "$ALSA_CONF" "${ALSA_CONF}.tmp"
+        ALSA_BACKUP=1
+    fi
+
+    cp "$IKEMEN_ALSA_CONF" "$ALSA_CONF"
+}
+
+restore_alsa_from_backup() {
+    [ "$RESTORE_ALSA" -eq 1 ] || return
+
+    rm -f "$ALSA_CONF"
+    if [ "$ALSA_BACKUP" -eq 1 ] && [ -f "${ALSA_CONF}.tmp" ]; then
+        mv "${ALSA_CONF}.tmp" "$ALSA_CONF"
+    else
+        rm -f "${ALSA_CONF}.tmp"
+    fi
+}
+
+trap restore_alsa_from_backup EXIT
+
+swap_alsa_for_ikemen
 
 LOGSDIR="/emuelec/logs"
 LOGFILE="$LOGSDIR/ikemen.log"
@@ -185,8 +214,5 @@ cd "$CONFIGDIR" || exit 1
 # Verifying included the game assets
 log "$MESSAGE_008"
 Ikemen_Go -audit >> "$LOGFILE" 2>&1
-exec nice -n -20 Ikemen_Go
-
-# restore asound.conf
-    rm ${ALSA_CONF}
-    mv ${ALSA_CONF}.tmp ${ALSA_CONF}
+nice -n -20 Ikemen_Go
+exit $?
