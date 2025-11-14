@@ -11,8 +11,10 @@ the PulseAudio sink exposed by the Bluetooth headset/speaker.
 2. From EmulationStation open **Main Menu → Network & Services → Bluetooth Audio
    Setup** (or run `btaudio.sh` via SSH).
 3. The script scans for 10 seconds and lists only audio-capable devices.
-4. Choose the device to automatically pair, trust, connect and switch the
-   default audio sink.
+4. Choose the device to automatically pair, trust, connect, switch the default
+   audio sink and toggle EmuELEC’s global audio mode to PulseAudio so every
+   client (EmulationStation, RetroArch and stand-alone emulators) immediately
+   talks to the Bluetooth sink without manual configuration changes.
 5. The successful MAC is stored in `/storage/.config/btaudio.last` for quick
    re-use.
 

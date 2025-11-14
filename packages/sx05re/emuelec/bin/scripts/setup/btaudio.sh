@@ -41,6 +41,12 @@ ctl.!default {
 CFG
 
   ln -sf "$ASOUND_RUNTIME" "$ASOUND_PERSIST"
+
+  if command -v set_audio >/dev/null 2>&1; then
+    set_audio pulseaudio
+  elif command -v emuelec-utils >/dev/null 2>&1; then
+    emuelec-utils audio pulse
+  fi
 }
 
 is_audio_mac() {
