@@ -274,7 +274,9 @@
 LIBRETRO_CORES="2048 \
 81 \
 a5200 \
+arduous \
 atari800 \
+b2 \
 beetle-lynx \
 beetle-ngp \
 beetle-pce \
@@ -286,16 +288,20 @@ bk \
 bluemsx \
 cannonball \
 cap32 \
+channelf \
 daphne \
 dinothawr \
 dosbox-svn \
 easyrpg \
+emuscv \
+ep128emu \
 fake_08 \
 fbalpha2012 \
 fbneo \
 fceumm \
 fceumm-mod \
 flycast \
+freechaf \
 freeintv \
 fuse-libretro \
 gambatte \
@@ -313,10 +319,12 @@ gpsp \
 gw-libretro \
 handy \
 hatari \
+m2000 \
 mame2003-plus \
 mame2010 \
 meowpc98 \
 mgba \
+minivmac \
 mrboom \
 mupen64plus \
 neocd_libretro \
@@ -346,6 +354,7 @@ spring \
 stella \
 supafaust \
 tgbdual \
+theodore \
 tic-80 \
 tyrquake \
 xrick \
@@ -355,6 +364,8 @@ vba-next \
 vbam \
 vecx \
 vice \
+vircon32 \
+wasm4 \
 yabasanshiro"
 
 LIBRETRO_EXTRA_CORES="chailove \

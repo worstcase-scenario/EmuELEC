@@ -4061,6 +4061,338 @@
         }
       ]
     },
+	{
+      "name": "channelf",
+      "fullname": "Channel F",
+      "manufacturer": "Fairchild",
+      "release": "1976",
+      "hardware": "console",
+      "path": "/storage/roms/channelf",
+      "platform": "channelf",
+      "theme": "channelf",
+      "command": "default",
+      "extensions": [
+        ".bin",
+		".zip",
+		".rom",
+		".chf"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "freechaf",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "arduboy",
+      "fullname": "Arduboy",
+      "manufacturer": "Kevin Bates",
+      "release": "2015",
+      "hardware": "portable",
+      "path": "/storage/roms/arduboy",
+      "platform": "arduboy",
+      "theme": "arduboy",
+      "command": "default",
+      "extensions": [
+        ".hex",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "arduous",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "wasm4",
+      "fullname": "Wasm-4",
+      "manufacturer": "Aduros",
+      "release": "2021",
+      "hardware": "console",
+      "path": "/storage/roms/wasm4",
+      "platform": "wasm4",
+      "theme": "wasm4",
+      "command": "default",
+      "extensions": [
+        ".wasm"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "wasm4",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "bbc",
+      "fullname": "BBC Micro",
+      "manufacturer": "Acorn Electronics",
+      "release": "1981",
+      "hardware": "computer",
+      "path": "/storage/roms/bbc",
+      "platform": "bbc",
+      "theme": "bbc",
+      "command": "default",
+      "extensions": [
+        ".mfi",
+		".dfi",
+		"hfe",
+		".mfm",
+		".td0",
+		".imd",
+		".d77",
+		".d88",
+		".ldd",
+		".cqm",
+		".cqi",
+		".dsk",
+		".ima",
+		".img",
+		".ufi",
+		".360",
+		".ipf",
+		".ssd",
+		".bbc",
+		".dsd",
+		".adf",
+		".ads",
+		".adm",
+		".adl",
+		".fsd",
+		".wav",
+		".tap",
+		".bin"
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            },
+			{
+              "name": "b2"
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "m2000",
+      "fullname": "Philips P2000T",
+      "manufacturer": "Philips",
+      "release": "1980",
+      "hardware": "computer",
+      "path": "/storage/roms/p2000t",
+      "platform": "m2000",
+      "theme": "p2000t",
+      "command": "default",
+      "extensions": [
+		".cas"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "m2000",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "macintosh",
+      "fullname": "Macintosh",
+      "manufacturer": "Apple",
+      "release": "1984",
+      "hardware": "computer",
+      "path": "/storage/roms/macintosh",
+      "platform": "macintosh",
+      "theme": "macintosh",
+      "command": "default",
+      "extensions": [
+		".dsk",
+		".zip",
+		".7z",
+		".mfi",
+		".dfi",
+		".hfe",
+		".mfm",
+		".td0",
+		".imd",
+		".d77",
+		".d88",
+		".1dd",
+		".cqm",
+		".cqi",
+		".dsk",
+		".ima",
+		".img",
+		".ufi",
+		".ipf",
+		".dc42",
+		".woz",
+		".2mg",
+		".360",
+		".chd",
+		".cue",
+		".toc",
+		".nrg",
+		".gdi",
+		".iso",
+		".cdr",
+		".hd",
+		".hdv",
+		".2mg",
+		".hdi"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            },
+			{
+              "name": "minivmac"
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "theodore",
+      "fullname": "Thomson - MO/TO",
+      "manufacturer": "Thomson",
+      "release": "1984",
+      "hardware": "computer",
+      "path": "/storage/roms/thomson",
+      "platform": "to8",
+      "theme": "to8",
+      "command": "default",
+      "extensions": [
+		".fd",
+		".sap",
+		".k7",
+		".m7",
+		".m5",
+		".rom",
+		".zip"		
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "theodore",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "vircon32",
+      "fullname": "Vircon32",
+      "manufacturer": "Carra",
+      "hardware": "console",
+      "path": "/storage/roms/vircon32",
+      "platform": "vircon32",
+      "theme": "vircon32",
+      "command": "default",
+      "extensions": [
+		".v32",
+		".zip"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "vircon32",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "scv",
+      "fullname": "Super Cassette Vision",
+      "manufacturer": "Epoch Co.",
+      "release": "1984",
+      "hardware": "console",
+      "path": "/storage/roms/scv",
+      "platform": "scv",
+      "theme": "scv",
+      "command": "default",
+      "extensions": [
+		".bin",
+		".0"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "emuscv",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "astrocde",
+      "fullname": "Bally Astrocade",
+      "manufacturer": "Bally Manufacturing",
+      "release": "1978",
+      "hardware": "console",
+      "path": "/storage/roms/astrocde",
+      "platform": "astrocde",
+      "theme": "astrocde",
+      "command": "default",
+      "extensions": [
+        ".bin",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "bk",
       "fullname": "Electronika",
