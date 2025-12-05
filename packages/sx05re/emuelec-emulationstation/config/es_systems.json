@@ -4291,8 +4291,8 @@
       "release": "1984",
       "hardware": "computer",
       "path": "/storage/roms/thomson",
-      "platform": "to8",
-      "theme": "to8",
+      "platform": "thomson",
+      "theme": "thomson",
       "command": "default",
       "extensions": [
 		".fd",
@@ -4379,6 +4379,231 @@
       "extensions": [
         ".bin",
 		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "coco",
+      "fullname": "TRS-80 Color Computer",
+      "manufacturer": "Tandy Radio Shack",
+      "release": "1980",
+      "hardware": "computer",
+      "path": "/storage/roms/coco",
+      "platform": "coco",
+      "theme": "coco",
+      "command": "default",
+      "extensions": [
+        ".rom",
+		".ccc",
+		".cas",
+		".wav",
+		".cmd",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "arcadia",
+      "fullname": "Arcadia 2001",
+      "manufacturer": "Emerson",
+      "release": "1982",
+      "hardware": "console",
+      "path": "/storage/roms/arcadia",
+      "platform": "arcadia",
+      "theme": "arcadia",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "crvision",
+      "fullname": "CreatiVision",
+      "manufacturer": "VTech",
+      "release": "1982",
+      "hardware": "console",
+      "path": "/storage/roms/crvision",
+      "platform": "crvision",
+      "theme": "crvision",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".bin",
+		".rom",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "gmaster",
+      "fullname": "Game Master",
+      "manufacturer": "Hartung",
+      "release": "1990",
+      "hardware": "portable",
+      "path": "/storage/roms/gmaster",
+      "platform": "gmaster",
+      "theme": "gmaster",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".bin",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "archimedes",
+      "fullname": "Archimede",
+      "manufacturer": "Acorn Computers",
+      "release": "1987",
+      "hardware": "computer",
+      "path": "/storage/roms/archimedes",
+      "platform": "archimedes",
+      "theme": "archimedes",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".mfi",
+		".dfi",
+		".hfe",
+		".mfm",
+		".td0",
+		".imd",
+		".d77",
+		".d88",
+		".ldd",
+		".cqm",
+		".cqi",
+		".dsk",
+		".ima",
+		".img",
+		".ufi",
+		".360",
+		".ipf",
+		".adf",
+		".apd",
+		".jfd",
+		".asd",
+		".adm",
+		".adl",
+		".ssd",
+		".bbc",
+		".dsd",
+		".st",
+		".msa",
+		".chd",		
+		".zip",
+		".7z"
+		
+		.mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .ima, .img, .ufi, .360, .ipf, .adf, .apd, .jfd, .ads, .adm, .adl, .ssd, .bbc, .dsd, .st, .msa, .chd, 
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "electron",
+      "fullname": "Electron",
+      "manufacturer": "Acorn Computers",
+      "release": "1983",
+      "hardware": "computer",
+      "path": "/storage/roms/electron",
+      "platform": "electron",
+      "theme": "electron",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".bin",
+		".zip",
+		".wav",
+		".csw",
+		".uef",
+		".mfi",
+		".dfi",
+		".hfe",
+		".mfm",
+		".td0",
+		".imd",
+		".d77",
+		".d88",
+		".ldd",
+		".cqm",
+		".cqi",
+		".dsk",
+		".ssd",
+		".bbc",
+		".img",
+		".dsd",
+		".adf",
+		".ads",
+		".adm",
+		".adl",
+		".rom",
 		".7z"
       ],
       "emulators": [
