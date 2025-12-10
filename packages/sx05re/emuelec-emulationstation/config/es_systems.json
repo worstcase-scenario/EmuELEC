@@ -4847,6 +4847,63 @@
       ]
     },
 	{
+      "name": "multivision",
+      "fullname": "Othello Multivision",
+      "manufacturer": "Tsukuda Original",
+      "release": "1983",
+      "hardware": "console",
+      "path": "/storage/roms/multivision",
+      "platform": "multivision",
+      "theme": "multivision",
+      "command": "default",
+      "extensions": [
+        ".bin",
+		".sg",
+		".zip",
+		".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "picodrive",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "tutor",
+      "fullname": "Tomy Tutor",
+      "manufacturer": "Tomy",
+      "release": "1983",
+      "hardware": "computer",
+      "path": "/storage/roms/tutor",
+      "platform": "tutor",
+      "theme": "tutor",
+      "command": "default",
+      "extensions": [
+        ".bin",
+		".wav",
+		".zip",
+		".7z",
+		".cmd"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "pico8",
       "fullname": "Sega Pico",
       "manufacturer": "Sega",
