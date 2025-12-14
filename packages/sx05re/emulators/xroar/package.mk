@@ -9,7 +9,8 @@ PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/RetroDECK/XRoar"
 PKG_URL="https://github.com/RetroDECK/XRoar/archive/refs/tags/${PKG_VERSION}.tar.gz"
 
-PKG_DEPENDS_TARGET="toolchain SDL2 libpng zlib alsa-lib pulseaudio"
+# XRoar can use SDL2_image for screenshots/PNG handling and may detect libevdev for input.
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_image libpng zlib alsa-lib pulseaudio libevdev"
 
 PKG_SECTION="emuelec/emulators"
 PKG_SHORTDESC="XRoar - Dragon 32/64 & Tandy CoCo Emulator"
@@ -20,13 +21,23 @@ PKG_TOOLCHAIN="manual"
 configure_target() {
   cd "$PKG_BUILD"
 
+  # EmuELEC is not an X11 system.
+  # During cross-compiles, configure may incorrectly detect X11 from the build host,
+  # which makes it compile sdl2/sdl_x11.c and then fail because SDL2 was built without X11 support.
+  
+  export ac_cv_have_x=no
+  export ac_cv_header_X11_Xlib_h=no
+  export ac_cv_lib_X11_XOpenDisplay=no
+
+  # Optional: if the configure script hard-fails when no OpenGL implementation is found,
+  # neutralize that error for EmuELEC builds.
   if [ -f "./configure" ] && grep -q "Could not find a valid OpenGL implementation" ./configure; then
     sed -i '/Could not find a valid OpenGL implementation/ s/as_fn_error[^;]*/: # OpenGL disabled for EmuELEC/' ./configure
   fi
 
   ./configure \
     $TARGET_CONFIGURE_OPTS \
-    --prefix=/usr/config/emuelec/bin/xroar \
+    --prefix=/usr \
     --enable-dragon \
     --enable-coco3 \
     --enable-mc10 \
@@ -42,6 +53,5 @@ make_target() {
 }
 
 makeinstall_target() {
-  mkdir -p "${INSTALL}/usr/bin"
-  cp -a "${PKG_BUILD}/src/xroar" "${INSTALL}/usr/bin/xroar"
+  install -Dm755 "${PKG_BUILD}/src/xroar" "${INSTALL}/usr/bin/xroar"
 }
