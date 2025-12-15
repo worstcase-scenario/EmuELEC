@@ -743,8 +743,11 @@
             },
             {
               "name": "gearcoleco"
+            },
+			{
+              "name": "jollycv"
             }
-          ]
+                   ]
         }
       ]
     },
@@ -3068,6 +3071,9 @@
             {
               "name": "genesis_plus_gx_wide"
             },
+			{
+              "name": "clownmdemu"
+            },
             {
               "name": "picodrive"
             }
@@ -3110,6 +3116,9 @@
             {
               "name": "genesis_plus_gx_cart_special"
             },
+			{
+              "name": "clownmdemu"
+            },
             {
               "name": "picodrive"
             }
@@ -3143,6 +3152,9 @@
             },
             {
               "name": "genesis_plus_gx"
+            },
+			{
+              "name": "clownmdemu"
             },
             {
               "name": "picodrive"
@@ -3183,6 +3195,9 @@
             {
               "name": "genesis_plus_gx_cart_special"
             },
+			{
+              "name": "clownmdemu"
+            },
             {
               "name": "genesis_plus_gx_wide"
             },
@@ -3219,6 +3234,9 @@
             {
               "name": "genesis_plus_gx_wide",
               "default": true
+            },
+			{
+              "name": "clownmdemu"
             },
             {
               "name": "genesis_plus_gx"
@@ -3258,6 +3276,9 @@
             },
             {
               "name": "genesis_plus_gx_wide"
+            },
+			{
+              "name": "clownmdemu"
             },
             {
               "name": "genesis_plus_gx_cart_special"
@@ -4475,6 +4496,9 @@
             {
               "name": "mame",
               "default": true
+            },
+			{
+              "name": "jollycv"
             }
           ]
         }
