@@ -27,31 +27,5 @@ pre_configure_target() {
 
 makeinstall_target() {
   mkdir -p "${INSTALL}/usr/lib/libretro"
-  
-
-  local core=""
-  
-
-  if [ -f "${PKG_BUILD}/.${TARGET_NAME}/wasm4_libretro.so" ]; then
-    core="${PKG_BUILD}/.${TARGET_NAME}/wasm4_libretro.so"
-  elif [ -f "${PKG_BUILD}/build/wasm4_libretro.so" ]; then
-    core="${PKG_BUILD}/build/wasm4_libretro.so"
-  else
-
-    core="$(find "${PKG_BUILD}" -name 'wasm4_libretro.so' | head -n1)"
-  fi
-  
-  if [ -z "${core}" ] || [ ! -f "${core}" ]; then
-    echo "ERROR: wasm4_libretro.so not found" >&2
-    echo "Searched in:" >&2
-    echo "  ${PKG_BUILD}/.${TARGET_NAME}/" >&2
-    echo "  ${PKG_BUILD}/build/" >&2
-    echo "" >&2
-    echo "Available .so files:" >&2
-    find "${PKG_BUILD}" -name "*.so" >&2
-    return 1
-  fi
-  
-  echo "Installing core from: ${core}"
-  cp "${core}" "${INSTALL}/usr/lib/libretro/wasm4_libretro.so"
+  cp "${PKG_BUILD}/wasm4_libretro.so" "${INSTALL}/usr/lib/libretro/"
 }
