@@ -17,16 +17,6 @@ PKG_TOOLCHAIN="make"
 
 PKG_IS_CORE="yes"
 
-pre_make_target() {
-  cd "${PKG_BUILD}"
-
-  # Remove hardcoded optimization flags from the Makefile
-  # so EmuELEC's own CFLAGS are used.
-  if [ -f Makefile ]; then
-    sed -i 's/-O[0123s]//g; s/-Ofast//g' Makefile || true
-  fi
-}
-
 make_target() {
   make -C "${PKG_BUILD}"
 }
