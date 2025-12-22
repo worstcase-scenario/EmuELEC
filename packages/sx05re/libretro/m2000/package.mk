@@ -19,10 +19,6 @@ PKG_TOOLCHAIN="make"
 
 PKG_IS_CORE="yes"
 
-configure_target() {
-  : # keine Konfiguration notwendig
-}
-
 make_target() {
   make -C "${PKG_BUILD}/src/libretro" \
     CC="${CC}" \
