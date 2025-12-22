@@ -16,14 +16,5 @@ PKG_MAKE_OPTS_TARGET="-C libretro platform=unix"
 
 makeinstall_target() {
   mkdir -p "${INSTALL}/usr/lib/libretro"
-  cp -v libretro/*.so "${INSTALL}/usr/lib/libretro/" 2>/dev/null || \
-  cp -v libretro/jollycv_libretro.so "${INSTALL}/usr/lib/libretro/" 2>/dev/null || \
-  {
-    echo "ERROR: No .so file found"
-    echo "=== Libretro directory contents ==="
-    ls -la libretro/
-    echo "=== Searching for .so files ==="
-    find . -name "*.so" -type f
-    return 1
-  }
+  cp "${PKG_BUILD}/libretro/jollycv_libretro.so" "${INSTALL}/usr/lib/libretro/"
 }
