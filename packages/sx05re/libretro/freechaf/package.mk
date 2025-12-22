@@ -18,11 +18,6 @@ PKG_TOOLCHAIN="make"
 PKG_GIT_CLONE_SINGLE="yes"
 PKG_MAKE_OPTS_TARGET="platform=unix"
 
-post_unpack_target() {
-  cd "${PKG_BUILD}"
-  git submodule update --init --recursive
-}
-
 makeinstall_target() {
   mkdir -p "${INSTALL}/usr/lib/libretro"
   cp "${PKG_BUILD}/freechaf_libretro.so" "${INSTALL}/usr/lib/libretro/"
