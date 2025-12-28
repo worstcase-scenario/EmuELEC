@@ -3,7 +3,6 @@
 # EmuELEC package for ep128emu libretro core
 
 PKG_NAME="ep128emu"
-# Direkt auf den v1.2.11-Commit zeigen (Tag core_v1.2.11)
 PKG_VERSION="a9e857e70466f95cfd54b4e5f2b30453b581e822"
 PKG_LICENSE="GPL-2.0-only"
 PKG_SITE="https://github.com/libretro/ep128emu-core"
@@ -15,8 +14,6 @@ PKG_DEPENDS_TARGET="toolchain"
 PKG_SHORTDESC="Enterprise 64/128 (ep128emu) libretro core"
 PKG_LONGDESC="Libretro core version of ep128emu, emulating Enterprise 64/128, Videoton TVC, Amstrad CPC and ZX Spectrum home computers."
 PKG_TOOLCHAIN="make"
-
-PKG_IS_CORE="yes"
 PKG_GIT_CLONE_BRANCH="core"
 
 pre_make_target() {

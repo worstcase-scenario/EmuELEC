@@ -15,8 +15,6 @@ PKG_SHORTDESC="Mini vMac Macintosh II emulator (libretro core)"
 PKG_LONGDESC="libretro-minivmac is a libretro port of Mini vMac, a classic Macintosh II emulator."
 PKG_TOOLCHAIN="make"
 
-PKG_IS_CORE="yes"
-
 make_target() {
   make -C "${PKG_BUILD}"
 }

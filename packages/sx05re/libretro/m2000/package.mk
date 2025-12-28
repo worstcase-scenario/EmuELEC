@@ -17,8 +17,6 @@ PKG_SHORTDESC="Philips P2000T (M2000) libretro core"
 PKG_LONGDESC="M2000 is an emulator for the Philips P2000T home computer, here built as a libretro core."
 PKG_TOOLCHAIN="make"
 
-PKG_IS_CORE="yes"
-
 make_target() {
   make -C "${PKG_BUILD}/src/libretro" \
     CC="${CC}" \

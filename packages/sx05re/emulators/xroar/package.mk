@@ -16,8 +16,6 @@ PKG_SECTION="emuelec/emulators"
 PKG_SHORTDESC="XRoar - Dragon 32/64 & Tandy CoCo Emulator"
 PKG_LONGDESC="XRoar emulates Dragon 32/64, Tandy Colour Computers 1/2/3, the MC-10 and related machines."
 
-PKG_TOOLCHAIN="manual"
-
 configure_target() {
   cd "$PKG_BUILD"
 

@@ -17,8 +17,6 @@ PKG_SHORTDESC="Theodore Thomson MO/TO libretro core"
 PKG_LONGDESC="Theodore is a libretro core for emulation of Thomson MO/TO computers (TO7, TO8, MO5, MO6, etc.)."
 PKG_TOOLCHAIN="make"
 
-PKG_IS_CORE="yes"
-
 configure_target() {
   :
 }
