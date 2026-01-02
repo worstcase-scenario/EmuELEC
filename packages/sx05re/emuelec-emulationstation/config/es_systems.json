@@ -489,12 +489,21 @@
         ".zip"
       ],
       "emulators": [
+	  {
+          "name": "bigpemu",
+          "cores": [
+            {
+              "name": "bigpemu",
+			  "default": true
+            }
+          ]
+        },
         {
           "name": "libretro",
           "cores": [
             {
-              "name": "virtualjaguar",
-              "default": true
+              "name": "virtualjaguar"
+              
             }
           ]
         }
@@ -3898,6 +3907,39 @@
         }
       ]
     },
+	{
+  "name": "samcoupe",
+  "fullname": "SAM Coupé",
+  "manufacturer": "Miles Gordon Technology",
+  "release": "1989",
+  "hardware": "computer",
+  "path": "/storage/roms/samcoupe",
+  "platform": "samcoupe",
+  "theme": "samcoupe",
+  "command": "default",
+  "extensions": [
+    ".dsk",
+    ".cpm",
+    ".sad",
+    ".mgt",
+    ".sdf",
+    ".td0",
+    ".sbt",
+    ".zip"
+  ],
+  "emulators": [
+    {
+      "name": "simcoupe",
+      "cores": [
+        {
+          "name": "simcoupe",
+          "default": true
+        }
+      ]
+    }
+  ]
+},
+
     {
       "name": "tic-80",
       "fullname": "TIC-80",
@@ -4082,6 +4124,7 @@
         }
       ]
     },
+	
 	{
       "name": "channelf",
       "fullname": "Channel F",
