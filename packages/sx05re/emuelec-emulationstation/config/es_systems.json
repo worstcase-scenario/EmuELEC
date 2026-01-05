@@ -4999,6 +4999,40 @@
       ]
     },
 	{
+      "name": "zmachine",
+      "fullname": "Z-Machine",
+      "manufacturer": "",
+      "release": "",
+      "hardware": "",
+      "path": "/storage/roms/zmachine",
+      "platform": "zmachine",
+      "theme": "zmachine",
+      "command": "default",
+      "extensions": [
+        ".dat",
+		".zip",
+		".z1",
+		".z2",
+		".z3",
+		".z4",
+		".z5",
+		".z6",
+		".z7",
+		".z8"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mojozork",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "chip8",
       "fullname": "CHIP-8",
       "manufacturer": "Joseph Weisbecker",
