@@ -19,12 +19,6 @@ if [ -z "${MACHINE}" ]; then
   esac
 fi
 
-
-if [ -z "${ROM}" ]; then
-  exec -a xroarmenu /usr/bin/xroarmenu.aarch64
-fi
-
-
 exec -a xroar /usr/bin/xroar.aarch64 \
   -fs \
   -rompath "/storage/roms/bios" \

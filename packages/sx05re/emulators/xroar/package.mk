@@ -34,13 +34,9 @@ makeinstall_target() {
   # Binaries
   mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_BUILD}/xroar.aarch64     ${INSTALL}/usr/bin/xroar.aarch64
-  cp ${PKG_BUILD}/xroarmenu.aarch64 ${INSTALL}/usr/bin/xroarmenu.aarch64
   chmod +x ${INSTALL}/usr/bin/xroar.aarch64
-  chmod +x ${INSTALL}/usr/bin/xroarmenu.aarch64
 
   # Wrapper
   cp ${PKG_DIR}/scripts/xroar.sh     ${INSTALL}/usr/bin/xroar.sh
-  cp ${PKG_DIR}/scripts/xroarmenu.sh ${INSTALL}/usr/bin/xroarmenu.sh
   chmod +x ${INSTALL}/usr/bin/xroar.sh
-  chmod +x ${INSTALL}/usr/bin/xroarmenu.sh
 }
