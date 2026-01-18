@@ -259,7 +259,13 @@ case ${PLATFORM} in
         "solarus")
                 set_kill_keys "solarus-run"
                 RUNTHIS='${TBASH} solarus.sh "${ROMNAME}"'
-                        ;;
+                ;;
+		"ti99")
+                if [ "${EMU}" = "ti99sim" ]; then
+				set_kill_keys "ti99sim-sdl"
+				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
+                fi
+                ;;		
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
@@ -338,8 +344,48 @@ case ${PLATFORM} in
             set_kill_keys "jzintv"
             RUNTHIS='jzintv.sh "${ROMNAME}"'
         fi
-        ;;
-        "saturn")
+		;;
+        "dragon32"|"dragon64")
+		if [ "${EMU}" = "xroar" ]; then
+        set_kill_keys "xroar.aarch64"
+        export MACHINE="${PLATFORM}"
+        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		elif [ "${EMU}" = "libretro" ]; then
+        set_kill_keys "retroarch"
+        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+		fi
+		;;
+		"coco")
+		if [ "${EMU}" = "xroar" ]; then
+        set_kill_keys "xroar.aarch64"
+        export MACHINE="coco"
+        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		elif [ "${EMU}" = "libretro" ]; then
+        set_kill_keys "retroarch"
+        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+		fi
+		;;
+		"coco3")
+		if [ "${EMU}" = "xroar" ]; then
+        set_kill_keys "xroar.aarch64"
+        export MACHINE="coco3"
+        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		elif [ "${EMU}" = "libretro" ]; then
+        set_kill_keys "retroarch"
+        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+		fi
+		;;
+		"mc10")
+		if [ "${EMU}" = "xroar" ]; then
+        set_kill_keys "xroar.aarch64"
+        export MACHINE="mc10"
+        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		elif [ "${EMU}" = "libretro" ]; then
+        set_kill_keys "retroarch"
+        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+		fi
+		;;
+		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"
             RUNTHIS='yabasanshiro.sh "${ROMNAME}"'

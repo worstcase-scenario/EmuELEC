@@ -4458,37 +4458,6 @@
       ]
     },
 	{
-      "name": "coco",
-      "fullname": "TRS-80 Color Computer",
-      "manufacturer": "Tandy Radio Shack",
-      "release": "1980",
-      "hardware": "computer",
-      "path": "/storage/roms/coco",
-      "platform": "coco",
-      "theme": "coco",
-      "command": "default",
-      "extensions": [
-        ".rom",
-		".ccc",
-		".cas",
-		".wav",
-		".cmd",
-		".zip",
-		".7z"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "mame",
-              "default": true
-            }
-          ]
-        }
-      ]
-    },
-	{
       "name": "arcadia",
       "fullname": "Arcadia 2001",
       "manufacturer": "Emerson",
@@ -4885,34 +4854,44 @@
       ]
     },
 	{
-      "name": "ti99",
-      "fullname": "Texas Instruments TI-99/4A",
-      "manufacturer": "Texas Instruments",
-      "release": "1979",
-      "hardware": "computer",
-      "path": "/storage/roms/ti99",
-      "platform": "ti99",
-      "theme": "ti99",
-      "command": "default",
-      "extensions": [
-        ".rpk",
-		".wav",
-		".zip",
-		".7z",
-		".cmd"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "mame",
-              "default": true
-            }
-          ]
-        }
-      ]
-    },
+		"name": "ti99",
+		"fullname": "Texas Instruments TI-99/4A",
+		"manufacturer": "Texas Instruments",
+		"release": "1979",
+		"hardware": "computer",
+		"path": "/storage/roms/ti99",
+		"platform": "ti99",
+		"theme": "ti99",
+		"command": "default",
+		"extensions": [
+			".rpk",
+			".wav",
+			".zip",
+			".7z",
+			".ctg",
+			".cmd"
+		],
+		"emulators": [
+			{
+			"name": "libretro",
+			"cores": [
+				{
+				"name": "mame",
+				"default": true
+				}
+			]
+			},
+			{
+			"name": "ti99sim",
+			"cores": [
+				{
+				"name": "ti99sim"
+				}
+			]
+			}
+		]
+	},
+
 	{
       "name": "multivision",
       "fullname": "Othello Multivision",
@@ -5094,6 +5073,207 @@
             {
               "name": "mame",
               "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "dragon32",
+      "fullname": "Dragon 32",
+      "manufacturer": "Dragon Data",
+      "release": "1982",
+      "hardware": "computer",
+      "path": "/storage/roms/dragon32",
+      "platform": "dragon32",
+      "theme": "dragon32",
+      "command": "default",
+      "extensions": [
+        ".cas",
+        ".wav",
+        ".k7",
+        ".vdk",
+        ".jvc",
+        ".dsk",
+        ".cmd",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "xroar",
+          "cores": [
+            {
+              "name": "xroar",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dragon64",
+      "fullname": "Dragon 64",
+      "manufacturer": "Dragon Data",
+      "release": "1983",
+      "hardware": "computer",
+      "path": "/storage/roms/dragon64",
+      "platform": "dragon64",
+      "theme": "dragon64",
+      "command": "default",
+      "extensions": [
+        ".cas",
+        ".wav",
+        ".k7",
+        ".vdk",
+        ".jvc",
+        ".dsk",
+        ".cmd",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "xroar",
+          "cores": [
+            {
+              "name": "xroar",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "coco",
+      "fullname": "TRS-80 CoCo",
+      "manufacturer": "Tandy",
+      "release": "1980",
+      "hardware": "computer",
+      "path": "/storage/roms/coco",
+      "platform": "coco",
+      "theme": "coco",
+      "command": "default",
+      "extensions": [
+        ".cas",
+        ".wav",
+        ".k7",
+        ".vdk",
+        ".jvc",
+        ".dsk",
+        ".cmd",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "xroar",
+          "cores": [
+            {
+              "name": "xroar",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "coco3",
+      "fullname": "TRS-80 CoCo 3",
+      "manufacturer": "Tandy",
+      "release": "1986",
+      "hardware": "computer",
+      "path": "/storage/roms/coco3",
+      "platform": "coco3",
+      "theme": "coco3",
+      "command": "default",
+      "extensions": [
+        ".cas",
+        ".wav",
+        ".k7",
+        ".vdk",
+        ".jvc",
+        ".dsk",
+        ".cmd",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "xroar",
+          "cores": [
+            {
+              "name": "xroar",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mc10",
+      "fullname": "Tandy MC-10",
+      "manufacturer": "Tandy",
+      "release": "1983",
+      "hardware": "computer",
+      "path": "/storage/roms/mc10",
+      "platform": "mc10",
+      "theme": "mc10",
+      "command": "default",
+      "extensions": [
+        ".c10",
+        ".k7",
+        ".cmd",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "xroar",
+          "cores": [
+            {
+              "name": "xroar",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
             }
           ]
         }
