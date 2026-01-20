@@ -345,44 +345,46 @@ case ${PLATFORM} in
             RUNTHIS='jzintv.sh "${ROMNAME}"'
         fi
 		;;
+		"x16")
+        if [ "${EMU}" = "x16emu" ]; then
+            set_kill_keys "x16emu"
+            RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
+        fi
+		;;	
         "dragon32"|"dragon64")
-		if [ "${EMU}" = "xroar" ]; then
-        set_kill_keys "xroar.aarch64"
-        export MACHINE="${PLATFORM}"
-        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		elif [ "${EMU}" = "libretro" ]; then
-        set_kill_keys "retroarch"
-        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+			RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+			elif [ "${EMU}" = "libretro" ]; then
+			set_kill_keys "retroarch"
+			RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
 		fi
 		;;
 		"coco")
-		if [ "${EMU}" = "xroar" ]; then
-        set_kill_keys "xroar.aarch64"
-        export MACHINE="coco"
-        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		elif [ "${EMU}" = "libretro" ]; then
-        set_kill_keys "retroarch"
-        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+			elif [ "${EMU}" = "libretro" ]; then
+			set_kill_keys "retroarch"
+			RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
 		fi
 		;;
 		"coco3")
-		if [ "${EMU}" = "xroar" ]; then
-        set_kill_keys "xroar.aarch64"
-        export MACHINE="coco3"
-        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		elif [ "${EMU}" = "libretro" ]; then
-        set_kill_keys "retroarch"
-        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+		    RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+			elif [ "${EMU}" = "libretro" ]; then
+			set_kill_keys "retroarch"
+			RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
 		fi
 		;;
 		"mc10")
-		if [ "${EMU}" = "xroar" ]; then
-        set_kill_keys "xroar.aarch64"
-        export MACHINE="mc10"
-        RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		elif [ "${EMU}" = "libretro" ]; then
-        set_kill_keys "retroarch"
-        RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+			elif [ "${EMU}" = "libretro" ]; then
+			set_kill_keys "retroarch"
+			RUNTHIS='${TBASH} /usr/bin/retroarch -L /tmp/cores/mame_libretro.so "${ROMNAME}"'
 		fi
 		;;
 		"saturn")

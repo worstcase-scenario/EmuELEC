@@ -5279,6 +5279,34 @@
         }
       ]
     },
+	{
+	"name": "x16",
+	"fullname": "Commander X16",
+	"manufacturer": "X16Community",
+	"release": "2020",
+	"hardware": "computer",
+	"path": "/storage/roms/x16",
+	"platform": "x16",
+	"theme": "x16",
+	"command": "default",
+	"extensions": [
+    ".prg",
+    ".bas",
+    ".img",
+    ".crt"
+	],
+	"emulators": [
+    {
+      "name": "x16emu",
+      "cores": [
+			{
+          "name": "x16emu",
+          "default": true
+			}
+		]
+		}
+	]
+	},
     {
       "name": "bk",
       "fullname": "Electronika",
