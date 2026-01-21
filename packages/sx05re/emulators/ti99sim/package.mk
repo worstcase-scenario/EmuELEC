@@ -19,6 +19,12 @@ pre_make_target() { make -C "$PKG_BUILD/src/core" CC="$CC" CXX="$CXX" AR="$AR"; 
 make_target()     { make -C "$PKG_BUILD/src/sdl"  CC="$CC" CXX="$CXX" SDL2=1; }
 
 makeinstall_target() {
-  mkdir -p "$INSTALL/usr/bin"
-  cp "$PKG_BUILD/bin/ti99sim-sdl" "$INSTALL/usr/bin/"
-}
+	
+	mkdir -p ${INSTALL}/usr/bin
+    cp ${PKG_BUILD}/bin/ti99sim-sdl ${INSTALL}/usr/bin/ti99sim-sdl  
+    chmod +x ${INSTALL}/usr/bin/ti99sim-sdl
+   
+    cp ${PKG_DIR}/scripts/ti99sdlstart.sh ${INSTALL}/usr/bin/ti99sdlstart.sh
+    chmod +x ${INSTALL}/usr/bin/ti99sdlstart.sh
+	
+					}
