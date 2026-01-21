@@ -20,10 +20,15 @@ makeinstall_target() {
   mkdir -p $INSTALL/usr/bin
   cp $PKG_BUILD/.$TARGET_NAME/simcoupe $INSTALL/usr/bin/
   
+  cp ${PKG_DIR}/scripts/simcoupestart.sh ${INSTALL}/usr/bin/simcoupestart.sh
+  chmod +x ${INSTALL}/usr/bin/simcoupestart.sh
+  
   mkdir -p $INSTALL/usr/lib
   cp $PKG_BUILD/.$TARGET_NAME/_deps/saasound-build/libSAASound.so* $INSTALL/usr/lib/
   
   mkdir -p $INSTALL/usr/share/simcoupe
   cp $PKG_BUILD/Resource/*.rom $INSTALL/usr/share/simcoupe/ 2>/dev/null || true
+  cp $PKG_BUILD/Resource/*.zx82 $INSTALL/usr/share/simcoupe/ 2>/dev/null || true
   cp $PKG_BUILD/Resource/*.bin $INSTALL/usr/share/simcoupe/ 2>/dev/null || true
+  
 }
