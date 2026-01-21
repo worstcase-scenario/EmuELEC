@@ -24,19 +24,17 @@ unpack() {
 }
 
 makeinstall_target() {
-  # Assets
-  mkdir -p ${INSTALL}/usr/config/emuelec/bin/xroar
-  cp -r ${PKG_BUILD}/libs.aarch64 ${INSTALL}/usr/config/emuelec/bin/xroar/
-  cp -r ${PKG_BUILD}/gptk        ${INSTALL}/usr/config/emuelec/bin/xroar/
-  cp    ${PKG_BUILD}/xroar.conf  ${INSTALL}/usr/config/emuelec/bin/xroar/
-  cp -r ${PKG_BUILD}/fonts       ${INSTALL}/usr/config/emuelec/bin/xroar/
 
-  # Binaries
   mkdir -p ${INSTALL}/usr/bin
-  cp ${PKG_BUILD}/xroar.aarch64     ${INSTALL}/usr/bin/xroar.aarch64
+  cp ${PKG_BUILD}/xroar.aarch64 ${INSTALL}/usr/bin/xroar.aarch64
   chmod +x ${INSTALL}/usr/bin/xroar.aarch64
-
-  # Wrapper
-  cp ${PKG_DIR}/scripts/xroar.sh     ${INSTALL}/usr/bin/xroar.sh
+  
+  cp ${PKG_DIR}/scripts/xroar.sh ${INSTALL}/usr/bin/xroar.sh
   chmod +x ${INSTALL}/usr/bin/xroar.sh
+  
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/xroar
+  cp -r ${PKG_BUILD}/libs.aarch64 ${INSTALL}/usr/config/emuelec/configs/xroar/
+  cp -r ${PKG_BUILD}/gptk ${INSTALL}/usr/config/emuelec/configs/xroar/
+  cp ${PKG_BUILD}/xroar.conf ${INSTALL}/usr/config/emuelec/configs/xroar/
+  cp -r ${PKG_BUILD}/fonts ${INSTALL}/usr/config/emuelec/configs/xroar/
 }

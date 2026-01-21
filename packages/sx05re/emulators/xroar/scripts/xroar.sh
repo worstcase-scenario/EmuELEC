@@ -3,7 +3,7 @@
 
 . /etc/profile
 
-ASSETDIR="/usr/config/emuelec/bin/xroar"
+ASSETDIR="/usr/config/emuelec/configs/xroar"
 ROM="${1}"
 
 export LD_LIBRARY_PATH="${ASSETDIR}/libs.aarch64:${LD_LIBRARY_PATH}"
