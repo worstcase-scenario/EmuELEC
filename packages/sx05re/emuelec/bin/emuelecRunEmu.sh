@@ -265,7 +265,13 @@ case ${PLATFORM} in
 				set_kill_keys "ti99sim-sdl"
 				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
                 fi
-                ;;		
+                ;;	
+		"samcoupe")
+                if [ "${EMU}" = "simcoupe" ]; then
+				set_kill_keys "simcoupe"
+				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
