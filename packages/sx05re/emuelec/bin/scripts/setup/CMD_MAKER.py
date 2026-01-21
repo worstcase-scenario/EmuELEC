@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
+
 import os
 import glob
 import re
@@ -24,7 +25,8 @@ class MediaEntry:
         self.exts = exts
 
 
-DEFAULT_LISTMEDIA_FILE = "/usr/bin/scripts/setup/listmedia.txt"
+DEFAULT_LISTMEDIA_FILE = "/storage/roms/listmedia.txt"
+SYSTEM_LISTMEDIA_FILE = "/usr/bin/scripts/setup/listmedia.txt"
 ROM_PLACEHOLDER = "<ROM_PATH>"
 
 # Linux input event codes
@@ -779,7 +781,7 @@ def find_rom_files(rom_dir: str, exts: List[str]) -> List[str]:
 # ---------------------------------------------------------------------------
 
 def build_default_template_preset(system: str, media: MediaEntry, extra_options: str) -> str:
-    parts = [system]
+    parts = [system, "-rp /storage/roms/bios"]
     extra_options = extra_options.strip()
     if extra_options:
         parts.append(extra_options)
@@ -1036,7 +1038,7 @@ def run_custom_mode() -> None:
         if step == 0:
             # Create custom command
             try:
-                default_cmd = f"mame -cdrom \"{ROM_PLACEHOLDER}\""
+                default_cmd = f"mame -rp /storage/roms/bios -cdrom \"{ROM_PLACEHOLDER}\""
                 
                 options = [
                     "Create Custom Command",
@@ -1084,9 +1086,28 @@ def run_custom_mode() -> None:
         if step == 2:
             try:
                 while True:
-                    # Ask for file filter without preset extensions
-                    options = ["All files (no filter)", ".zip", ".chd", ".cue", ".iso", ".bin"]
-                    choice = select_from_list("Pick file type filter", options, visible=20)
+                    # Scan directory for available file extensions
+                    available_exts = set()
+                    try:
+                        for name in os.listdir(rom_dir):  # type: ignore[arg-type]
+                            full = os.path.join(rom_dir, name)  # type: ignore[arg-type]
+                            if not os.path.isfile(full):
+                                continue
+                            if name.lower().endswith(".cmd"):
+                                continue
+                            _, ext = os.path.splitext(name)
+                            if ext:
+                                available_exts.add(ext.lower())
+                    except Exception:
+                        available_exts = {".zip", ".chd", ".cue", ".iso", ".bin"}
+                    
+                    # Build options list
+                    options = ["All files (no filter)"]
+                    sorted_exts = sorted(available_exts)
+                    options.extend(sorted_exts)
+                    
+                    info = f"Found {len(available_exts)} file types in directory"
+                    choice = select_from_list("Pick file type filter", options, info, visible=20)
                     
                     if choice is None:
                         raise GoBack()
@@ -1094,7 +1115,7 @@ def run_custom_mode() -> None:
                     if choice == 0:
                         exts = []
                     else:
-                        exts = [options[choice]]
+                        exts = [sorted_exts[choice - 1]]
                     
                     rom_files = find_rom_files(rom_dir, exts)  # type: ignore[arg-type]
                     if rom_files:
@@ -1168,18 +1189,55 @@ def main() -> None:
         print("Initializing CMD Maker...", flush=True)
         time.sleep(0.5)
         
-        list_path = DEFAULT_LISTMEDIA_FILE
         systems: Dict[str, List[MediaEntry]] = {}
         
+        # Check which listmedia files are available
+        user_listmedia_exists = os.path.exists(DEFAULT_LISTMEDIA_FILE)
+        system_listmedia_exists = os.path.exists(SYSTEM_LISTMEDIA_FILE)
+        
+        list_path = None
+        
+        # If both exist, let user choose
+        if user_listmedia_exists and system_listmedia_exists:
+            try:
+                options = [
+                    f"User listmedia.txt ({DEFAULT_LISTMEDIA_FILE})",
+                    f"System listmedia.txt ({SYSTEM_LISTMEDIA_FILE})"
+                ]
+                
+                idx = select_from_list(
+                    "Choose listmedia.txt",
+                    options,
+                    "Multiple listmedia.txt files found"
+                )
+                
+                if idx == 0:
+                    list_path = DEFAULT_LISTMEDIA_FILE
+                elif idx == 1:
+                    list_path = SYSTEM_LISTMEDIA_FILE
+                    
+            except (GoBack, UserQuit):
+                pass
+        
+        # Otherwise use whichever exists
+        elif user_listmedia_exists:
+            list_path = DEFAULT_LISTMEDIA_FILE
+            print(f"Using user listmedia.txt", flush=True)
+            time.sleep(0.3)
+        elif system_listmedia_exists:
+            list_path = SYSTEM_LISTMEDIA_FILE
+            print(f"Using system listmedia.txt", flush=True)
+            time.sleep(0.3)
+        
         # Try to load listmedia.txt
-        try:
-            if os.path.exists(list_path):
+        if list_path:
+            try:
                 systems = parse_listmedia(list_path)
-                print(f"Loaded {len(systems)} systems", flush=True)
+                print(f"Loaded {len(systems)} systems from {os.path.basename(list_path)}", flush=True)
                 time.sleep(0.5)
-        except Exception as e:
-            print(f"Warning: Could not load listmedia.txt: {e}", flush=True)
-            time.sleep(1)
+            except Exception as e:
+                print(f"Warning: Could not load listmedia.txt: {e}", flush=True)
+                time.sleep(1)
 
         try:
             while True:
@@ -1201,10 +1259,9 @@ def main() -> None:
                     
                     if idx == 0:
                         if not systems:
-                            confirm_dialog(
+                            ok_dialog(
                                 "No Presets", 
-                                f"listmedia.txt not found:\n{list_path}",
-                                True
+                                f"No listmedia.txt found in:\n{DEFAULT_LISTMEDIA_FILE}\nor\n{SYSTEM_LISTMEDIA_FILE}"
                             )
                         else:
                             try:
