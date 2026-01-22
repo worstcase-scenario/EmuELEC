@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
-
 import os
 import glob
 import re
@@ -404,10 +403,7 @@ def back_exit_dialog(title: str, message: str) -> str:
 # ---------------------------------------------------------------------------
 
 def edit_command_line(default_cmd: str) -> Optional[str]:
-    """
-    Interactive command line editor using controller.
-    Similar to macrosetup.py's enter_macro_name() but for longer strings.
-    """
+
     # Prepare the command as a list of characters
     cmd = list(default_cmd[:MAX_CMD_LEN])
     if not cmd:
