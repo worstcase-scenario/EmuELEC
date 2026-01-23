@@ -5307,6 +5307,32 @@
 		}
 	]
 	},
+	{
+	"name": "dice",
+	"fullname": "Discrete Integrated Circuit Emulator",
+	"manufacturer": "",
+	"release": "2008",
+	"hardware": "computer",
+	"path": "/storage/roms/dice",
+	"platform": "dice",
+	"theme": "dice",
+	"command": "default",
+	"extensions": [
+    ".zip",
+    ".dmy"
+	],
+	"emulators": [
+    {
+      "name": "libretro",
+      "cores": [
+			{
+          "name": "dice",
+          "default": true
+			}
+		]
+		}
+	]
+	},
     {
       "name": "bk",
       "fullname": "Electronika",
