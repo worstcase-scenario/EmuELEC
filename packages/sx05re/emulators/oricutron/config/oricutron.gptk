@@ -1,0 +1,33 @@
+# Oricutron gptokeyb configuration
+
+# D-Pad mapping to cursor keys
+up = up
+down = down
+left = left
+right = right
+
+#Alternative D-Pad mapping
+#up = A
+#down = Z
+#left = <
+#right = >
+
+# Alternative D-Pad mapping
+#up = w
+#down = s
+#left = a  
+#right = d
+
+# Button mappings
+a = space
+b = enter
+x = y
+y = n
+select = esc
+start = 1
+
+# Shoulder buttons for common Oric F-keys
+l1 = f1
+r1 = f2
+l2 = f3
+r2 = f4

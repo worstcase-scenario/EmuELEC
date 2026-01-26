@@ -5280,6 +5280,42 @@
       ]
     },
 	{
+	  "name": "oricutron",
+      "fullname": "Oric Atmos",
+      "manufacturer": "Tangerine Computer Systems",
+      "release": "1984",
+      "hardware": "computer",
+      "path": "/storage/roms/oricatmos",
+      "platform": "oricatmos",
+      "theme": "oricatmos",
+      "command": "default",
+      "extensions": [
+        ".tap",
+        ".dsk",
+        ".cmd",
+        ".zip"
+					],
+      "emulators": [
+        {
+          "name": "oricutron",
+          "cores": [
+            {
+              "name": "oricutron",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+	{
 	"name": "x16",
 	"fullname": "Commander X16",
 	"manufacturer": "X16Community",
