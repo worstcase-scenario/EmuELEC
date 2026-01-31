@@ -5369,6 +5369,33 @@
 		}
 	]
 	},
+	{
+	"name": "lowresnx",
+	"fullname": "Lowres NX",
+	"manufacturer": "",
+	"release": "",
+	"hardware": "computer",
+	"path": "/storage/roms/lowresnx",
+	"platform": "lowresnx",
+	"theme": "lowresnx",
+	"command": "default",
+	"extensions": [
+    ".nx",
+	".zip",
+	".7z."
+	],
+	"emulators": [
+    {
+      "name": "libretro",
+      "cores": [
+			{
+          "name": "lowresnx",
+          "default": true
+			}
+		]
+		}
+	]
+	},
     {
       "name": "bk",
       "fullname": "Electronika",
