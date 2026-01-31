@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./btsetup.sh</path>
+		<name>Setup Bluetooth Audio device</name>
+		<desc>Scan and pair bluetooth audio devices (like speakers and headphones or earbuds) to EmuELEC (via pulseaudio). After the setup, you must run the "Connect Bluetooth Audio device"-script. Make sure to switch the audio device in the retroarch menu from alsa to pulseaudio in order to hear the in-game sound.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/btsetup.png</image>
+	</game>
+	<game>
+		<path>./btconnect.sh</path>
+		<name>Connect Bluetooth Audio device</name>
+		<desc>Connect last paired bluetooth audio device. Make sure to switch the audio device in retroarch menu from alsa to pulseaudio in order to hear the in-game sound.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/btconnect.png</image>
+	</game>
+	<game>
+		<path>./create_rom_dirs.sh</path>
+		<name>Create ROM Dirs</name>
+		<desc>Small script to create all the dirs in /storage/roms based on es_systems.cfg</desc>
+		<developer>shantigilbert</developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/create_dirs.png</image>
+	</game>
+	<game>
+		<path>./install_portmaster.sh</path>
+		<name>Install PortMaster</name>
+		<desc>Install latest PortMaster</desc>
+		<developer>shantigilbert</developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/portmaster.png</image>
+	</game>
+		<game>
+		<path>./macrosetup.sh</path>
+		<name>Macro Setup</name>
+		<desc>Define a trigger button on your controller that executes a macro of button presses. When you are finished recording the button input, wait three seconds. The configuration is being saved in macro_config.json</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/macrosetup.png</image>
+	</game>
+	<game>
+		<path>./macrorun.sh</path>
+		<name>Macro Enabler</name>
+		<desc>Runs the pre-defined macro when the trigger button is pressed. To stop and remove the macro from memory, press the trigger button for 3-5 seconds.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/macrorun.png</image>
+	</game>
+	<game>
+		<path>./file_manager.sh</path>
+		<name>File Manager</name>
+		<desc>MC File Manager. NO keyboard required</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/File Manager.png</image>
+	</game>
+	<game>
+		<path>./wifi.sh</path>
+		<name>Alternate WiFi method</name>
+		<desc>Connect to WiFi using wifi.txt in /storage/.config/wifi.txt</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/wifi.png</image>
+	</game>
+	<game>
+		<path>./install_drastic.sh</path>
+		<name>Install Drastic</name>
+		<desc>Download and install Drastic, internet is required!</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/drastic.png</image>
+	</game>
+	<game>
+		<path>./install_pixelcade.sh</path>
+		<name>Install Pixelcade</name>
+		<desc>Download and install software for Pixelcade - LED Marquee for Arcade Machines!</desc>
+		<developer>pixelcade</developer>
+		<publisher>pixelcade.org</publisher>
+		<genre>script</genre>
+		<image>./setup_images/pixelcade.png</image>
+	</game>
+	<game>
+		<path>./install_cheats.sh</path>
+		<name>Install Libretro Cheats</name>
+		<desc>Download and install Libretro Cheats</desc>
+		<developer>Hector Calvarro</developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/cheats.png</image>
+	</game>
+	<game>
+		<path>./sselphs_scraper.sh</path>
+		<name>Sselphs scraper</name>
+		<desc>Alternative ROM Scraper. Configuration is required!</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/help.png</image>
+	</game>
+	<game>
+		<path>./skyscraper.sh</path>
+		<name>Skyscraper</name>
+		<desc>Alternative ROM Scraper. Configuration is required!</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/sh.png</image>
+	</game>
+	<game>
+		<path>./send_logs.sh</path>
+		<name>Send logs</name>
+		<desc>Use this to get a URL that you can share when asking for help</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/logs.png</image>
+	</game>
+	<game>
+		<path>./system_info.sh</path>
+		<name>System info</name>
+		<desc>Display System info</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/info.png</image>
+	</game>
+	<game>
+		<path>./copy_usb_roms_to_device.sh</path>
+		<name>Copy USB roms to device</name>
+		<desc>Easily copy ROMS from any external device to the SD/MMC where EmuELEC is installed</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/usb.png</image>
+	</game>
+	<game>
+		<path>./show_last_emuelec.log.sh</path>
+		<name>Show last emuelec</name>
+		<desc>Display the last emuelec.log on screen to debug game launching problems</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/last.png</image>
+	</game>
+	<game>
+		<path>./launch_terminal_(kb).sh</path>
+		<name>Launch Terminal</name>
+		<desc>Start a terminal, a keybord is required!</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/terminal.png</image>
+	</game>
+	<game>
+		<path>./youtube_search.sh</path>
+		<name>YouTube Search</name>
+		<desc>Do a quick youtube search based on the word predefined in the EmuELEC settings menu</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/youtube.png</image>
+	</game>
+	<game>
+		<path>./scan_scummVM_games.sh</path>
+		<name>Scan ScummVM Games</name>
+		<desc>Scan Scummvm and add them to the gamelist!</desc>
+		<developer>shantigilbert </developer>
+		<publisher>Emuelec</publisher>
+		<genre>script</genre>
+		<image>./setup_images/scummvm.png</image>
+	</game>
+</gameList>
