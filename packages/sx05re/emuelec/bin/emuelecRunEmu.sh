@@ -357,7 +357,7 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
         fi
 		;;
-		"oricutron")
+		"oricatmos")
         if [ "${EMU}" = "oricutron" ]; then
             set_kill_keys "oricutron"
             RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
