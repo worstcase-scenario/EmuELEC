@@ -1,16 +1,19 @@
 #!/bin/bash
-# XRoar wrapper + per-game gptokeyb override
-# Base dir: /storage/.config/emuelec/configs/xroar/gptk
-# Default:  xroar.gptk
-# Per-game: "<ROM basename>.gptk"  (e.g. "Chuckie Egg Plus (1983)(Burgin, Paul).gptk")
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2024-present EmuELEC (https://github.com/EmuELEC)
 
 . /etc/profile
 
 ROM="$1"
+ROMNAME="${ROM##*/}"
+ROMBASE="${ROMNAME%.*}"
 
+# Asset directory setup
 ASSETDIR="/usr/config/emuelec/configs/xroar"
 export LD_LIBRARY_PATH="${ASSETDIR}/libs.aarch64:${LD_LIBRARY_PATH}"
 
+# Determine machine type based on ROM path
 case "$ROM" in
   */dragon32/*) MACHINE="dragon32" ;;
   */dragon64/*) MACHINE="dragon64" ;;
@@ -20,15 +23,29 @@ case "$ROM" in
   *)            MACHINE="dragon64" ;;
 esac
 
-GPTK_DIR="/storage/.config/emuelec/configs/xroar/gptk"
-BASE="$(basename "$ROM")"
-CFG="${GPTK_DIR}/${BASE%.*}.gptk"
-[ -f "$CFG" ] || CFG="${GPTK_DIR}/xroar.gptk"
+# Kill old instances
+killall -9 gptokeyb 2>/dev/null
 
-PID=""
-trap '[ -n "$PID" ] && kill "$PID" 2>/dev/null' EXIT INT TERM
-[ -f "$CFG" ] && gptokeyb -k "xroar.aarch64" -c "$CFG" & PID=$! && sleep 0.2
+# Check for game-specific gptk config
+GPTK_GAME="/storage/.config/emuelec/configs/xroar/gptk/${ROMBASE}.gptk"
+GPTK_DEFAULT="/storage/.config/emuelec/configs/xroar/gptk/xroar.gptk"
 
+if [ -f "$GPTK_GAME" ]; then
+    GPTK_CONFIG="$GPTK_GAME"
+else
+    GPTK_CONFIG="$GPTK_DEFAULT"
+fi
+
+# Start gptokeyb with selected config (only if config exists)
+if [ -f "$GPTK_CONFIG" ]; then
+    gptokeyb -k "xroar.aarch64" -c "$GPTK_CONFIG" &
+    sleep 0.2
+fi
+
+# Launch XRoar
 /usr/bin/xroar.aarch64 -fs -rompath /storage/roms/bios \
   -default-machine "$MACHINE" \
   -run "$ROM"
+
+# Cleanup
+killall -9 gptokeyb 2>/dev/null
