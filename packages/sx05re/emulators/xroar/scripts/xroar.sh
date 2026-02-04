@@ -36,11 +36,11 @@ else
     GPTK_CONFIG="$GPTK_DEFAULT"
 fi
 
-# Start gptokeyb with selected config (only if config exists)
-if [ -f "$GPTK_CONFIG" ]; then
-    gptokeyb -k "xroar.aarch64" -c "$GPTK_CONFIG" &
-    sleep 0.2
-fi
+# Start gptokeyb with selected config
+gptokeyb 1 xroar.aarch64 -c "$GPTK_CONFIG" &
+
+# Wait for gptokeyb to initialize
+sleep 1
 
 # Launch XRoar
 /usr/bin/xroar.aarch64 -fs -rompath /storage/roms/bios \
