@@ -174,6 +174,18 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} hatari.start "${ROMNAME}"'
                 fi
                 ;;
+		"atarijaguar")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"atarijaguarcd")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "openbor")
                 VIRTUAL_KB=$(emuelec-utils set_gptokeyb "${PLATFORM}" "${GPTOKEYB}")
                 set_kill_keys "${EMU}"
