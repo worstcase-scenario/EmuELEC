@@ -16,12 +16,12 @@ from evdev import InputDevice, list_devices, ecodes as e
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-EKA_EXE        = "/usr/bin/eka2l1/eka2l1_sdl2"
-EKA_CONFIG     = "/storage/.config/eka2l1"
-EKA_BIOS_DIR   = "/storage/roms/bios/eka2l1"
-EKA_ROMS_DIR   = "/storage/roms/ngage"
-EKA_LOG        = "/emuelec/logs/eka2l1-install.log"
-EKA_CONFIG_YML = os.path.join(EKA_CONFIG, "config.yml")
+EKA_EXE         = "/usr/bin/eka2l1/eka2l1_sdl2"
+EKA_CONFIG      = "/storage/.config/eka2l1"
+EKA_BIOS_DIR    = "/storage/roms/bios/eka2l1"
+EKA_ROMS_DIR    = "/storage/roms/ngage"
+EKA_LOG         = "/emuelec/logs/eka2l1-install.log"
+EKA_CONFIG_YML  = os.path.join(EKA_CONFIG, "config.yml")
 EKA_Z_DRIVES    = os.path.join(EKA_CONFIG, "data", "drives", "z")
 
 # ---------------------------------------------------------------------------
@@ -100,21 +100,30 @@ def wait_for_controller(preferred_path: Optional[str] = None) -> InputDevice:
             return dev
         except OSError:
             pass
+
     while True:
         for path in list_devices():
             try:
                 dev = InputDevice(path)
             except OSError:
                 continue
+
             caps = dev.capabilities()
             keys = caps.get(e.EV_KEY, [])
             abs_caps = caps.get(e.EV_ABS, [])
-            has_face = any(btn in keys for btn in (e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST))
-            has_dpad = any(btn in keys for btn in (e.BTN_DPAD_UP, e.BTN_DPAD_DOWN, e.BTN_DPAD_LEFT, e.BTN_DPAD_RIGHT))
+
+            has_face = any(btn in keys for btn in (
+                e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST
+            ))
+            has_dpad = any(btn in keys for btn in (
+                e.BTN_DPAD_UP, e.BTN_DPAD_DOWN, e.BTN_DPAD_LEFT, e.BTN_DPAD_RIGHT
+            ))
             has_hat = any(ax in abs_caps for ax in (e.ABS_HAT0X, e.ABS_HAT0Y))
+
             if has_face or has_dpad or has_hat:
                 print(f"Controller found: {dev.name} ({dev.path})", flush=True)
                 return dev
+
         time.sleep(1.0)
 
 
@@ -165,16 +174,20 @@ def select_from_list(title: str, items: List[str], info: str = "",
                      visible: int = 20) -> Optional[int]:
     if not items:
         return None
+
     total = len(items)
     selected = 0
     offset = 0
+
     while True:
         if selected < offset:
             offset = selected
         elif selected >= offset + visible:
             offset = selected - visible + 1
+
         offset = max(0, min(offset, max(0, total - visible)))
         show_menu(title, items, selected, info, offset, visible)
+
         key = controller.wait_for_input()
         if key == 'select':
             raise UserQuit()
@@ -205,6 +218,7 @@ def ok_dialog(title: str, message: str) -> None:
 def confirm_dialog(title: str, message: str, default_yes: bool = True) -> bool:
     options = ["Yes", "No"]
     selected = 0 if default_yes else 1
+
     while True:
         show_menu(title, options, selected, message)
         key = controller.wait_for_input()
@@ -222,20 +236,26 @@ def confirm_dialog(title: str, message: str, default_yes: bool = True) -> bool:
 # ---------------------------------------------------------------------------
 def choose_directory_interactive(prompt: str, start_dir: str) -> str:
     current = os.path.abspath(start_dir)
+
     while True:
         try:
             entries = os.listdir(current)
-            subdirs = sorted(d for d in entries
-                             if os.path.isdir(os.path.join(current, d)) and not d.startswith('.'))
+            subdirs = sorted(
+                d for d in entries
+                if os.path.isdir(os.path.join(current, d)) and not d.startswith('.')
+            )
         except Exception:
             subdirs = []
+
         options: List[str] = ["[Use This Directory]"]
         if current != "/":
             options.append("[.. Parent Directory]")
         options.extend(subdirs)
+
         idx = select_from_list(prompt, options, f"Current: {current}")
         if idx is None:
             raise GoBack()
+
         selected = options[idx]
         if selected == "[Use This Directory]":
             return current
@@ -256,23 +276,27 @@ def log(msg: str):
     except Exception:
         pass
 
+
 def run_eka(args: List[str], timeout: int = 120) -> int:
     cmd = [EKA_EXE] + args
     log("Running: " + " ".join(cmd))
     print("", flush=True)
+
     try:
         result = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout)
         return result.returncode
     except subprocess.TimeoutExpired:
         log("Process timed out")
-        return 0  # Treat timeout as success (eka2l1 sometimes hangs after install)
+        return 0
     except Exception as ex:
         log(f"Exception: {ex}")
         return 1
 
+
 def run_eka_capture(args: List[str], timeout: int = 120) -> Tuple[int, str]:
     cmd = [EKA_EXE] + args
     log("Running (capture): " + " ".join(cmd))
+
     try:
         result = subprocess.run(
             cmd,
@@ -297,6 +321,7 @@ def run_eka_capture(args: List[str], timeout: int = 120) -> Tuple[int, str]:
         log(f"Exception: {ex}")
         return 1, ""
 
+
 def eka_success(ret: int) -> bool:
     """eka2l1 often segfaults (exit -11 / 245) after install - treat as success."""
     return ret in (0, -11, 245)
@@ -313,9 +338,11 @@ def parse_listdevices_output(output: str) -> List[Tuple[int, str]]:
             devices.append((int(match.group(1)), match.group(2).strip()))
     return devices
 
+
 def get_current_device_index() -> Optional[int]:
     if not os.path.exists(EKA_CONFIG_YML):
         return None
+
     try:
         with open(EKA_CONFIG_YML, "r", encoding="utf-8") as f:
             for line in f:
@@ -324,7 +351,9 @@ def get_current_device_index() -> Optional[int]:
                     return int(match.group(1))
     except Exception as ex:
         log(f"Failed to read config.yml: {ex}")
+
     return None
+
 
 def set_device_index(index: int) -> None:
     os.makedirs(EKA_CONFIG, exist_ok=True)
@@ -340,6 +369,7 @@ def set_device_index(index: int) -> None:
 
     replaced = False
     new_lines: List[str] = []
+
     for line in lines:
         if re.match(r'^\s*device\s*:\s*[0-9]+\s*$', line):
             new_lines.append(f"device: {index}\n")
@@ -356,6 +386,7 @@ def set_device_index(index: int) -> None:
         f.writelines(new_lines)
 
     log(f"Set device to {index} in {EKA_CONFIG_YML}")
+
 
 def change_device():
     clear_screen()
@@ -374,16 +405,15 @@ def change_device():
 
     current_device = get_current_device_index()
     options: List[str] = []
-    selected_index = 0
 
-    for i, (device_num, device_name) in enumerate(devices):
+    for device_num, device_name in devices:
         label = f"{device_num} : {device_name}"
         if current_device is not None and device_num == current_device:
             label += "  [CURRENT]"
-            selected_index = i
         options.append(label)
 
     info = "Select device to write into config.yml"
+
     try:
         idx = select_from_list("Change Device", options, info, visible=16)
     except GoBack:
@@ -487,14 +517,12 @@ def convert_tree_to_lowercase(root_path):
         src_abs = os.path.abspath(src)
         dst_abs = os.path.abspath(dst)
 
-        # Same path except for letter case -> use temp hop
         if src_abs.lower() == dst_abs.lower():
             tmp = unique_temp_name(src_abs)
             os.rename(src_abs, tmp)
             os.rename(tmp, dst_abs)
             return dst_abs
 
-        # Normal rename, but do not overwrite existing targets
         if os.path.exists(dst_abs):
             raise FileExistsError(f"Target already exists: {dst_abs}")
 
@@ -502,7 +530,6 @@ def convert_tree_to_lowercase(root_path):
         return dst_abs
 
     for current_root, dirs, files in os.walk(root_path, topdown=False):
-        # files
         for name in files:
             src = os.path.join(current_root, name)
             dst = os.path.join(current_root, name.lower())
@@ -514,11 +541,10 @@ def convert_tree_to_lowercase(root_path):
                 new_path = safe_case_rename(src, dst)
                 renamed.append((src, new_path))
                 log(f"Renamed file: {src} -> {new_path}")
-            except Exception as e:
-                errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{e}")
-                log(f"ERROR renaming file: {src} -> {dst} ({e})")
+            except Exception as ex:
+                errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{ex}")
+                log(f"ERROR renaming file: {src} -> {dst} ({ex})")
 
-        # dirs
         for name in dirs:
             src = os.path.join(current_root, name)
             dst = os.path.join(current_root, name.lower())
@@ -530,11 +556,10 @@ def convert_tree_to_lowercase(root_path):
                 new_path = safe_case_rename(src, dst)
                 renamed.append((src, new_path))
                 log(f"Renamed dir: {src} -> {new_path}")
-            except Exception as e:
-                errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{e}")
-                log(f"ERROR renaming dir: {src} -> {dst} ({e})")
+            except Exception as ex:
+                errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{ex}")
+                log(f"ERROR renaming dir: {src} -> {dst} ({ex})")
 
-    # root dir itself last
     parent = os.path.dirname(root_path)
     base = os.path.basename(root_path)
     lower_base = base.lower()
@@ -546,9 +571,9 @@ def convert_tree_to_lowercase(root_path):
             final_root = safe_case_rename(src, dst)
             renamed.append((src, final_root))
             log(f"Renamed root dir: {src} -> {final_root}")
-        except Exception as e:
-            errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{e}")
-            log(f"ERROR renaming root dir: {src} -> {dst} ({e})")
+        except Exception as ex:
+            errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{ex}")
+            log(f"ERROR renaming root dir: {src} -> {dst} ({ex})")
 
     return renamed, errors, final_root
 
@@ -616,14 +641,13 @@ def convert_device_paths_to_lowercase():
             offset = selected
         elif selected >= offset + visible:
             offset = selected - visible + 1
+
         offset = max(0, min(offset, max(0, len(options) - visible)))
         show_menu(
             "Lowercase Conversion Result",
             options,
             selected,
-            f"Converted: {len(renamed)}\n"
-            f"Final folder: {final_root}\n\n"
-            "Press A or B to return.",
+            f"Converted: {len(renamed)}\nFinal folder: {final_root}\n\nPress A or B to return.",
             offset,
             visible
         )
@@ -663,7 +687,6 @@ def install_firmware():
         ok_dialog("Error", f"No .rom file found in:\n{bios_dir}")
         return
 
-    # Let user pick if multiple files found
     rpkg = rpkg_files[0]
     if len(rpkg_files) > 1:
         try:
@@ -684,13 +707,14 @@ def install_firmware():
         except GoBack:
             return
 
-    info = (f"RPKG: {os.path.basename(rpkg)}\n"
-            f"ROM:  {os.path.basename(rom)}\n\n"
-            f"Install firmware?")
+    info = (
+        f"RPKG: {os.path.basename(rpkg)}\n"
+        f"ROM:  {os.path.basename(rom)}\n\n"
+        f"Install firmware?"
+    )
     if not confirm_dialog("Install Firmware", info):
         return
 
-    # Pre-seed ROM so eka2l1 doesn't crash before install completes
     seed_dir = os.path.join(EKA_CONFIG, "data", "roms", "rm-409")
     os.makedirs(seed_dir, exist_ok=True)
     try:
@@ -714,6 +738,97 @@ def install_firmware():
 # ---------------------------------------------------------------------------
 # Mode 2: Install SIS games
 # ---------------------------------------------------------------------------
+def find_sis_files_recursive(root_dir: str) -> List[str]:
+    sis_files: List[str] = []
+    for current_root, _, files in os.walk(root_dir):
+        for name in files:
+            if name.lower().endswith(".sis"):
+                sis_files.append(os.path.join(current_root, name))
+    return sorted(sis_files, key=lambda p: p.lower())
+
+
+def get_relative_path(path: str, base: str) -> str:
+    try:
+        rel = os.path.relpath(path, base)
+        return rel.replace("\\", "/")
+    except Exception:
+        return os.path.basename(path)
+
+
+def parse_listapp_to_map(output: str) -> dict:
+    app_map = {}
+    for name, uid in parse_listapp_output(output):
+        app_map[uid.lower()] = name.strip()
+    return app_map
+
+
+def get_installed_apps_map() -> dict:
+    ret, output = run_eka_capture(["--listapp"])
+    if ret != 0 and not output.strip():
+        return {}
+    return parse_listapp_to_map(output)
+
+
+def find_new_app_after_install(before_apps: dict, after_apps: dict) -> Optional[Tuple[str, str]]:
+    new_uids = [uid for uid in after_apps if uid not in before_apps]
+    if len(new_uids) == 1:
+        uid = new_uids[0]
+        return after_apps[uid], uid
+
+    candidates = []
+    for uid in new_uids:
+        name = after_apps[uid]
+        if not is_system_app(name):
+            candidates.append((name, uid))
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    if candidates:
+        return candidates[0]
+
+    return None
+
+
+def find_graphic_in_same_folder(folder: str) -> Optional[str]:
+    exts = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
+    candidates = []
+
+    try:
+        for name in os.listdir(folder):
+            full = os.path.join(folder, name)
+            if os.path.isfile(full) and name.lower().endswith(exts):
+                candidates.append(full)
+    except Exception:
+        return None
+
+    if not candidates:
+        return None
+
+    return sorted(candidates, key=lambda p: os.path.basename(p).lower())[0]
+
+
+def copy_matching_image_for_uid(source_folder: str, app_name: str, uid_output_dir: str) -> Optional[str]:
+    image_src = find_graphic_in_same_folder(source_folder)
+    if not image_src:
+        return None
+
+    os.makedirs(uid_output_dir, exist_ok=True)
+
+    safe_name = sanitize_uid_name(app_name)
+    ext = os.path.splitext(image_src)[1].lower()
+    target_name = f"{safe_name}{ext}"
+    target_path = os.path.join(uid_output_dir, target_name)
+
+    try:
+        shutil.copy2(image_src, target_path)
+        log(f"Copied artwork: {image_src} -> {target_path}")
+        return target_name
+    except Exception as ex:
+        log(f"Failed to copy artwork {image_src} -> {target_path}: {ex}")
+        return None
+
+
 def install_sis():
     try:
         sis_dir = choose_directory_interactive(
@@ -721,21 +836,22 @@ def install_sis():
     except GoBack:
         return
 
-    sis_files = sorted(glob.glob(os.path.join(sis_dir, "*.sis")) +
-                       glob.glob(os.path.join(sis_dir, "*.SIS")))
+    sis_files = find_sis_files_recursive(sis_dir)
 
     if not sis_files:
         ok_dialog("Error", f"No .sis files found in:\n{sis_dir}")
         return
 
+    image_out_dir = os.path.join(sis_dir, "media", "images")
+
     try:
         mode_idx = select_from_list(
             "SIS Installer Mode",
             [
-                "Install all SIS files",
-                "Select SIS files individually",
+                "Install all SIS files (recursive)",
+                "Select SIS files individually (recursive)",
             ],
-            f"{len(sis_files)} file(s) found in:\n{sis_dir}"
+            f"{len(sis_files)} file(s) found recursively in:\n{sis_dir}"
         )
     except GoBack:
         return
@@ -748,12 +864,12 @@ def install_sis():
     if mode_idx == 0:
         if not confirm_dialog(
             "Install All",
-            f"Install all {len(sis_files)} SIS files?\n\nDirectory:\n{sis_dir}"
+            f"Install all {len(sis_files)} SIS files recursively?\n\nDirectory:\n{sis_dir}"
         ):
             return
         selected_files = sis_files
     else:
-        sis_options = [os.path.basename(f) for f in sis_files]
+        sis_options = [get_relative_path(f, sis_dir) for f in sis_files]
 
         try:
             selected_indexes = select_multiple_from_list(
@@ -780,26 +896,54 @@ def install_sis():
     success = 0
     fail = 0
     failed_files = []
+    artwork_copied = 0
+    artwork_failed = 0
 
     for pos, sis_file in enumerate(selected_files, start=1):
         clear_screen()
+        rel_name = get_relative_path(sis_file, sis_dir)
         print(f"Installing {pos}/{len(selected_files)}:")
-        print(f"  {os.path.basename(sis_file)}")
+        print(f"  {rel_name}")
 
+        before_apps = get_installed_apps_map()
         ret = run_eka(["--install", sis_file])
+        after_apps = get_installed_apps_map()
 
         if eka_success(ret):
             success += 1
             log(f"SIS installed successfully: {sis_file}")
+
+            new_app = find_new_app_after_install(before_apps, after_apps)
+            if new_app:
+                app_name, uid = new_app
+                copied_name = copy_matching_image_for_uid(
+                    os.path.dirname(sis_file),
+                    app_name,
+                    image_out_dir
+                )
+                if copied_name:
+                    artwork_copied += 1
+                    log(f"Matched artwork for app '{app_name}' ({uid}): {copied_name}")
+                else:
+                    artwork_failed += 1
+                    log(f"No artwork copied for app '{app_name}' ({uid}) from folder {os.path.dirname(sis_file)}")
+            else:
+                artwork_failed += 1
+                log(f"Could not determine new app UID/name after install: {sis_file}")
         else:
             fail += 1
-            failed_files.append(os.path.basename(sis_file))
+            failed_files.append(rel_name)
             log(f"SIS install failed ({ret}): {sis_file}")
 
     if fail == 0:
         ok_dialog(
             "Done",
-            f"Installation completed successfully.\n\nInstalled: {success}\nFailed: {fail}"
+            f"Installation completed successfully.\n\n"
+            f"Installed: {success}\n"
+            f"Failed: {fail}\n"
+            f"Artwork copied: {artwork_copied}\n"
+            f"Artwork unresolved: {artwork_failed}\n\n"
+            f"Artwork target:\n{image_out_dir}"
         )
     else:
         preview = "\n".join(failed_files[:8])
@@ -809,10 +953,13 @@ def install_sis():
 
         ok_dialog(
             "Installation Result",
-            f"Completed.\n\nInstalled: {success}\nFailed: {fail}\n\n"
+            f"Completed.\n\n"
+            f"Installed: {success}\n"
+            f"Failed: {fail}\n"
+            f"Artwork copied: {artwork_copied}\n"
+            f"Artwork unresolved: {artwork_failed}\n\n"
             f"Failed files:\n{preview}{more}\n\nSee log:\n{EKA_LOG}"
         )
-
 
 # ---------------------------------------------------------------------------
 # UID launcher creator
@@ -828,6 +975,7 @@ def parse_listapp_output(output: str) -> List[Tuple[str, str]]:
             apps.append((name, uid))
     return apps
 
+
 def sanitize_uid_name(name: str) -> str:
     name = re.sub(r'[\\/:*?"<>|]', '_', name)
     name = name.replace("'", "_")
@@ -837,6 +985,7 @@ def sanitize_uid_name(name: str) -> str:
     if not name:
         name = 'unnamed'
     return name
+
 
 def is_system_app(name: str) -> bool:
     name_lc = name.lower().strip()
@@ -852,7 +1001,6 @@ def is_system_app(name: str) -> bool:
         'sim directory', 'radio', 'music player', 'unlockmmc'
     }
     return name_lc in system_names
-
 
 
 def build_uid_candidates(apps: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], int, int, int]:
@@ -909,17 +1057,21 @@ def select_multiple_from_list(title: str, items: List[str], info: str = "",
                               visible: int = 16) -> Optional[List[int]]:
     if not items:
         return []
+
     total = len(items)
     selected = 0
     offset = 0
     checked = set()
+
     while True:
         if selected < offset:
             offset = selected
         elif selected >= offset + visible:
             offset = selected - visible + 1
+
         offset = max(0, min(offset, max(0, total - visible)))
         show_multi_select_menu(title, items, checked, selected, info, offset, visible)
+
         key = controller.wait_for_input()
         if key == 'select':
             raise UserQuit()
@@ -957,6 +1109,7 @@ def show_available_uid_apps(candidates: List[Tuple[str, str]]) -> None:
             offset = selected
         elif selected >= offset + visible:
             offset = selected - visible + 1
+
         offset = max(0, min(offset, max(0, len(options) - visible)))
         show_menu(
             'Available Apps',
@@ -966,6 +1119,7 @@ def show_available_uid_apps(candidates: List[Tuple[str, str]]) -> None:
             offset,
             visible
         )
+
         key = controller.wait_for_input()
         if key == 'select':
             raise UserQuit()
@@ -998,6 +1152,7 @@ def show_generated_uid_list(created_entries: List[Tuple[str, str, str]], out_dir
             offset = selected
         elif selected >= offset + visible:
             offset = selected - visible + 1
+
         offset = max(0, min(offset, max(0, len(options) - visible)))
         show_menu(
             'Generated UID Files',
@@ -1007,6 +1162,7 @@ def show_generated_uid_list(created_entries: List[Tuple[str, str, str]], out_dir
             offset,
             visible
         )
+
         key = controller.wait_for_input()
         if key == 'select':
             raise UserQuit()
@@ -1066,6 +1222,7 @@ def create_uid_gamelist():
         return
 
     out_file = os.path.join(uid_dir, "gamelist.xml")
+    image_dir = os.path.join(uid_dir, "media", "images")
 
     if os.path.exists(out_file):
         if not confirm_dialog(
@@ -1080,11 +1237,18 @@ def create_uid_gamelist():
         base = os.path.basename(uid_file)
         name = os.path.splitext(base)[0]
 
+        image_tag = "./media/images/ngage.png"
+        for ext in (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp"):
+            candidate = os.path.join(image_dir, name + ext)
+            if os.path.exists(candidate):
+                image_tag = f"./media/images/{xml_escape(name + ext)}"
+                break
+
         lines.append('\t<game>')
         lines.append(f'\t\t<path>./{xml_escape(base)}</path>')
         lines.append(f'\t\t<name>{xml_escape(name)}</name>')
         lines.append(f'\t\t<desc>{xml_escape(name)}</desc>')
-        lines.append('\t\t<image>./media/images/ngage.png</image>')
+        lines.append(f'\t\t<image>{image_tag}</image>')
         lines.append('\t\t<video>./media/videos/ngage.mp4</video>')
         lines.append('\t</game>')
 
@@ -1257,7 +1421,6 @@ internet-bluetooth-friends:
 
 
 def _create_default_config():
-    """Write a default config.yml if not present."""
     cfg_path = os.path.join(EKA_CONFIG, "config.yml")
     if not os.path.exists(cfg_path):
         try:
@@ -1271,7 +1434,6 @@ def _create_default_config():
 
 
 def _seed_bundled_files():
-    """Copy bundled files from install dir into config dir."""
     install_dir = "/usr/bin/eka2l1"
     if not os.path.isdir(install_dir):
         ok_dialog("Error", f"eka2l1 install directory not found:\n{install_dir}")
@@ -1280,6 +1442,7 @@ def _seed_bundled_files():
     clear_screen()
     print("Seeding bundled data...", flush=True)
     seeded = []
+
     for item in os.listdir(install_dir):
         src = os.path.join(install_dir, item)
         dst = os.path.join(EKA_CONFIG, item)
@@ -1295,7 +1458,6 @@ def _seed_bundled_files():
             except Exception as ex:
                 log(f"Seed failed for {item}: {ex}")
 
-    # Create default config.yml if missing
     cfg_created = _create_default_config()
     if cfg_created:
         seeded.append("config.yml (default)")
@@ -1308,29 +1470,28 @@ def _seed_bundled_files():
 
 
 def _autoset_device_from_zdrive():
-    """Read devices.yml, find first device that has a matching Z-drive, set it in config.yml."""
     devices_yml = os.path.join(EKA_CONFIG, "data", "devices.yml")
     z_drives_dir = os.path.join(EKA_CONFIG, "data", "drives", "z")
-    cfg_path     = os.path.join(EKA_CONFIG, "config.yml")
+    cfg_path = os.path.join(EKA_CONFIG, "config.yml")
 
     if not os.path.isfile(devices_yml) or not os.path.isdir(z_drives_dir):
         return
 
-    # Build ordered list of device keys from devices.yml
     device_keys = []
     try:
         with open(devices_yml, "r") as f:
             for line in f:
                 stripped = line.rstrip()
                 if stripped and not stripped.startswith(" ") and stripped.endswith(":"):
-                    device_keys.append(stripped[:-1])  # strip trailing colon
+                    device_keys.append(stripped[:-1])
     except Exception as ex:
         log(f"_autoset_device_from_zdrive: could not read devices.yml: {ex}")
         return
 
-    # Find first device whose Z-drive folder exists (case-insensitive)
-    available_z = {d.lower(): d for d in os.listdir(z_drives_dir)
-                   if os.path.isdir(os.path.join(z_drives_dir, d))}
+    available_z = {
+        d.lower(): d for d in os.listdir(z_drives_dir)
+        if os.path.isdir(os.path.join(z_drives_dir, d))
+    }
 
     match_index = None
     for i, key in enumerate(device_keys):
@@ -1343,31 +1504,29 @@ def _autoset_device_from_zdrive():
         log("_autoset_device_from_zdrive: no matching Z-drive found")
         return
 
-    # Update device: line in config.yml
     if not os.path.isfile(cfg_path):
         _create_default_config()
 
     try:
         with open(cfg_path, "r") as f:
             lines = f.readlines()
+
         new_lines = []
         for line in lines:
             if line.startswith("device:"):
                 new_lines.append(f"device: {match_index}\n")
             else:
                 new_lines.append(line)
+
         with open(cfg_path, "w") as f:
             f.writelines(new_lines)
+
         log(f"_autoset_device_from_zdrive: set device: {match_index}")
     except Exception as ex:
         log(f"_autoset_device_from_zdrive: failed to update config.yml: {ex}")
 
 
 def _import_preconfigured():
-    """Import a pre-configured eka2l1 data collection.
-    Only adds new files - never overwrites existing ones.
-    Exception: devices.yml is overwritten with a backup created first.
-    """
     try:
         src_dir = choose_directory_interactive(
             "Select source directory (must contain a 'data' folder)",
@@ -1393,7 +1552,6 @@ def _import_preconfigured():
     skipped = 0
 
     for root, dirs, files in os.walk(data_src):
-        # Compute destination path
         rel = os.path.relpath(root, data_src)
         dst_root = os.path.join(data_dst, rel) if rel != "." else data_dst
         os.makedirs(dst_root, exist_ok=True)
@@ -1402,7 +1560,6 @@ def _import_preconfigured():
             src_file = os.path.join(root, fname)
             dst_file = os.path.join(dst_root, fname)
 
-            # Special case: devices.yml - overwrite with backup
             if fname == "devices.yml" and os.path.exists(dst_file):
                 backup = dst_file + ".bak"
                 try:
@@ -1415,7 +1572,6 @@ def _import_preconfigured():
                     skipped += 1
                 continue
 
-            # All other files: only copy if destination does not exist
             if not os.path.exists(dst_file):
                 try:
                     shutil.copy2(src_file, dst_file)
@@ -1427,7 +1583,6 @@ def _import_preconfigured():
             else:
                 skipped += 1
 
-    # Auto-set device to first one with a matching Z-drive
     _autoset_device_from_zdrive()
 
     ok_dialog("Import Complete",
@@ -1439,7 +1594,6 @@ def _import_preconfigured():
 
 
 def first_run_setup():
-    """Seed bundled files from install dir into config dir."""
     _seed_bundled_files()
 
 
@@ -1477,6 +1631,7 @@ def main():
                     ],
                     "What would you like to do?"
                 )
+
                 if idx is None or idx == 8:
                     break
                 if idx == 0:
