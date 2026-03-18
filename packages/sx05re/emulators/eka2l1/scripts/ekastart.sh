@@ -16,6 +16,7 @@ EKA_GPTK="/storage/.config/emuelec/configs/eka2l1/gptk/eka.gptk"
 EKA_LOG="/emuelec/logs/eka2l1.log"
 
 EKA_DEVICE_NGAGE1="${EKA_DEVICE_NGAGE1:-NEM-4}"
+EKA_DEVICE_NGAGE1_ALT="${EKA_DEVICE_NGAGE1_ALT:-RH-29}"
 EKA_DEVICE_NGAGE2="${EKA_DEVICE_NGAGE2:-RM-409}"
 
 ROMFILE="$1"
@@ -29,6 +30,22 @@ mkdir -p "$(dirname "${EKA_LOG}")"
 echo "EmuELEC eka2l1 Log" > "${EKA_LOG}"
 
 log() { echo "$*" >> "${EKA_LOG}"; }
+
+device_installed() {
+  local dev="$1"
+  [ -z "${dev}" ] && return 1
+  "${EKA_EXE}" --listdevices 2>/dev/null | grep -Fq "(${dev})"
+}
+
+select_ngage1_device() {
+  if device_installed "${EKA_DEVICE_NGAGE1}"; then
+    echo "${EKA_DEVICE_NGAGE1}"
+  elif device_installed "${EKA_DEVICE_NGAGE1_ALT}"; then
+    echo "${EKA_DEVICE_NGAGE1_ALT}"
+  else
+    echo "${EKA_DEVICE_NGAGE1}"
+  fi
+}
 
 # ---------------------------------------------------------------------
 # N-Gage 1 app name lookup table
@@ -111,7 +128,6 @@ save_classic_state() {
 
   log "Syncing saves back to: ${CLASSIC_APP_SRC}"
 
-  # Copy back any file that is newer or not present in the source
   find "${CLASSIC_APP_DST}" -type f | while read -r DST_FILE; do
     REL="${DST_FILE#${CLASSIC_APP_DST}/}"
     SRC_FILE="${CLASSIC_APP_SRC}/${REL}"
@@ -127,10 +143,8 @@ cleanup() {
   [ "${CLEANUP_DONE}" = "1" ] && return
   CLEANUP_DONE=1
 
-  # Save changed files back to .ngage source folder
   save_classic_state
 
-  # Remove the game's app folder from e: after exit
   if [ -n "${CLASSIC_APP_DST}" ] && [ -d "${CLASSIC_APP_DST}" ]; then
     log "Removing ${CLASSIC_APP_DST} from e:/system/apps/"
     rm -rf "${CLASSIC_APP_DST}"
@@ -161,7 +175,9 @@ if [ -n "${ROMFILE}" ]; then
         if [ -n "${APP_UID}" ]; then
           case "${APP_UID}" in 0x*|0X*) ;; *) APP_UID="0x${APP_UID}" ;; esac
           LAUNCH_MODE="uid"
+          DEVICE_CODE="$(select_ngage1_device)"
           log "UID launcher: ${APP_UID}"
+          log "UID device selected: ${DEVICE_CODE}"
         fi
         ;;
     esac
@@ -170,14 +186,13 @@ if [ -n "${ROMFILE}" ]; then
       *.ngage|*.NGAGE)
         CLASSIC_NGAGE=1
         LAUNCH_MODE="classic"
-        DEVICE_CODE="${EKA_DEVICE_NGAGE1}"
+        DEVICE_CODE="$(select_ngage1_device)"
+        log "Classic N-Gage device selected: ${DEVICE_CODE}"
 
-        # Derive app name from folder name
         GAME_FOLDER="$(basename "${ROMFILE}")"
         GAME_ID="${GAME_FOLDER%.ngage}"
         GAME_ID="${GAME_ID%.NGAGE}"
 
-        # Check for .name sidecar file first
         SIDECAR="${ROMFILE%/}.name"
         if [ -f "${SIDECAR}" ]; then
           APP_RUN="$(tr -d '\r\n' < "${SIDECAR}")"
@@ -185,7 +200,6 @@ if [ -n "${ROMFILE}" ]; then
         else
           APP_RUN="$(get_run_name "${GAME_ID}")"
           if [ -z "${APP_RUN}" ]; then
-            # Fallback: capitalize first letter of folder name
             APP_RUN="$(echo "${GAME_ID}" | sed 's/\b\(.\)/\u\1/g')"
             log "App name from folder (fallback): ${APP_RUN}"
           else
@@ -193,7 +207,6 @@ if [ -n "${ROMFILE}" ]; then
           fi
         fi
 
-        # Copy game folder into e:/system/apps/ (always overwrite)
         APP_FOLDER="$(ls "${ROMFILE}/system/apps/" 2>/dev/null | head -1)"
         if [ -n "${APP_FOLDER}" ]; then
           SRC="${ROMFILE}/system/apps/${APP_FOLDER}"
@@ -227,7 +240,7 @@ cd "${EKA_CONFIG_DIR}" || exit 1
 # ---------------------------------------------------------------------
 if [ "${LAUNCH_MODE}" = "uid" ]; then
   log "Launching UID ${APP_UID} on ${DEVICE_CODE}"
-  CUBEB_BACKEND=alsa "${EKA_EXE}" --app "${APP_UID}" >> "${EKA_LOG}" 2>&1
+  CUBEB_BACKEND=alsa "${EKA_EXE}" --device "${DEVICE_CODE}" --app "${APP_UID}" >> "${EKA_LOG}" 2>&1
 
 elif [ "${LAUNCH_MODE}" = "classic" ]; then
   log "Launching classic N-Gage: --run \"${APP_RUN}\" on ${DEVICE_CODE}"

@@ -40,49 +40,69 @@ controller = None
 
 class ControllerInput:
     def __init__(self, preferred_path: Optional[str] = None):
+        self.preferred_path = preferred_path
         self.dev = wait_for_controller(preferred_path)
+        self.preferred_path = getattr(self.dev, "path", preferred_path)
         self.last_hat_x = 0
         self.last_hat_y = 0
 
-    def wait_for_input(self) -> str:
-        for event in self.dev.read_loop():
-            if event.type == e.EV_KEY and event.value == 1:
-                code = event.code
-                if code == e.BTN_DPAD_UP:    return 'up'
-                if code == e.BTN_DPAD_DOWN:  return 'down'
-                if code == e.BTN_DPAD_LEFT:  return 'left'
-                if code == e.BTN_DPAD_RIGHT: return 'right'
-                if code in (e.BTN_SOUTH, e.BTN_START): return 'a'
-                if code == e.BTN_EAST:       return 'b'
-                if code == e.BTN_NORTH:      return 'y'
-                if code == e.BTN_WEST:       return 'x'
-                if code in (e.BTN_SELECT, e.BTN_MODE): return 'select'
-                if code == e.KEY_UP:         return 'up'
-                if code == e.KEY_DOWN:       return 'down'
-                if code == e.KEY_LEFT:       return 'left'
-                if code == e.KEY_RIGHT:      return 'right'
-                if code == e.KEY_ENTER:      return 'a'
-                if code in (e.KEY_ESC, e.KEY_BACKSPACE): return 'b'
+    def reconnect(self):
+        old_path = getattr(self.dev, "path", self.preferred_path)
+        self.close()
+        self.last_hat_x = 0
+        self.last_hat_y = 0
+        log(f"Controller disconnected, waiting for reconnect (last path: {old_path})")
+        print("\nController disconnected. Waiting for reconnect...", flush=True)
+        self.dev = wait_for_controller(old_path)
+        self.preferred_path = getattr(self.dev, "path", old_path)
+        log(f"Controller reconnected: {self.dev.name} ({self.dev.path})")
 
-            if event.type == e.EV_ABS:
-                if event.code == e.ABS_HAT0Y:
-                    if event.value < 0 and self.last_hat_y >= 0:
-                        self.last_hat_y = event.value
-                        return 'up'
-                    if event.value > 0 and self.last_hat_y <= 0:
-                        self.last_hat_y = event.value
-                        return 'down'
-                    if event.value == 0:
-                        self.last_hat_y = 0
-                if event.code == e.ABS_HAT0X:
-                    if event.value < 0 and self.last_hat_x >= 0:
-                        self.last_hat_x = event.value
-                        return 'left'
-                    if event.value > 0 and self.last_hat_x <= 0:
-                        self.last_hat_x = event.value
-                        return 'right'
-                    if event.value == 0:
-                        self.last_hat_x = 0
+    def wait_for_input(self) -> str:
+        while True:
+            try:
+                for event in self.dev.read_loop():
+                    if event.type == e.EV_KEY and event.value == 1:
+                        code = event.code
+                        if code == e.BTN_DPAD_UP:    return 'up'
+                        if code == e.BTN_DPAD_DOWN:  return 'down'
+                        if code == e.BTN_DPAD_LEFT:  return 'left'
+                        if code == e.BTN_DPAD_RIGHT: return 'right'
+                        if code in (e.BTN_SOUTH, e.BTN_START): return 'a'
+                        if code == e.BTN_EAST:       return 'b'
+                        if code == e.BTN_NORTH:      return 'y'
+                        if code == e.BTN_WEST:       return 'x'
+                        if code in (e.BTN_SELECT, e.BTN_MODE): return 'select'
+                        if code == e.KEY_UP:         return 'up'
+                        if code == e.KEY_DOWN:       return 'down'
+                        if code == e.KEY_LEFT:       return 'left'
+                        if code == e.KEY_RIGHT:      return 'right'
+                        if code == e.KEY_ENTER:      return 'a'
+                        if code in (e.KEY_ESC, e.KEY_BACKSPACE): return 'b'
+
+                    if event.type == e.EV_ABS:
+                        if event.code == e.ABS_HAT0Y:
+                            if event.value < 0 and self.last_hat_y >= 0:
+                                self.last_hat_y = event.value
+                                return 'up'
+                            if event.value > 0 and self.last_hat_y <= 0:
+                                self.last_hat_y = event.value
+                                return 'down'
+                            if event.value == 0:
+                                self.last_hat_y = 0
+                        if event.code == e.ABS_HAT0X:
+                            if event.value < 0 and self.last_hat_x >= 0:
+                                self.last_hat_x = event.value
+                                return 'left'
+                            if event.value > 0 and self.last_hat_x <= 0:
+                                self.last_hat_x = event.value
+                                return 'right'
+                            if event.value == 0:
+                                self.last_hat_x = 0
+            except OSError as ex:
+                if getattr(ex, "errno", None) == 19:
+                    self.reconnect()
+                    continue
+                raise
 
     def close(self):
         try:
@@ -740,9 +760,10 @@ def install_firmware():
 # ---------------------------------------------------------------------------
 def find_sis_files_recursive(root_dir: str) -> List[str]:
     sis_files: List[str] = []
+    valid_exts = (".sis", ".sisx")
     for current_root, _, files in os.walk(root_dir):
         for name in files:
-            if name.lower().endswith(".sis"):
+            if name.lower().endswith(valid_exts):
                 sis_files.append(os.path.join(current_root, name))
     return sorted(sis_files, key=lambda p: p.lower())
 
@@ -832,24 +853,24 @@ def copy_matching_image_for_uid(source_folder: str, app_name: str, uid_output_di
 def install_sis():
     try:
         sis_dir = choose_directory_interactive(
-            "SIS: Select Directory", EKA_ROMS_DIR)
+            "SIS/SISX: Select Directory", EKA_ROMS_DIR)
     except GoBack:
         return
 
     sis_files = find_sis_files_recursive(sis_dir)
 
     if not sis_files:
-        ok_dialog("Error", f"No .sis files found in:\n{sis_dir}")
+        ok_dialog("Error", f"No .sis or .sisx files found in:\n{sis_dir}")
         return
 
     image_out_dir = os.path.join(sis_dir, "media", "images")
 
     try:
         mode_idx = select_from_list(
-            "SIS Installer Mode",
+            "SIS/SISX Installer Mode",
             [
-                "Install all SIS files (recursive)",
-                "Select SIS files individually (recursive)",
+                "Install all SIS/SISX files (recursive)",
+                "Select SIS/SISX files individually (recursive)",
             ],
             f"{len(sis_files)} file(s) found recursively in:\n{sis_dir}"
         )
@@ -864,7 +885,7 @@ def install_sis():
     if mode_idx == 0:
         if not confirm_dialog(
             "Install All",
-            f"Install all {len(sis_files)} SIS files recursively?\n\nDirectory:\n{sis_dir}"
+            f"Install all {len(sis_files)} SIS/SISX files recursively?\n\nDirectory:\n{sis_dir}"
         ):
             return
         selected_files = sis_files
@@ -873,7 +894,7 @@ def install_sis():
 
         try:
             selected_indexes = select_multiple_from_list(
-                "Select SIS Files",
+                "Select SIS/SISX Files",
                 sis_options,
                 f"Directory:\n{sis_dir}\n\nToggle files with A, press Y to install.",
                 visible=14
@@ -882,14 +903,14 @@ def install_sis():
             return
 
         if not selected_indexes:
-            ok_dialog("SIS Installer", "No SIS files selected.")
+            ok_dialog("SIS/SISX Installer", "No SIS/SISX files selected.")
             return
 
         selected_files = [sis_files[i] for i in selected_indexes]
 
         if not confirm_dialog(
             "Install Selected",
-            f"Install {len(selected_files)} selected SIS file(s)?"
+            f"Install {len(selected_files)} selected SIS/SISX file(s)?"
         ):
             return
 
@@ -911,7 +932,7 @@ def install_sis():
 
         if eka_success(ret):
             success += 1
-            log(f"SIS installed successfully: {sis_file}")
+            log(f"SIS/SISX installed successfully: {sis_file}")
 
             new_app = find_new_app_after_install(before_apps, after_apps)
             if new_app:
@@ -933,7 +954,7 @@ def install_sis():
         else:
             fail += 1
             failed_files.append(rel_name)
-            log(f"SIS install failed ({ret}): {sis_file}")
+            log(f"SIS/SISX install failed ({ret}): {sis_file}")
 
     if fail == 0:
         ok_dialog(
@@ -1619,13 +1640,13 @@ def main():
                 idx = select_from_list(
                     "Main Menu",
                     [
-                        "First run setup (seed bundled data)",
-                        "Import pre-configured collection",
+                        "[ RUN THIS FIRST ! ] : Setup eka2l1 (copy needed files to EmuELEC)",
+                        "Import pre-configured devices-collection",
                         "Install firmware (.rpkg + .rom)",
-                        "Install games and apps (.sis)",
+                        "Install games and apps (.sis/.sisx)",
                         "Create UID launcher-files from installed games and apps (.uid)",
-                        "Create gamelist.xml from UID launcher-files",
-                        "Change device",
+                        "Create gamelist.xml from .uid launcher-files",
+                        "Show / change current device",
                         "Convert uppercase device paths and files to lowercase",
                         "Exit",
                     ],
