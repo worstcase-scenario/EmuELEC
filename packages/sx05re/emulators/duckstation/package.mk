@@ -23,8 +23,8 @@ pre_configure_target() {
 	PKG_CMAKE_OPTS_TARGET+=" -DANDROID=OFF \
 	                         -DENABLE_DISCORD_PRESENCE=OFF \
 	                         -DUSE_X11=OFF \
-                                 -DBUILD_LIBRETRO_CORE=OFF \
-				 -DBUILD_GO2_FRONTEND=OFF \
+                             -DBUILD_LIBRETRO_CORE=OFF \
+				             -DBUILD_GO2_FRONTEND=OFF \
 	                         -DBUILD_QT_FRONTEND=OFF \
 	                         -DBUILD_NOGUI_FRONTEND=ON \
 	                         -DCMAKE_BUILD_TYPE=Release \
@@ -54,6 +54,8 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/duckstation
   cp -rf ${PKG_BUILD}/.${TARGET_NAME}/bin/* ${INSTALL}/usr/config/emuelec/configs/duckstation
   cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/duckstation
+  rm -rf ${INSTALL}/usr/config/emuelec/configs/duckstation/database/gamecontrollerdb.txt
+  ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt ${INSTALL}/usr/config/emuelec/configs/duckstation/database/gamecontrollerdb.txt
   
   rm -rf ${INSTALL}/usr/config/emuelec/configs/duckstation/duckstation-nogui
   rm -rf ${INSTALL}/usr/config/emuelec/configs/duckstation/common-tests

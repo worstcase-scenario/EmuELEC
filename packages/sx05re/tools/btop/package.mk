@@ -12,9 +12,11 @@ PKG_LONGDESC="btop resource monitor"
 PKG_TOOLCHAIN="auto"
 
 post_makeinstall_target() {
-  cat >${INSTALL}/usr/share/btop/btop.conf <<EOF
-disks_filter = "/flash /storage"
+mkdir -p ${INSTALL}/usr/config/btop/
+  cat >${INSTALL}/usr/config/btop/btop.conf <<EOF
+disks_filter = "/flash /storage /storage/roms"
 use_fstab = False
 update_ms = 1000
+proc_gradient = False
 EOF
 }

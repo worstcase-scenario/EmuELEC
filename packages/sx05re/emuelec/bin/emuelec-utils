@@ -388,6 +388,9 @@ function timezones() {
 }
 
 function small-cores() {
+	SCF=$(get_ee_setting ee_scf)
+	[ "${SCF}" != "1" ] && return 0
+ 	
 # Switch the small cores on the N2 on and off, we mostly have them off as the small cores are slower.
     if grep -q "g12b" /proc/device-tree/compatible; then
         case "$1" in
@@ -491,6 +494,10 @@ function init_app_video() {
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+
+  if [[ "${PLATFORM}" == "ports" ]]; then
+    fbfix $( emuelec-utils getmainfb )
+  fi
 }
 
 function end_app_video() {
@@ -508,6 +515,8 @@ function end_app_video() {
 		return
 	fi
 
+  blank_buffer
+
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
 	# Return to default mode
@@ -518,8 +527,7 @@ function end_app_video() {
 
 	blank_buffer
 
-	rm /tmp/EE_LASTVIDEO
-	rm /tmp/EE_SKIP_APP_VIDEO
+	[[ -f "/tmp/EE_LASTVIDEO" ]] && rm /tmp/EE_LASTVIDEO
 }
 
 function getmainfb() {

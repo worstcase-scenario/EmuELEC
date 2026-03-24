@@ -14,7 +14,7 @@ CONFIG=${CONFIG_DIR}/controls.ini
 CONFIG_TMP=/tmp/jc/ppsspp.tmp
 
 
-source joy_common.sh "ppsspp"
+source joy_common.sh "ppsspp" "fixed_order"
 
 declare -A GC_PPSSPP_VALUES=(
   [h0.1]="10-19" #Up
@@ -114,11 +114,10 @@ set_pad() {
   [[ "${1}" != "1" ]] && return
 
   local DEVICE_GUID=${3}
-  local JOY_NAME="${4}"
 
   echo "DEVICE_GUID=${DEVICE_GUID}"
 
-  local GC_CONFIG=$(cat "${GCDB}" | grep "${DEVICE_GUID}" | grep "platform:Linux" | head -1)
+  local GC_CONFIG="${5}"
   echo "GC_CONFIG=${GC_CONFIG}"
   [[ -z ${GC_CONFIG} ]] && return
 

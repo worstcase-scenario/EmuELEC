@@ -84,7 +84,7 @@ EMULATOR="${arguments##*--emulator=}"  # read from --emulator= onwards
 EMULATOR="${EMULATOR%% *}"  # until a space is found
 
 ROMNAME="${1}"
-BASEROMNAME=${ROMNAME##*/}
+BASEROMNAME="${ROMNAME##*/}"
 GAMEFOLDER="${ROMNAME//${BASEROMNAME}}"
 
 KILLTHIS="none"
@@ -238,10 +238,8 @@ case ${PLATFORM} in
         fi
                 ;;
         "amiga"|"amigacd32")
-                if [ "${EMU}" = "AMIBERRY-LITE" ]; then
-            RUNTHIS='${TBASH} amiberry-lite.sh "${ROMNAME}"'
-				elif [ "${EMU}" = "AMIBERRY" ]; then
-            RUNTHIS='${TBASH} amiberry.start "${ROMNAME}"'
+                if [ "${EMU}" = "AMIBERRY-LITE" ] || [ "${EMU}" = "AMIBERRY" ]; then
+            RUNTHIS='${TBASH} amiberry.start "${ROMNAME}" "${EMU}"'
                 fi
                 ;;
         "scummvm")
@@ -261,7 +259,19 @@ case ${PLATFORM} in
         "solarus")
                 set_kill_keys "solarus-run"
                 RUNTHIS='${TBASH} solarus.sh "${ROMNAME}"'
-                        ;;
+                ;;
+		"ti99")
+                if [ "${EMU}" = "ti99sim" ]; then
+				set_kill_keys "ti99sim-sdl"
+				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"samcoupe")
+                if [ "${EMU}" = "simcoupe" ]; then
+				set_kill_keys "simcoupe"
+				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
@@ -340,8 +350,44 @@ case ${PLATFORM} in
             set_kill_keys "jzintv"
             RUNTHIS='jzintv.sh "${ROMNAME}"'
         fi
-        ;;
-        "saturn")
+		;;
+		"x16")
+        if [ "${EMU}" = "x16emu" ]; then
+            set_kill_keys "x16emu"
+            RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
+        fi
+		;;
+		"oricutron")
+        if [ "${EMU}" = "oricutron" ]; then
+            set_kill_keys "oricutron"
+            RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
+        fi
+		;;	
+        "dragon32"|"dragon64")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+			RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"coco")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"coco3")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+		    RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"mc10")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"
             RUNTHIS='yabasanshiro.sh "${ROMNAME}"'
@@ -361,6 +407,10 @@ case ${PLATFORM} in
     fi
     ;;
 esac
+
+if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
+		emuelec-utils small-cores enable
+fi
 
 if [[ ${PLATFORM} == "ports" ]]; then
         PORTCORE="${arguments##*-C}"  # read from -C onwards
@@ -496,7 +546,7 @@ if [ "${USELOG}" == "1" ]; then # No need to do all this if log is disabled
     eval echo ${RUNTHIS} >> ${EMUELECLOG}
 fi
 
-gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
+[[ "${KILLTHIS}" != "none" ]] && gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
@@ -571,26 +621,21 @@ if [ "${EE_DEVICE}" == "OdroidGoAdvance" ]; then
         esac
 fi
 
-# Dolphin does not like to be killed?
-[[ "${EMU}" = "dolphin" ]] && ret_error="0"
-
-# Chocolate Doom does not like to be killed?
-[[ "${EMU}" = "Chocolate-Doom" ]] && ret_error="0"
-
-# YabasanshiroSA does not like to be killed?
-[[ "${EMU}" = "yabasanshiroSA" ]] && ret_error="0"
-
-[[ "${EMU}" = "yabasanshiroSA1_5" ]] && ret_error="0"
-
-# Temp fix for retrorun always erroing out on exit
+# These emus do not like to be killed by gptokeyb
+case "${EMU}" in
+    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+        ret_error="0"
+        ;;
+esac
 [[ "${RETRORUN}" == "yes" ]] && ret_error=0
-
-# Temp fix for libretro scummvm always erroing out on exit
-[[ "${EMU}" == *"scummvm_libretro"* ]] && ret_error=0
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
 end_game
+
+if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
+		emuelec-utils small-cores disable
+fi
 
 if [[ "${ret_error}" != "0" ]]; then
     echo "exit ${ret_error}" >> ${EMUELECLOG}
