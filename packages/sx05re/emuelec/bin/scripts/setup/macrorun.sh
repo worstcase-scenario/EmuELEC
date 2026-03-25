@@ -1,45 +1,56 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2025-present EmuELEC Team (https://github.com/EmuELEC/EmuELEC)
+
 . /etc/profile
 
-macro_confirm() {
-    text_viewer -y -w -t "ACTIVATE MACRO" -f 24 -m "This will activate the macro mode in the background.\n\nThe macro will be active while you continue using EmulationStation.\n\nContinue?"
-    if [[ $? == 21 ]]; then
-        if macro_start; then
-			text_viewer -w -t "MACRO ACTIVATED!" -f 24 -m "Macro mode is now active in the background!\n\nATTENTION: DO NOT press the trigger button as long as you are in Emulationstation, otherwise the new controller-setup screen will pop up.\n\nIn this case, just press the hotkey button to exit the routine.\n\nTo DISABLE the macro again, press the macro button for around 3-5 seconds."
-        else
-            text_viewer -e -w -t "MACRO ACTIVATION FAILED!" -f 24 -m "Failed to activate macro mode! Check /tmp/macrorun.log for details."
-        fi
-    fi
-    ee_console disable
-}
+MACRO_RUN_SCRIPT="/usr/bin/scripts/setup/macrorun.py"
+MACRO_LOG="/emuelec/logs/macrorun.log"
+MACRO_RET="/tmp/macrorun.ret"
 
-macro_start() {
+function macrorun_start() {
     ee_console enable
-    echo "Starting macro run (foreground menu, then daemonize)..."
-	
-    /usr/bin/python3 -u /usr/bin/scripts/setup/macrorun.py
-    rc=$?
 
-   
-    sleep 1
-    if [[ -f /tmp/macrorun.pid ]] && ps -p "$(cat /tmp/macrorun.pid)" >/dev/null 2>&1; then
-        echo "Macro daemon running with PID $(cat /tmp/macrorun.pid)"
-        ee_console disable
-        rm /tmp/display >/dev/null 2>&1
-        return 0
+    TTY="/dev/tty1"
+    [[ -w "$TTY" ]] || TTY="/dev/tty0"
+    [[ -w "$TTY" ]] || TTY="/dev/console"
+
+    exec <"$TTY" >"$TTY" 2>&1
+
+    for b in /sys/class/graphics/fb0/blank /sys/class/graphics/fb1/blank; do
+        [[ -w "$b" ]] && echo 0 >"$b"
+    done
+
+    if command -v setterm >/dev/null 2>&1; then
+        setterm -blank 0 -powerdown 0 -powersave off >"$TTY" 2>/dev/null || true
     fi
 
-  
-    if pgrep -f "Virtual-Macro" >/dev/null 2>&1 || pgrep -f "/usr/bin/scripts/setup/macrorun.py" >/dev/null 2>&1; then
+    clear
+
+    if [[ ! -f "$MACRO_RUN_SCRIPT" ]]; then
+        echo "ERROR: macrorun.py not found at $MACRO_RUN_SCRIPT"
         ee_console disable
-        rm /tmp/display >/dev/null 2>&1
-        return 0
+        return 1
     fi
 
-    echo "Macro daemon not detected (rc=${rc})"
+    chmod +x "$MACRO_RUN_SCRIPT"
+    mkdir -p "$(dirname "$MACRO_LOG")"
+
+    rm -f "$MACRO_RET" >/dev/null 2>&1
+
+    if command -v openvt >/dev/null 2>&1; then
+        openvt -c 1 -s -f -- /bin/sh -c \
+            "/usr/bin/python3 -u '$MACRO_RUN_SCRIPT' 2>&1 | tee '$MACRO_LOG'; echo \$? >'$MACRO_RET'"
+        run_result=$(cat "$MACRO_RET" 2>/dev/null || echo 1)
+    else
+        /usr/bin/python3 -u "$MACRO_RUN_SCRIPT" 2>&1 | tee "$MACRO_LOG"
+        run_result=${PIPESTATUS[0]}
+    fi
+
     ee_console disable
-    rm /tmp/display >/dev/null 2>&1
-    return 1
+    rm -f /tmp/display >/dev/null 2>&1
+
+    return "$run_result"
 }
 
-macro_confirm
+macrorun_start

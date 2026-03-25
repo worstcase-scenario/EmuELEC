@@ -1,44 +1,56 @@
 #!/bin/bash
-# Source predefined functions and variables
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2025-present EmuELEC Team (https://github.com/EmuELEC/EmuELEC)
+
 . /etc/profile
 
-function macrosetup_confirm() {
-    text_viewer -y -w -t "SETUP MACRO" -f 24 -m "This will start the macro setup configuration.\n\nThe setup will guide you through configuring your macro settings.\n\nContinue?"
-    if [[ $? == 21 ]]; then
-        if macrosetup_start; then
-            text_viewer -w -t "MACRO SETUP COMPLETED!" -f 24 -m "Macro setup has been completed successfully!\n\nYour macro configuration has been saved and is ready to use.\n\nYou can now select and activate macros using the macro activation script."
-        else
-            text_viewer -e -w -t "MACRO SETUP FAILED!" -f 24 -m "Failed to complete macro setup! Check /tmp/macrosetup.log for details."
-        fi
-    fi
-    ee_console disable
-}
+MACRO_SETUP_SCRIPT="/usr/bin/scripts/setup/macrosetup.py"
+MACRO_LOG="/emuelec/logs/macrosetup.log"
+MACRO_RET="/tmp/macrosetup.ret"
 
 function macrosetup_start() {
     ee_console enable
-    
-    echo "Starting macro setup..."
-    echo "Follow the instructions that will appear below:"
-    echo ""
-    
-    # Run Python setup script with logging (but keep interactive output)
-    /usr/bin/python3 -u /usr/bin/scripts/setup/macrosetup.py 2>&1 | tee /tmp/macrosetup.log
-    setup_result=${PIPESTATUS[0]}
-    
-    echo ""
-    
-    # Check if setup completed successfully
-    if [[ $setup_result == 0 ]]; then
-        echo "Macro setup completed successfully"
+
+    TTY="/dev/tty1"
+    [[ -w "$TTY" ]] || TTY="/dev/tty0"
+    [[ -w "$TTY" ]] || TTY="/dev/console"
+
+    exec <"$TTY" >"$TTY" 2>&1
+
+    for b in /sys/class/graphics/fb0/blank /sys/class/graphics/fb1/blank; do
+        [[ -w "$b" ]] && echo 0 >"$b"
+    done
+
+    if command -v setterm >/dev/null 2>&1; then
+        setterm -blank 0 -powerdown 0 -powersave off >"$TTY" 2>/dev/null || true
+    fi
+
+    clear
+
+    if [[ ! -f "$MACRO_SETUP_SCRIPT" ]]; then
+        echo "ERROR: macrosetup.py not found at $MACRO_SETUP_SCRIPT"
         ee_console disable
-        rm /tmp/display > /dev/null 2>&1
-        return 0
-    else
-        echo "Failed to complete macro setup"
-        ee_console disable
-        rm /tmp/display > /dev/null 2>&1
         return 1
     fi
+
+    chmod +x "$MACRO_SETUP_SCRIPT"
+    mkdir -p "$(dirname "$MACRO_LOG")"
+
+    rm -f "$MACRO_RET" >/dev/null 2>&1
+
+    if command -v openvt >/dev/null 2>&1; then
+        openvt -c 1 -s -f -- /bin/sh -c \
+            "/usr/bin/python3 -u '$MACRO_SETUP_SCRIPT' 2>&1 | tee '$MACRO_LOG'; echo \$? >'$MACRO_RET'"
+        setup_result=$(cat "$MACRO_RET" 2>/dev/null || echo 1)
+    else
+        /usr/bin/python3 -u "$MACRO_SETUP_SCRIPT" 2>&1 | tee "$MACRO_LOG"
+        setup_result=${PIPESTATUS[0]}
+    fi
+
+    ee_console disable
+    rm -f /tmp/display >/dev/null 2>&1
+
+    return "$setup_result"
 }
 
-macrosetup_confirm
+macrosetup_start
