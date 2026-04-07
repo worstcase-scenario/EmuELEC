@@ -16,7 +16,7 @@ PKG_TOOLCHAIN="manual"
 unpack() {
   mkdir -p ${PKG_BUILD}
   unzip -q ${SOURCES}/${PKG_NAME}/${PKG_SOURCE_NAME} -d ${PKG_BUILD}
-  
+
   if [ -d "${PKG_BUILD}/xroar" ]; then
     mv ${PKG_BUILD}/xroar/* ${PKG_BUILD}/
     rmdir ${PKG_BUILD}/xroar
@@ -28,13 +28,19 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_BUILD}/xroar.aarch64 ${INSTALL}/usr/bin/xroar.aarch64
   chmod +x ${INSTALL}/usr/bin/xroar.aarch64
-  
+
   cp ${PKG_DIR}/scripts/xroar.sh ${INSTALL}/usr/bin/xroar.sh
   chmod +x ${INSTALL}/usr/bin/xroar.sh
-  
+
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/xroar
   cp -r ${PKG_BUILD}/libs.aarch64 ${INSTALL}/usr/config/emuelec/configs/xroar/
   cp -r ${PKG_BUILD}/gptk ${INSTALL}/usr/config/emuelec/configs/xroar/
   cp ${PKG_BUILD}/xroar.conf ${INSTALL}/usr/config/emuelec/configs/xroar/
   cp -r ${PKG_BUILD}/fonts ${INSTALL}/usr/config/emuelec/configs/xroar/
+
+  if [ -f "${PKG_DIR}/config/xroar.gptk" ]; then
+    mkdir -p ${INSTALL}/usr/config/emuelec/configs/xroar/gptk
+    cp -f "${PKG_DIR}/config/xroar.gptk" \
+      "${INSTALL}/usr/config/emuelec/configs/xroar/gptk/xroar.gptk"
+  fi
 }

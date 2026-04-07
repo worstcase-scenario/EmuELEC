@@ -509,7 +509,49 @@
         }
       ]
     },
-    {
+	 {
+      "name": "atarijaguarcd",
+      "fullname": "Atari Jaguar CD",
+      "manufacturer": "Atari",
+      "release": "1993",
+      "hardware": "console",
+      "path": "/storage/roms/atarijaguarcd",
+      "platform": "atarijaguarcd",
+      "theme": "atarijaguarcd",
+      "command": "default",
+      "extensions": [
+        ".j64",
+        ".jag",
+		".cdi",
+		".cue",
+		".cof",
+		".rom",
+		".abs",
+		".bigpimg",
+		".zip"
+      ],
+      "emulators": [
+	  {
+          "name": "bigpemu",
+          "cores": [
+            {
+              "name": "bigpemu",
+			  "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "virtualjaguar"
+              
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "wonderswan",
       "fullname": "Bandai Wonderswan",
       "manufacturer": "Bandai",
