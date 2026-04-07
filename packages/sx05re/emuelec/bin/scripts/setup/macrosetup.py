@@ -117,7 +117,7 @@ def enter_name(devs, dflt, L=16):
     pos, aa, done = 0, {}, None
     while done is None:
         cls()
-        print("Name\n")
+        print("Name  —  Stick L/R: move  U/D: change char  Y: erase  A: confirm  B: cancel\n")
         print("".join(f"[{c}]" if i==pos else f" {c} " for i, c in enumerate(nm)))
         end_screen()
         redraw = False
@@ -183,9 +183,10 @@ def main():
         opts = [f"Overwrite: {m['name']}  [{fmt_events(m.get('macro_events',[]))}]" for m in macros]
         opts += ["Create new macro"]
         if macros: opts += ["Delete a macro"]
+        opts += ["Exit"]
 
         sel = menu(devs, "Macro Setup  —  A: select  B: cancel", opts, cancel=True, spacing=True)
-        if sel is None: return
+        if sel is None or sel == len(opts) - 1: return
 
         if macros and sel == len(macros) + 1:
             del_sel = menu(devs, "Delete which macro?",
