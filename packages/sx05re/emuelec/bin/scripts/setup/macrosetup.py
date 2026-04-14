@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
-
+# THIS FILE HAS BEEN CREATED BY CLAUDE.AI
 import json, os, select, sys, time
 from evdev import InputDevice, list_devices, ecodes as e
 
