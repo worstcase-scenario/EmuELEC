@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2025-present EmuELEC Team (https://github.com/EmuELEC/EmuELEC)
+# Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
 . /etc/profile
 

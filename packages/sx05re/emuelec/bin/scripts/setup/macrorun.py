@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2025-present EmuELEC Team (https://github.com/EmuELEC/EmuELEC)
+# Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
-import json, os, select, sys, time
-from evdev import InputDevice, list_devices, ecodes as e, UInput, AbsInfo
+import json, os, select, sys, time, threading, queue
+from evdev import InputDevice, list_devices, ecodes as e, UInput
 
 CFG = "/storage/.config/emuelec/scripts/macro_config.json"
 PID = "/tmp/macrorun.pid"
@@ -23,6 +23,20 @@ _TL = {e.BTN_SOUTH:"A", e.BTN_EAST:"B", e.BTN_NORTH:"X", e.BTN_WEST:"Y",
 
 _AX = {e.ABS_X:"X", e.ABS_Y:"Y", e.ABS_RX:"RX", e.ABS_RY:"RY",
        e.ABS_Z:"Z", e.ABS_RZ:"RZ", e.ABS_HAT0X:"HATX", e.ABS_HAT0Y:"HATY"}
+
+# Button/axis → keyboard key mapping for UInput playback
+# Emulators expect keyboard events, not virtual gamepad events
+_B2K = {e.BTN_DPAD_UP:e.KEY_UP, e.BTN_DPAD_DOWN:e.KEY_DOWN,
+        e.BTN_DPAD_LEFT:e.KEY_LEFT, e.BTN_DPAD_RIGHT:e.KEY_RIGHT,
+        e.BTN_SOUTH:e.KEY_Z, e.BTN_EAST:e.KEY_X,
+        e.BTN_NORTH:e.KEY_A, e.BTN_WEST:e.KEY_S,
+        e.BTN_TL:e.KEY_Q, e.BTN_TR:e.KEY_W,
+        e.BTN_TL2:e.KEY_E, e.BTN_TR2:e.KEY_R}
+
+_A2K = {e.ABS_X:{1:e.KEY_RIGHT,-1:e.KEY_LEFT}, e.ABS_Y:{1:e.KEY_DOWN,-1:e.KEY_UP},
+        e.ABS_RX:{1:e.KEY_D,-1:e.KEY_A}, e.ABS_RY:{1:e.KEY_S,-1:e.KEY_W},
+        e.ABS_Z:{1:e.KEY_E}, e.ABS_RZ:{1:e.KEY_R},
+        e.ABS_HAT0X:{1:e.KEY_RIGHT,-1:e.KEY_LEFT}, e.ABS_HAT0Y:{1:e.KEY_DOWN,-1:e.KEY_UP}}
 
 _BA = {e.BTN_DPAD_UP:"up", e.BTN_DPAD_DOWN:"down", e.BTN_DPAD_LEFT:"left",
        e.BTN_DPAD_RIGHT:"right", e.BTN_SOUTH:"ok", e.BTN_EAST:"cancel"}
@@ -140,35 +154,63 @@ def show_info(macro):
             if ev.type in (e.EV_KEY, e.EV_ABS): return
 
 def _make_ui(evts):
-    keys = [ev["code"] for ev in evts if ev["type"] == "key"]
-    axes = list({ev["code"] for ev in evts if ev["type"] == "axis"})
-    caps = {}
-    if keys: caps[e.EV_KEY] = keys
-    if axes: caps[e.EV_ABS] = [(ax, AbsInfo(0, -32767, 32767, 0, 0, 0)) for ax in axes]
-    return UInput(caps, name="Virtual-Macro", bustype=e.BUS_USB)
-
-def _play(ui, evts, delay=0.05):
+    keys = set()
     for ev in evts:
         if ev["type"] == "key":
-            ui.write(e.EV_KEY, ev["code"], 1); ui.syn(); time.sleep(delay)
-            ui.write(e.EV_KEY, ev["code"], 0); ui.syn()
+            k = _B2K.get(ev["code"])
+            if k: keys.add(k)
         elif ev["type"] == "axis":
-            ui.write(e.EV_ABS, ev["code"], ev["value"]); ui.syn(); time.sleep(delay)
-            ui.write(e.EV_ABS, ev["code"], 0); ui.syn()
+            val = ev.get("value", 0)
+            k = _A2K.get(ev["code"], {}).get(1 if val>0 else -1)
+            if k: keys.add(k)
+    if not keys: return None
+    return UInput({e.EV_KEY: list(keys)}, name="Virtual-Macro", bustype=e.BUS_USB)
 
-def run_macro(dev, macro):
+def _play(ui, evts, delay=0.05):
+    if not ui: return
+    for ev in evts:
+        k = None
+        if ev["type"] == "key":
+            k = _B2K.get(ev["code"])
+        elif ev["type"] == "axis":
+            val = ev.get("value", 0)
+            k = _A2K.get(ev["code"], {}).get(1 if val>0 else -1)
+        if not k: continue
+        ui.write(e.EV_KEY, k, 1); ui.syn(); time.sleep(delay)
+        ui.write(e.EV_KEY, k, 0); ui.syn()
+
+def run_macro(dev_paths, macro):
     trig, evts = macro["trigger_code"], macro["macro_events"]
     if not evts: return
     ui = _make_ui(evts)
+    q = queue.Queue()
+
+    def _reader(path):
+        try:
+            dev = InputDevice(path)
+            for ev in dev.read_loop():
+                q.put(ev)
+        except: pass
+
+    for p in dev_paths:
+        threading.Thread(target=_reader, args=(p,), daemon=True).start()
+
     pressed, done, t0 = False, False, 0.
-    for ev in dev.read_loop():
+    while True:
+        try:
+            ev = q.get(timeout=0.05)
+        except queue.Empty:
+            if pressed and not done and time.time()-t0 >= 0.1:
+                done = True; _play(ui, evts)
+            continue
         if ev.type==e.EV_KEY and ev.code==trig:
             if ev.value==1: pressed, done, t0 = True, False, time.time()
             elif ev.value==0 and pressed:
                 held, pressed = time.time()-t0, False
                 if held >= 3: ui.close(); return
                 if not done: _play(ui, evts)
-        if pressed and not done and time.time()-t0 >= 0.1: done = True; _play(ui, evts)
+        if pressed and not done and time.time()-t0 >= 0.1:
+            done = True; _play(ui, evts)
 
 def running():
     try:
@@ -184,7 +226,7 @@ def stop_running():
         if os.path.exists(PID): os.remove(PID)
     except: pass
 
-def daemonize(dev_path, macro):
+def daemonize(dev_paths, macro):
     try:
         if os.fork() > 0: return 0
         os.setsid()
@@ -200,7 +242,7 @@ def daemonize(dev_path, macro):
     try:
         with open(PID, "w") as f: f.write(str(os.getpid()))
     except: pass
-    try: run_macro(InputDevice(dev_path), macro)
+    try: run_macro(dev_paths, macro)
     finally:
         try: os.remove(PID)
         except: pass
@@ -239,7 +281,6 @@ def main():
     devs = wait(cfg.get("device_path"))
     macro = cfg["macros"][pick(devs, cfg["macros"])]
     show_info(macro)
-    btn = next((d for d in devs if d.capabilities().get(e.EV_KEY)), devs[0])
-    return 0 if daemonize(btn.path, macro) == 0 else 1
+    return 0 if daemonize([d.path for d in devs], macro) == 0 else 1
 
 if __name__ == "__main__": sys.exit(main())

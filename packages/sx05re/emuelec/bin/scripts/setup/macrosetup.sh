@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2025-present EmuELEC Team (https://github.com/EmuELEC/EmuELEC)
+# Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
 . /etc/profile
 
@@ -36,7 +36,7 @@ rm -f /tmp/display 2>/dev/null
 
 if [[ $result == 0 ]]; then
     text_viewer -w -t "MACRO SETUP" -f 24 \
-        -m "Macro saved.\n\nActivate it with Macro Enabler."
+        -m "If you have saved a macro, choose and activate it with Macro Enabler."
 else
     text_viewer -e -w -t "MACRO SETUP" -f 24 \
         -m "Cancelled or error.\n\nSee: $LOG"
