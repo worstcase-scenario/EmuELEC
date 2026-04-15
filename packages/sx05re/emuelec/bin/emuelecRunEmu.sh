@@ -174,6 +174,18 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} hatari.start "${ROMNAME}"'
                 fi
                 ;;
+		"atarijaguar")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"atarijaguarcd")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "openbor")
                 VIRTUAL_KB=$(emuelec-utils set_gptokeyb "${PLATFORM}" "${GPTOKEYB}")
                 set_kill_keys "${EMU}"
@@ -302,6 +314,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} ppsspp.sh "${ROMNAME}"'
                 fi
                 ;;
+		"ngage")
+		if [ "$EMU" = "eka2l1" ]; then
+            set_kill_keys "eka2l1"
+            RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
+        fi
+               ;;
         "neocd")
                 if [ "${EMU}" = "fbneo" ]; then
             RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
@@ -357,7 +375,7 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
         fi
 		;;
-		"oricutron")
+		"oricatmos")
         if [ "${EMU}" = "oricutron" ]; then
             set_kill_keys "oricutron"
             RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
