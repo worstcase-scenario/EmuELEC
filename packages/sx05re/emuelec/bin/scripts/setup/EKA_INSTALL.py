@@ -2,6 +2,7 @@
 """EmuELEC eka2l1 firmware, SIS installer, device selector, UID creator & lowercase converter (controller UI)."""
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
+# THIS FILE HAS BEEN CREATED BY CLAUDE.AI
 
 import os
 import glob
@@ -13,9 +14,7 @@ import re
 from typing import List, Optional, Tuple
 from evdev import InputDevice, list_devices, ecodes as e
 
-# ---------------------------------------------------------------------------
 # Paths
-# ---------------------------------------------------------------------------
 EKA_EXE         = "/usr/bin/eka2l1/eka2l1_sdl2"
 EKA_CONFIG      = "/storage/.config/eka2l1"
 EKA_BIOS_DIR    = "/storage/roms/bios/eka2l1"
@@ -24,18 +23,14 @@ EKA_LOG         = "/emuelec/logs/eka2l1-install.log"
 EKA_CONFIG_YML  = os.path.join(EKA_CONFIG, "config.yml")
 EKA_Z_DRIVES    = os.path.join(EKA_CONFIG, "data", "drives", "z")
 
-# ---------------------------------------------------------------------------
 # Exceptions
-# ---------------------------------------------------------------------------
 class UserQuit(Exception):
     pass
 
 class GoBack(Exception):
     pass
 
-# ---------------------------------------------------------------------------
 # Controller
-# ---------------------------------------------------------------------------
 controller = None
 
 class ControllerInput:
@@ -110,7 +105,6 @@ class ControllerInput:
         except Exception:
             pass
 
-
 def wait_for_controller(preferred_path: Optional[str] = None) -> InputDevice:
     print("\nWaiting for controller...", flush=True)
     if preferred_path:
@@ -146,14 +140,11 @@ def wait_for_controller(preferred_path: Optional[str] = None) -> InputDevice:
 
         time.sleep(1.0)
 
-
 def init_controller(preferred_path: Optional[str] = None):
     global controller
     controller = ControllerInput(preferred_path)
 
-# ---------------------------------------------------------------------------
 # Screen
-# ---------------------------------------------------------------------------
 def unblank_framebuffer():
     for p in ("/sys/class/graphics/fb0/blank", "/sys/class/graphics/fb1/blank"):
         try:
@@ -166,9 +157,7 @@ def clear_screen():
     unblank_framebuffer()
     print("\033[2J\033[H", end='', flush=True)
 
-# ---------------------------------------------------------------------------
 # UI Primitives
-# ---------------------------------------------------------------------------
 def show_menu(title: str, options: List[str], selected: int = 0,
               info: str = "", offset: int = 0, visible: int = 20) -> None:
     clear_screen()
@@ -188,7 +177,6 @@ def show_menu(title: str, options: List[str], selected: int = 0,
     print("D-Pad: Navigate | A: Select | B: Back | Select: Quit")
     print("-" * 72)
     sys.stdout.flush()
-
 
 def select_from_list(title: str, items: List[str], info: str = "",
                      visible: int = 20) -> Optional[int]:
@@ -224,7 +212,6 @@ def select_from_list(title: str, items: List[str], info: str = "",
         elif key == 'b':
             raise GoBack()
 
-
 def ok_dialog(title: str, message: str) -> None:
     while True:
         show_menu(title, ["OK"], 0, message)
@@ -233,7 +220,6 @@ def ok_dialog(title: str, message: str) -> None:
             raise UserQuit()
         if key in ('a', 'b'):
             return
-
 
 def confirm_dialog(title: str, message: str, default_yes: bool = True) -> bool:
     options = ["Yes", "No"]
@@ -251,10 +237,9 @@ def confirm_dialog(title: str, message: str, default_yes: bool = True) -> bool:
         elif key == 'b':
             return False
 
-# ---------------------------------------------------------------------------
 # Directory browser
-# ---------------------------------------------------------------------------
-def choose_directory_interactive(prompt: str, start_dir: str) -> str:
+def choose_directory_interactive(prompt: str, start_dir: str,
+                                 require_ext: Optional[List[str]] = None) -> str:
     current = os.path.abspath(start_dir)
 
     while True:
@@ -267,7 +252,19 @@ def choose_directory_interactive(prompt: str, start_dir: str) -> str:
         except Exception:
             subdirs = []
 
-        options: List[str] = ["[Use This Directory]"]
+        options: List[str] = []
+        if require_ext is None:
+            options.append("[Use This Directory]")
+        else:
+            has_match = any(
+                f.lower().endswith(tuple(require_ext))
+                for f in entries
+                if os.path.isfile(os.path.join(current, f))
+            )
+            if has_match:
+                exts = "/".join(e.lstrip(".").upper() for e in require_ext)
+                options.append(f"[Use This Directory]  ({exts} files found here)")
+
         if current != "/":
             options.append("[.. Parent Directory]")
         options.extend(subdirs)
@@ -277,7 +274,7 @@ def choose_directory_interactive(prompt: str, start_dir: str) -> str:
             raise GoBack()
 
         selected = options[idx]
-        if selected == "[Use This Directory]":
+        if selected.startswith("[Use This Directory]"):
             return current
         elif selected == "[.. Parent Directory]":
             parent = os.path.dirname(current)
@@ -286,9 +283,7 @@ def choose_directory_interactive(prompt: str, start_dir: str) -> str:
         else:
             current = os.path.join(current, selected)
 
-# ---------------------------------------------------------------------------
 # Log / run helper
-# ---------------------------------------------------------------------------
 def log(msg: str):
     try:
         with open(EKA_LOG, "a") as f:
@@ -296,14 +291,30 @@ def log(msg: str):
     except Exception:
         pass
 
-
 def run_eka(args: List[str], timeout: int = 120) -> int:
+    import threading
     cmd = [EKA_EXE] + args
     log("Running: " + " ".join(cmd))
-    print("", flush=True)
+
+    spinner_chars = ["|", "/", "-", "\\"]
+    stop_event = threading.Event()
+
+    def _keepalive():
+        idx = 0
+        while not stop_event.wait(2.0):
+            unblank_framebuffer()
+            print(f"\r  {spinner_chars[idx % 4]} Working...", end='', flush=True)
+            idx += 1
+
+    t = threading.Thread(target=_keepalive, daemon=True)
+    t.start()
 
     try:
-        result = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout)
+        with open(EKA_LOG, "a") as logf:
+            result = subprocess.run(
+                cmd, cwd=EKA_CONFIG, timeout=timeout,
+                stdout=logf, stderr=logf
+            )
         return result.returncode
     except subprocess.TimeoutExpired:
         log("Process timed out")
@@ -311,7 +322,10 @@ def run_eka(args: List[str], timeout: int = 120) -> int:
     except Exception as ex:
         log(f"Exception: {ex}")
         return 1
-
+    finally:
+        stop_event.set()
+        t.join(timeout=3)
+        print("\r" + " " * 20 + "\r", end='', flush=True)
 
 def run_eka_capture(args: List[str], timeout: int = 120) -> Tuple[int, str]:
     cmd = [EKA_EXE] + args
@@ -341,24 +355,11 @@ def run_eka_capture(args: List[str], timeout: int = 120) -> Tuple[int, str]:
         log(f"Exception: {ex}")
         return 1, ""
 
-
 def eka_success(ret: int) -> bool:
-    """eka2l1 often segfaults (exit -11 / 245) after install - treat as success."""
-    return ret in (0, -11, 245)
+    """eka2l1 often crashes on exit - treat known signal exits as success."""
+    return ret in (0, -6, -11, 245)
 
-# ---------------------------------------------------------------------------
 # Device handling
-# ---------------------------------------------------------------------------
-def parse_listdevices_output(output: str) -> List[Tuple[int, str]]:
-    devices: List[Tuple[int, str]] = []
-    for raw_line in output.splitlines():
-        line = raw_line.strip()
-        match = re.match(r'^(\d+)\s*:\s*(.+)$', line)
-        if match:
-            devices.append((int(match.group(1)), match.group(2).strip()))
-    return devices
-
-
 def get_current_device_index() -> Optional[int]:
     if not os.path.exists(EKA_CONFIG_YML):
         return None
@@ -374,6 +375,26 @@ def get_current_device_index() -> Optional[int]:
 
     return None
 
+def get_current_device_name() -> Optional[str]:
+    """Return the model-name key of the currently active device, or None."""
+    idx = get_current_device_index()
+    if idx is None:
+        return None
+    devices_yml = os.path.join(EKA_CONFIG, "data", "devices.yml")
+    if not os.path.isfile(devices_yml):
+        return None
+    try:
+        with open(devices_yml) as f:
+            i = 0
+            for line in f:
+                stripped = line.rstrip()
+                if stripped and not stripped.startswith(" ") and stripped.endswith(":"):
+                    if i == idx:
+                        return stripped[:-1]
+                    i += 1
+    except Exception:
+        pass
+    return None
 
 def set_device_index(index: int) -> None:
     os.makedirs(EKA_CONFIG, exist_ok=True)
@@ -407,20 +428,60 @@ def set_device_index(index: int) -> None:
 
     log(f"Set device to {index} in {EKA_CONFIG_YML}")
 
+def get_valid_installed_devices() -> List[Tuple[int, str]]:
+    """Return only devices that have a Z-drive installed."""
+    z_drives_base = os.path.join(EKA_CONFIG, "data", "drives", "z")
+
+    if not os.path.isdir(z_drives_base):
+        log("Z-drives base directory not found")
+        return []
+
+    devices: List[Tuple[int, str]] = []
+    devices_yml = os.path.join(EKA_CONFIG, "data", "devices.yml")
+
+    try:
+        z_dirs = {
+            d.lower(): d for d in os.listdir(z_drives_base)
+            if os.path.isdir(os.path.join(z_drives_base, d))
+        }
+    except Exception as ex:
+        log(f"Failed to read Z-drives directory: {ex}")
+        return []
+
+    if not z_dirs:
+        log("No Z-drives found in Z-drives directory")
+        return []
+
+    if os.path.isfile(devices_yml):
+        try:
+            with open(devices_yml, "r") as f:
+                device_index = 0
+                for line in f:
+                    stripped = line.rstrip()
+                    if stripped and not stripped.startswith(" ") and stripped.endswith(":"):
+                        device_name = stripped[:-1]
+                        if device_name.lower() in z_dirs:
+                            devices.append((device_index, device_name))
+                            log(f"Found valid device {device_index}: {device_name}")
+                        else:
+                            log(f"Skipped device {device_index}: {device_name} (no Z-drive found)")
+                        device_index += 1
+        except Exception as ex:
+            log(f"Failed to read devices.yml: {ex}")
+    else:
+        log("devices.yml not found")
+
+    log(f"Total valid installed devices: {len(devices)}")
+    return devices
 
 def change_device():
     clear_screen()
     print("Loading device list...", flush=True)
 
-    ret, output = run_eka_capture(["--listdevices"])
-    devices = parse_listdevices_output(output)
-
-    if ret != 0 and not devices:
-        ok_dialog("Error", f"Could not get device list.\n\nSee log: {EKA_LOG}")
-        return
+    devices = get_valid_installed_devices()
 
     if not devices:
-        ok_dialog("Error", "No devices found.")
+        ok_dialog("Error", "No installed devices found.\n\nPlease install firmware first.\n\nSee log: " + EKA_LOG)
         return
 
     current_device = get_current_device_index()
@@ -444,13 +505,9 @@ def change_device():
 
     device_num, device_name = devices[idx]
 
-    warning = ""
-    if "Don't Select this Rom" in device_name or "brick EKA2L1" in device_name:
-        warning = "\n\nWARNING:\nThis device is marked as unsafe in EKA2L1."
-
     if not confirm_dialog(
         "Confirm Device",
-        f"Set this device?\n\n{device_num} : {device_name}{warning}"
+        f"Set this device?\n\n{device_num} : {device_name}"
     ):
         return
 
@@ -461,59 +518,7 @@ def change_device():
         log(f"Failed to write config.yml: {ex}")
         ok_dialog("Error", f"Could not write config.yml\n\nSee log: {EKA_LOG}")
 
-# ---------------------------------------------------------------------------
 # Uppercase-to-lowercase converter for device trees
-# ---------------------------------------------------------------------------
-def is_within_path(path: str, base: str) -> bool:
-    try:
-        return os.path.commonpath([os.path.abspath(path), os.path.abspath(base)]) == os.path.abspath(base)
-    except Exception:
-        return False
-
-
-def compute_lowercase_path(path: str) -> str:
-    parent = os.path.dirname(path)
-    base = os.path.basename(path)
-    return os.path.join(parent, base.lower())
-
-
-def collect_lowercase_rename_ops(root: str) -> Tuple[List[Tuple[str, str]], List[str]]:
-    ops: List[Tuple[str, str]] = []
-    errors: List[str] = []
-
-    for current_root, dirs, files in os.walk(root, topdown=False):
-        for name in sorted(files):
-            if name != name.lower():
-                old_path = os.path.join(current_root, name)
-                new_path = os.path.join(current_root, name.lower())
-                ops.append((old_path, new_path))
-
-        for name in sorted(dirs):
-            if name != name.lower():
-                old_path = os.path.join(current_root, name)
-                new_path = os.path.join(current_root, name.lower())
-                ops.append((old_path, new_path))
-
-    root_base = os.path.basename(root)
-    if root_base and root_base != root_base.lower():
-        ops.append((root, compute_lowercase_path(root)))
-
-    target_to_source: dict = {}
-    for old_path, new_path in ops:
-        if new_path in target_to_source and target_to_source[new_path] != old_path:
-            errors.append(
-                f'Collision: both\n{target_to_source[new_path]}\nand\n{old_path}\nwould become\n{new_path}'
-            )
-            continue
-
-        target_to_source[new_path] = old_path
-
-        if os.path.exists(new_path) and os.path.abspath(new_path) != os.path.abspath(old_path):
-            errors.append(f'Collision: target already exists\n{new_path}')
-
-    return ops, errors
-
-
 def convert_tree_to_lowercase(root_path):
     renamed = []
     errors = []
@@ -596,7 +601,6 @@ def convert_tree_to_lowercase(root_path):
             log(f"ERROR renaming root dir: {src} -> {dst} ({ex})")
 
     return renamed, errors, final_root
-
 
 def convert_device_paths_to_lowercase():
     start_dir = "/storage/.config/eka2l1/data"
@@ -685,9 +689,7 @@ def convert_device_paths_to_lowercase():
         elif key in ("a", "b"):
             return
 
-# ---------------------------------------------------------------------------
 # Mode 1: Install firmware
-# ---------------------------------------------------------------------------
 def install_firmware():
     try:
         bios_dir = choose_directory_interactive(
@@ -748,16 +750,301 @@ def install_firmware():
     print(f"  {os.path.basename(rom)}", flush=True)
     print("\nThis may take a few minutes...", flush=True)
 
-    ret = run_eka(["--installdevice", rpkg, rom])
+    ret = run_eka(["--installdevice", rpkg, rom], timeout=1800)
 
     if eka_success(ret):
-        ok_dialog("Done", "Firmware installed successfully!\n\n(Non-zero exit after install is normal)")
+        _autoset_device_from_zdrive()
+        ok_dialog("Done", "Firmware installed successfully!\n\n(Non-zero exit after install is normal)\n\nDevice index auto-set in config.yml.")
     else:
         ok_dialog("Error", f"Installation failed (code {ret})\n\nSee log: {EKA_LOG}")
 
-# ---------------------------------------------------------------------------
 # Mode 2: Install SIS games
 # ---------------------------------------------------------------------------
+# SIS format detection
+# SISv2 magic: 0x10201A7A little-endian (Symbian OS 9 / S60 3rd+ ed)
+# SISv1: UID2 = 0x1000006D at offset 4 (Symbian OS 6-8 / S60 1st+2nd ed)
+_SIS_V2_MAGIC = b'\x7a\x1a\x20\x10'
+_ZIP_MAGIC    = b'\x50\x4b\x03\x04'   # PK.. — SISX is a ZIP archive containing content.sis
+
+# Known SISv1 UID2 values (bytes 4-7)
+_SIS_V1_UID2_VALUES = {
+    0x1000006D,   # Standard SIS installer UID (all S60 editions)
+    0x10003A12,   # Rare early EPOC/ER5 SIS variant
+}
+
+# Platform UIDs embedded in SISv2 body (little-endian).
+# Listed most-specific first so the first match wins.
+# These appear in SisInfo dependency or platform-requirements blocks.
+_SIS_PLATFORM_SIGNATURES: List[Tuple[bytes, str]] = [
+    # S60 5th Ed variants (most specific first)
+    (b'\x0b\x6b\x28\x10', "s60v5"),   # 0x10286B0B  S60 5th Ed FP2
+    (b'\x90\x30\x28\x10', "s60v5"),   # 0x10283090  S60 5th Ed FP1
+    (b'\x06\x2f\x28\x10', "s60v5"),   # 0x10282F06  S60 5th Ed (base)
+    # S60 3rd Ed variants
+    (b'\x13\x35\x28\x10', "s60v3"),   # 0x10283513  S60 3rd Ed FP2
+    (b'\xae\x52\x27\x10', "s60v3"),   # 0x102752AE  S60 3rd Ed FP1
+    (b'\xbe\x32\x20\x10', "s60v3"),   # 0x102032BE  S60 3rd Ed (base)
+    # N-Gage 2.0 runtime dependency → implies S60 3rd Ed / RM-409
+    (b'\x78\x3b\x00\x20', "s60v3"),   # 0x20003B78  N-Gage 2.0 ngiplaycommon
+    # S60 2nd Ed variants
+    (b'\xd2\x8e\x1f\x10', "s60v2"),   # 0x101F8ED2  S60 2nd Ed FP3
+    (b'\x61\x79\x1f\x10', "s60v2"),   # 0x101F7961  S60 2nd Ed (base/FP1/FP2)
+    # S60 1st Ed
+    (b'\x88\x6f\x1f\x10', "s60v1"),   # 0x101F6F88  S60 1st Ed
+]
+
+# Human labels and recommended devices per platform key
+_PLATFORM_INFO = {
+    "s60v1":    ("S60 1st Ed",           "N-Gage 1  (NEM-4 / RM-26)"),
+    "s60v2":    ("S60 2nd Ed",           "N-Gage 1  (NEM-4 / RM-26)"),
+    "s60v3":    ("S60 3rd Ed",           "N-Gage 2.0  (RM-409)"),
+    "s60v5":    ("S60 5th Ed",           "S60v5  (RM-356)"),
+    "sisv1":    ("S60 1st/2nd Ed",       "N-Gage 1  (NEM-4 / RM-26)"),
+    "unknown":  ("Unknown format",       "—"),
+}
+
+# SISv2 UID3 ranges used as last-resort heuristic when no platform
+# dependency signature is found in the scanned portion of the file.
+_UID3_PLATFORM_RANGES: List[Tuple[int, int, str]] = [
+    (0x20000000, 0x2FFFFFFF, "s60v3"),   # N-Gage 2.0 / S60 3rd Ed publisher range
+    (0xA0000000, 0xAFFFFFFF, "s60v3"),   # Gameloft / 3rd-party S60 3rd Ed UIDs
+]
+
+# Display order for grouped scan view
+_PLATFORM_ORDER = ["s60v1", "s60v2", "s60v3", "s60v5", "sisv1", "unknown"]
+
+
+def _detect_sis_from_data(data: bytes) -> str:
+    """Detect platform from raw SIS bytes (used for both plain SIS and SISX content)."""
+    import struct
+    if len(data) < 4:
+        return "unknown"
+
+    header = data[:12]
+
+    # SISv1: identified by UID2 at offset 4
+    if len(header) >= 8:
+        uid2 = struct.unpack_from("<I", header, 4)[0]
+        if uid2 in _SIS_V1_UID2_VALUES:
+            return "sisv1"
+
+    if header[0:4] != _SIS_V2_MAGIC:
+        return "unknown"
+
+    # Scan body in chunks for platform UIDs (reuse same logic as file-based path)
+    _CHUNK    = 262144
+    _MAX_SCAN = 4 * 1024 * 1024
+    scanned   = 0
+    overlap   = b""
+    offset    = 0
+    while scanned < _MAX_SCAN and offset < len(data):
+        chunk  = data[offset:offset + _CHUNK]
+        window = overlap + chunk
+        for sig, key in _SIS_PLATFORM_SIGNATURES:
+            if sig in window:
+                return key
+        overlap  = window[-3:]
+        scanned += len(chunk)
+        offset  += _CHUNK
+
+    # UID3 range heuristic
+    if len(header) >= 12:
+        uid3 = struct.unpack_from("<I", header, 8)[0]
+        for lo, hi, key in _UID3_PLATFORM_RANGES:
+            if lo <= uid3 <= hi:
+                return key
+
+    return "s60v3"
+
+
+def detect_sis_platform(path: str) -> str:
+    """Detect SIS platform key: s60v1/s60v2/s60v3/s60v5/sisv1/unknown.
+
+    Handles both plain .sis files and .sisx (ZIP-wrapped) packages.
+    Strategy:
+    1. Detect file type by magic bytes (ZIP vs SIS).
+    2. For SISX: extract content.sis from ZIP and analyse its bytes.
+    3. For SIS: scan up to 4 MB in 256 KB chunks with 3-byte overlap.
+    4. If no platform signature found: try UID3 range heuristic.
+    5. SISv2 with no match -> default to s60v3.
+    """
+    try:
+        with open(path, "rb") as f:
+            magic = f.read(4)
+    except Exception:
+        return "unknown"
+
+    if len(magic) < 4:
+        return "unknown"
+
+    # SISX = ZIP archive (PK magic)
+    if magic == _ZIP_MAGIC:
+        try:
+            import zipfile
+            with zipfile.ZipFile(path, "r") as zf:
+                sis_name = next(
+                    (n for n in zf.namelist() if n.lower() == "content.sis"),
+                    None
+                )
+                if sis_name is None:
+                    sis_name = next(
+                        (n for n in zf.namelist() if n.lower().endswith(".sis")),
+                        None
+                    )
+                if sis_name:
+                    data = zf.read(sis_name)
+                    return _detect_sis_from_data(data)
+        except Exception:
+            pass
+        return "unknown"
+
+    # Plain SIS file — read up to 4 MB for analysis
+    try:
+        with open(path, "rb") as f:
+            data = f.read(4 * 1024 * 1024)
+        return _detect_sis_from_data(data)
+    except Exception:
+        return "unknown"
+
+def sis_platform_hint(path: str) -> str:
+    """Return a short human-readable platform hint for display."""
+    key = detect_sis_platform(path)
+    info = _PLATFORM_INFO.get(key, _PLATFORM_INFO["unknown"])
+    return f"{info[0]}  →  {info[1]}"
+
+# Scan SIS files by platform
+def scan_sis_by_platform():
+    try:
+        sis_dir = choose_directory_interactive(
+            "Scan SIS/SISX: Select Directory", EKA_ROMS_DIR)
+    except GoBack:
+        return
+
+    clear_screen()
+    print("Scanning SIS/SISX files...", flush=True)
+
+    sis_files = find_sis_files_recursive(sis_dir)
+
+    if not sis_files:
+        ok_dialog("Scan Result", f"No .sis or .sisx files found in:\n{sis_dir}")
+        return
+
+    # Group files by platform
+    groups: dict = {}
+    for f in sis_files:
+        key = detect_sis_platform(f)
+        groups.setdefault(key, []).append(f)
+
+    # Build summary menu entries in fixed order
+    present_keys = [k for k in _PLATFORM_ORDER if k in groups]
+    summary_options: List[str] = []
+    for key in present_keys:
+        info = _PLATFORM_INFO.get(key, _PLATFORM_INFO["unknown"])
+        count = len(groups[key])
+        summary_options.append(
+            f"[{count:3d} file(s)]  {info[0]}  →  {info[1]}"
+        )
+
+    info_text = f"Found {len(sis_files)} SIS/SISX file(s) in:\n{sis_dir}\n\nSelect a platform group to install:"
+
+    while True:
+        try:
+            idx = select_from_list("Scan: Select Platform Group",
+                                   summary_options, info_text, visible=10)
+        except GoBack:
+            return
+
+        if idx is None:
+            return
+
+        chosen_key = present_keys[idx]
+        chosen_files = groups[chosen_key]
+        info = _PLATFORM_INFO[chosen_key]
+
+        file_options = [get_relative_path(f, sis_dir) for f in chosen_files]
+        group_info = (f"Platform: {info[0]}  →  {info[1]}\n"
+                      f"Directory: {sis_dir}\n\n"
+                      f"Toggle files with A, toggle ALL with X, press Y to install.")
+
+        try:
+            selected_indexes = select_multiple_from_list(
+                f"Select Files: {info[0]}",
+                file_options,
+                group_info,
+                visible=14
+            )
+        except GoBack:
+            continue
+
+        if not selected_indexes:
+            ok_dialog("Scan Installer", "No files selected.")
+            continue
+
+        selected_files = [chosen_files[i] for i in selected_indexes]
+
+        if not select_and_set_device(f"install {info[0]} files"):
+            continue
+        scan_device_name = get_current_device_name() or ""
+
+        if not confirm_dialog(
+            "Confirm Install",
+            f"Install {len(selected_files)} file(s)?\n\n"
+            f"Platform: {info[0]}\n"
+            f"Recommended device: {info[1]}\n\n"
+            + "\n".join(get_relative_path(f, sis_dir) for f in selected_files[:8])
+            + ("\n..." if len(selected_files) > 8 else "")
+        ):
+            continue
+
+        image_out_dir = os.path.join(sis_dir, "media", "images")
+        success = 0
+        fail = 0
+        failed_files = []
+        artwork_copied = 0
+        artwork_failed = 0
+
+        for pos, sis_file in enumerate(selected_files, start=1):
+            clear_screen()
+            rel_name = get_relative_path(sis_file, sis_dir)
+            print(f"Installing {pos}/{len(selected_files)}:")
+            print(f"  {rel_name}")
+            print(f"  Platform: {info[0]}", flush=True)
+
+            before_apps = get_installed_apps_map()
+            ret = run_eka(["--install", sis_file])
+            after_apps = get_installed_apps_map()
+
+            if eka_success(ret):
+                success += 1
+                log(f"Installed: {sis_file}")
+                new_app = find_new_app_after_install(before_apps, after_apps)
+                if new_app:
+                    app_name, uid = new_app
+                    write_uid_files([(app_name, uid)], EKA_ROMS_DIR, scan_device_name)
+                    copied = copy_matching_image_for_uid(
+                        os.path.dirname(sis_file), app_name, image_out_dir)
+                    if copied:
+                        artwork_copied += 1
+                    else:
+                        artwork_failed += 1
+                else:
+                    artwork_failed += 1
+            else:
+                fail += 1
+                failed_files.append(rel_name)
+                log(f"Failed ({ret}): {sis_file}")
+
+        result = (f"Platform: {info[0]}\n\n"
+                  f"Installed: {success}\n"
+                  f"Failed: {fail}\n"
+                  f"Artwork copied: {artwork_copied}\n"
+                  f"Artwork unresolved: {artwork_failed}")
+        if failed_files:
+            result += "\n\nFailed files:\n" + "\n".join(failed_files[:8])
+            result += f"\n\nSee log: {EKA_LOG}"
+
+        ok_dialog("Install Result", result)
+
 def find_sis_files_recursive(root_dir: str) -> List[str]:
     sis_files: List[str] = []
     valid_exts = (".sis", ".sisx")
@@ -767,7 +1054,6 @@ def find_sis_files_recursive(root_dir: str) -> List[str]:
                 sis_files.append(os.path.join(current_root, name))
     return sorted(sis_files, key=lambda p: p.lower())
 
-
 def get_relative_path(path: str, base: str) -> str:
     try:
         rel = os.path.relpath(path, base)
@@ -775,20 +1061,11 @@ def get_relative_path(path: str, base: str) -> str:
     except Exception:
         return os.path.basename(path)
 
-
-def parse_listapp_to_map(output: str) -> dict:
-    app_map = {}
-    for name, uid in parse_listapp_output(output):
-        app_map[uid.lower()] = name.strip()
-    return app_map
-
-
 def get_installed_apps_map() -> dict:
     ret, output = run_eka_capture(["--listapp"])
     if ret != 0 and not output.strip():
         return {}
-    return parse_listapp_to_map(output)
-
+    return {uid.lower(): name.strip() for name, uid in parse_listapp_output(output)}
 
 def find_new_app_after_install(before_apps: dict, after_apps: dict) -> Optional[Tuple[str, str]]:
     new_uids = [uid for uid in after_apps if uid not in before_apps]
@@ -810,29 +1087,17 @@ def find_new_app_after_install(before_apps: dict, after_apps: dict) -> Optional[
 
     return None
 
-
-def find_graphic_in_same_folder(folder: str) -> Optional[str]:
-    exts = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
-    candidates = []
-
+def copy_matching_image_for_uid(source_folder: str, app_name: str, uid_output_dir: str) -> Optional[str]:
+    _exts = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
     try:
-        for name in os.listdir(folder):
-            full = os.path.join(folder, name)
-            if os.path.isfile(full) and name.lower().endswith(exts):
-                candidates.append(full)
+        _cands = sorted([os.path.join(source_folder, n) for n in os.listdir(source_folder)
+                         if os.path.isfile(os.path.join(source_folder, n)) and n.lower().endswith(_exts)],
+                        key=lambda p: os.path.basename(p).lower())
     except Exception:
         return None
-
-    if not candidates:
+    if not _cands:
         return None
-
-    return sorted(candidates, key=lambda p: os.path.basename(p).lower())[0]
-
-
-def copy_matching_image_for_uid(source_folder: str, app_name: str, uid_output_dir: str) -> Optional[str]:
-    image_src = find_graphic_in_same_folder(source_folder)
-    if not image_src:
-        return None
+    image_src = _cands[0]
 
     os.makedirs(uid_output_dir, exist_ok=True)
 
@@ -849,11 +1114,61 @@ def copy_matching_image_for_uid(source_folder: str, app_name: str, uid_output_di
         log(f"Failed to copy artwork {image_src} -> {target_path}: {ex}")
         return None
 
+# Device selection helper (used by install_sis, create_uid_launchers, uninstall_apps)
+def select_and_set_device(action_label: str) -> bool:
+    """Show device picker, set config.yml, return True on success."""
+    clear_screen()
+    print("Loading installed devices...", flush=True)
+
+    devices = get_valid_installed_devices()
+
+    if not devices:
+        ok_dialog("Error", f"No installed devices found.\n\nPlease install firmware first.\n\nSee log: {EKA_LOG}")
+        return False
+
+    current_device = get_current_device_index()
+    options: List[str] = []
+
+    for device_num, device_name in devices:
+        label = f"{device_num} : {device_name}"
+        if current_device is not None and device_num == current_device:
+            label += "  [CURRENT]"
+        options.append(label)
+
+    try:
+        idx = select_from_list("Select Device", options,
+                               f"Select device for: {action_label}", visible=16)
+    except GoBack:
+        return False
+
+    if idx is None:
+        return False
+
+    device_num, device_name = devices[idx]
+
+    if not confirm_dialog(
+        "Confirm Device",
+        f"Use this device for: {action_label}\n\n{device_num} : {device_name}"
+    ):
+        return False
+
+    try:
+        set_device_index(device_num)
+        log(f"Device set to {device_num} for: {action_label}")
+        return True
+    except Exception as ex:
+        log(f"Failed to set device: {ex}")
+        ok_dialog("Error", f"Could not set device\n\nSee log: {EKA_LOG}")
+        return False
 
 def install_sis():
+    if not select_and_set_device("SIS/SISX installation"):
+        return
+
     try:
         sis_dir = choose_directory_interactive(
-            "SIS/SISX: Select Directory", EKA_ROMS_DIR)
+            "SIS/SISX: Select Directory", EKA_ROMS_DIR,
+            require_ext=[".sis", ".sisx"])
     except GoBack:
         return
 
@@ -866,13 +1181,21 @@ def install_sis():
     image_out_dir = os.path.join(sis_dir, "media", "images")
 
     try:
+        hints = {}
+        for _f in sis_files:
+            _h = sis_platform_hint(_f)
+            hints[_h] = hints.get(_h, 0) + 1
+        hint_lines = "\n".join(f"  {v}x  {k}" for k, v in sorted(hints.items()))
+        hint_info = (f"{len(sis_files)} file(s) found recursively in:\n{sis_dir}\n\n"
+                     f"Detected platforms:\n{hint_lines}")
+
         mode_idx = select_from_list(
             "SIS/SISX Installer Mode",
             [
                 "Install all SIS/SISX files (recursive)",
                 "Select SIS/SISX files individually (recursive)",
             ],
-            f"{len(sis_files)} file(s) found recursively in:\n{sis_dir}"
+            hint_info
         )
     except GoBack:
         return
@@ -890,7 +1213,7 @@ def install_sis():
             return
         selected_files = sis_files
     else:
-        sis_options = [get_relative_path(f, sis_dir) for f in sis_files]
+        sis_options = [f"{get_relative_path(f, sis_dir)}  [{sis_platform_hint(f)}]" for f in sis_files]
 
         try:
             selected_indexes = select_multiple_from_list(
@@ -923,8 +1246,10 @@ def install_sis():
     for pos, sis_file in enumerate(selected_files, start=1):
         clear_screen()
         rel_name = get_relative_path(sis_file, sis_dir)
+        hint = sis_platform_hint(sis_file)
         print(f"Installing {pos}/{len(selected_files)}:")
         print(f"  {rel_name}")
+        print(f"  Platform: {hint}", flush=True)
 
         before_apps = get_installed_apps_map()
         ret = run_eka(["--install", sis_file])
@@ -982,9 +1307,7 @@ def install_sis():
             f"Failed files:\n{preview}{more}\n\nSee log:\n{EKA_LOG}"
         )
 
-# ---------------------------------------------------------------------------
 # UID launcher creator
-# ---------------------------------------------------------------------------
 def parse_listapp_output(output: str) -> List[Tuple[str, str]]:
     apps: List[Tuple[str, str]] = []
     for raw_line in output.splitlines():
@@ -996,7 +1319,6 @@ def parse_listapp_output(output: str) -> List[Tuple[str, str]]:
             apps.append((name, uid))
     return apps
 
-
 def sanitize_uid_name(name: str) -> str:
     name = re.sub(r'[\\/:*?"<>|]', '_', name)
     name = name.replace("'", "_")
@@ -1006,7 +1328,6 @@ def sanitize_uid_name(name: str) -> str:
     if not name:
         name = 'unnamed'
     return name
-
 
 def is_system_app(name: str) -> bool:
     name_lc = name.lower().strip()
@@ -1022,7 +1343,6 @@ def is_system_app(name: str) -> bool:
         'sim directory', 'radio', 'music player', 'unlockmmc'
     }
     return name_lc in system_names
-
 
 def build_uid_candidates(apps: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], int, int, int]:
     candidates: List[Tuple[str, str]] = []
@@ -1051,7 +1371,6 @@ def build_uid_candidates(apps: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, s
 
     return candidates, skipped_system, skipped_blank, skipped_dup
 
-
 def show_multi_select_menu(title: str, options: List[str], checked: set, selected: int = 0,
                            info: str = "", offset: int = 0, visible: int = 16) -> None:
     clear_screen()
@@ -1069,10 +1388,9 @@ def show_multi_select_menu(title: str, options: List[str], checked: set, selecte
     if end < total:
         print("    ...")
     print("\n" + "-" * 72)
-    print("D-Pad: Navigate | A: Toggle | Y: Create Selected | B: Back | Select: Quit")
+    print("D-Pad: Navigate | A: Toggle | X: Toggle All | Y: Confirm | B: Back | Select: Quit")
     print("-" * 72)
     sys.stdout.flush()
-
 
 def select_multiple_from_list(title: str, items: List[str], info: str = "",
                               visible: int = 16) -> Optional[List[int]]:
@@ -1109,11 +1427,15 @@ def select_multiple_from_list(title: str, items: List[str], info: str = "",
                 checked.remove(selected)
             else:
                 checked.add(selected)
+        elif key == 'x':
+            if len(checked) == total:
+                checked.clear()
+            else:
+                checked.update(range(total))
         elif key == 'y':
             return sorted(checked)
         elif key == 'b':
             raise GoBack()
-
 
 def show_available_uid_apps(candidates: List[Tuple[str, str]]) -> None:
     if not candidates:
@@ -1157,7 +1479,6 @@ def show_available_uid_apps(candidates: List[Tuple[str, str]]) -> None:
         elif key == 'b':
             raise GoBack()
 
-
 def show_generated_uid_list(created_entries: List[Tuple[str, str, str]], out_dir: str) -> None:
     if not created_entries:
         ok_dialog('Generated UID Files', f'No UID files were created.\n\nOutput: {out_dir}')
@@ -1198,8 +1519,8 @@ def show_generated_uid_list(created_entries: List[Tuple[str, str, str]], out_dir
         elif key in ('a', 'b'):
             return
 
-
-def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[Tuple[str, str, str]]:
+def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str,
+                    device_name: str = "") -> List[Tuple[str, str, str]]:
     created_entries: List[Tuple[str, str, str]] = []
     os.makedirs(out_dir, exist_ok=True)
 
@@ -1212,13 +1533,14 @@ def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[
         try:
             with open(target, 'w', encoding='utf-8') as f:
                 f.write(uid + '\n')
-            log(f'Created UID launcher: {target} -> {uid}')
+                if device_name:
+                    f.write(device_name.lower() + '\n')
+            log(f'Created UID launcher: {target} -> {uid} (device: {device_name or "none"})')
             created_entries.append((name, uid, os.path.basename(target)))
         except Exception as ex:
             log(f'Failed to create UID launcher {target}: {ex}')
 
     return created_entries
-
 
 def xml_escape(text: str) -> str:
     return (text.replace("&", "&amp;")
@@ -1226,7 +1548,6 @@ def xml_escape(text: str) -> str:
                 .replace(">", "&gt;")
                 .replace('"', "&quot;")
                 .replace("'", "&apos;"))
-
 
 def create_uid_gamelist():
     try:
@@ -1242,15 +1563,29 @@ def create_uid_gamelist():
         ok_dialog("Error", f"No .uid files found in:\n{uid_dir}")
         return
 
-    out_file = os.path.join(uid_dir, "gamelist.xml")
+    # gamelist.xml always goes to EKA_ROMS_DIR so that <path> entries are
+    # correctly relative to the EmulationStation ROM root.
+    out_dir = EKA_ROMS_DIR
+    out_file = os.path.join(out_dir, "gamelist.xml")
     image_dir = os.path.join(uid_dir, "media", "images")
+    backup_file = None
 
     if os.path.exists(out_file):
         if not confirm_dialog(
             "Overwrite?",
-            f"gamelist.xml already exists in:\n{uid_dir}\n\nOverwrite it?"
+            f"gamelist.xml already exists in:\n{out_dir}\n\nOverwrite it? A backup will be created."
         ):
             return
+        import datetime
+        import shutil
+        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_file = os.path.join(out_dir, f"gamelist.xml.{ts}.bak")
+        try:
+            shutil.copy2(out_file, backup_file)
+            log(f"Backup created: {backup_file}")
+        except Exception as ex:
+            log(f"Warning: could not create backup: {ex}")
+            backup_file = None
 
     lines = ['<?xml version="1.0"?>', '<gameList>']
 
@@ -1258,17 +1593,44 @@ def create_uid_gamelist():
         base = os.path.basename(uid_file)
         name = os.path.splitext(base)[0]
 
+        try:
+            rel_path = os.path.relpath(uid_file, out_dir).replace("\\", "/")
+        except Exception:
+            rel_path = base
+        if not rel_path.startswith("./") and not rel_path.startswith("/"):
+            rel_path = "./" + rel_path
+
         image_tag = "./media/images/ngage.png"
         for ext in (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp"):
             candidate = os.path.join(image_dir, name + ext)
             if os.path.exists(candidate):
-                image_tag = f"./media/images/{xml_escape(name + ext)}"
+                try:
+                    img_rel = os.path.relpath(candidate, out_dir).replace("\\", "/")
+                except Exception:
+                    img_rel = f"media/images/{name + ext}"
+                if not img_rel.startswith("./") and not img_rel.startswith("/"):
+                    img_rel = "./" + img_rel
+                image_tag = xml_escape(img_rel)
                 break
 
+        uid_device = ""
+        try:
+            with open(uid_file, encoding="utf-8") as _uf:
+                _lines = _uf.read().splitlines()
+                if len(_lines) >= 2 and _lines[1].strip():
+                    uid_device = _lines[1].strip()
+        except Exception:
+            pass
+
+        desc = name
+        if uid_device:
+            desc = f"[{uid_device.upper()}] {name}"
+
         lines.append('\t<game>')
-        lines.append(f'\t\t<path>./{xml_escape(base)}</path>')
-        lines.append(f'\t\t<name>{xml_escape(name)}</name>')
-        lines.append(f'\t\t<desc>{xml_escape(name)}</desc>')
+        lines.append(f'\t\t<path>{xml_escape(rel_path)}</path>')
+        name_tag = '\t\t<' + 'name' + '>' + xml_escape(name) + '</' + 'name' + '>'
+        lines.append(name_tag)
+        lines.append(f'\t\t<desc>{xml_escape(desc)}</desc>')
         lines.append(f'\t\t<image>{image_tag}</image>')
         lines.append('\t\t<video>./media/videos/ngage.mp4</video>')
         lines.append('\t</game>')
@@ -1283,15 +1645,19 @@ def create_uid_gamelist():
         ok_dialog("Error", f"Failed to write gamelist.xml:\n{ex}")
         return
 
+    backup_msg = f"\nBackup: {backup_file}" if backup_file else ""
     ok_dialog(
         "Done",
         f"gamelist.xml created successfully.\n\n"
         f"UID files: {len(uid_files)}\n"
         f"Output:\n{out_file}"
+        + backup_msg
     )
 
-
 def create_uid_launchers():
+    if not select_and_set_device("UID launcher creation"):
+        return
+
     try:
         out_dir = choose_directory_interactive(
             'UID Creator: Select Output Directory', '/storage/roms')
@@ -1365,7 +1731,8 @@ def create_uid_launchers():
         ):
             return
 
-    created_entries = write_uid_files(selected_apps, out_dir)
+    device_name = get_current_device_name() or ""
+    created_entries = write_uid_files(selected_apps, out_dir, device_name)
 
     ok_dialog(
         'Done',
@@ -1380,9 +1747,7 @@ def create_uid_launchers():
 
     show_generated_uid_list(created_entries, out_dir)
 
-# ---------------------------------------------------------------------------
 # Main
-# ---------------------------------------------------------------------------
 DEFAULT_CONFIG_YML = """bkg-path: ""
 font: ""
 log-read: false
@@ -1440,7 +1805,6 @@ internet-bluetooth-friends:
   []
 """
 
-
 def _create_default_config():
     cfg_path = os.path.join(EKA_CONFIG, "config.yml")
     if not os.path.exists(cfg_path):
@@ -1452,7 +1816,6 @@ def _create_default_config():
         except Exception as ex:
             log(f"Failed to create config.yml: {ex}")
     return False
-
 
 def _seed_bundled_files():
     install_dir = "/usr/bin/eka2l1"
@@ -1488,7 +1851,6 @@ def _seed_bundled_files():
         ok_dialog("Seed Bundled Files", f"Done!\n\nCopied {len(seeded)} item(s) into:\n{EKA_CONFIG}\n\nYou can now install firmware and games.")
     else:
         ok_dialog("Seed Bundled Files", "Nothing to seed - all files already present.")
-
 
 def _autoset_device_from_zdrive():
     devices_yml = os.path.join(EKA_CONFIG, "data", "devices.yml")
@@ -1546,7 +1908,6 @@ def _autoset_device_from_zdrive():
     except Exception as ex:
         log(f"_autoset_device_from_zdrive: failed to update config.yml: {ex}")
 
-
 def _import_preconfigured():
     try:
         src_dir = choose_directory_interactive(
@@ -1564,13 +1925,18 @@ def _import_preconfigured():
     data_dst = os.path.join(EKA_CONFIG, "data")
     os.makedirs(data_dst, exist_ok=True)
 
+    total_files = sum(len(files) for _, _, files in os.walk(data_src))
+
     clear_screen()
     print(f"Importing data from:\n  {data_src}", flush=True)
-    print("Only adding new files - existing files will not be overwritten.", flush=True)
-    log(f"Importing pre-configured data from: {data_src}")
+    print(f"Only adding new files - existing files will not be overwritten.", flush=True)
+    print(f"\nTotal files to process: {total_files}\n", flush=True)
+    log(f"Importing pre-configured data from: {data_src} ({total_files} files)")
 
     added = 0
     skipped = 0
+    processed = 0
+    last_unblank = time.time()
 
     for root, dirs, files in os.walk(data_src):
         rel = os.path.relpath(root, data_src)
@@ -1580,6 +1946,17 @@ def _import_preconfigured():
         for fname in files:
             src_file = os.path.join(root, fname)
             dst_file = os.path.join(dst_root, fname)
+            processed += 1
+
+            now = time.time()
+            if now - last_unblank >= 2.0:
+                unblank_framebuffer()
+                last_unblank = now
+                pct = int(processed * 100 / total_files) if total_files else 100
+                bar_filled = pct // 5
+                bar = "#" * bar_filled + "-" * (20 - bar_filled)
+                print(f"\r[{bar}] {pct:3d}%  {processed}/{total_files}  (+{added} added, ={skipped} skipped)    ",
+                      end='', flush=True)
 
             if fname == "devices.yml" and os.path.exists(dst_file):
                 backup = dst_file + ".bak"
@@ -1604,6 +1981,10 @@ def _import_preconfigured():
             else:
                 skipped += 1
 
+    print(f"\r[####################] 100%  {processed}/{total_files}  (+{added} added, ={skipped} skipped)    ",
+          flush=True)
+    print("", flush=True)
+
     _autoset_device_from_zdrive()
 
     ok_dialog("Import Complete",
@@ -1613,9 +1994,282 @@ def _import_preconfigured():
               f"devices.yml overwritten (backup: devices.yml.bak)\n"
               f"Device index auto-set to match available firmware.")
 
-
 def first_run_setup():
     _seed_bundled_files()
+
+# Reset
+def reset_eka2l1():
+    if not confirm_dialog(
+        "Complete Reset",
+        f"This will DELETE all eka2l1 data:\n\n{EKA_CONFIG}\n\n"
+        "This includes all installed firmware, games,\n"
+        "saves, and configuration.\n\n"
+        "Are you absolutely sure?"
+    ):
+        return
+
+    if not confirm_dialog(
+        "Are you sure?",
+        "Last warning!\n\nAll eka2l1 data will be permanently deleted.\n\nContinue?"
+    ):
+        return
+
+    clear_screen()
+    print(f"Deleting {EKA_CONFIG} ...", flush=True)
+    log(f"Reset: deleting {EKA_CONFIG}")
+
+    try:
+        if os.path.isdir(EKA_CONFIG):
+            shutil.rmtree(EKA_CONFIG)
+            log("Reset complete.")
+            ok_dialog("Reset Complete", f"Deleted:\n{EKA_CONFIG}\n\nRun 'Setup eka2l1' to reinitialise.")
+        else:
+            ok_dialog("Reset", f"Nothing to delete - directory not found:\n{EKA_CONFIG}")
+    except Exception as ex:
+        log(f"Reset failed: {ex}")
+        ok_dialog("Error", f"Reset failed:\n{ex}\n\nSee log: {EKA_LOG}")
+
+def uninstall_device():
+    clear_screen()
+    print("Loading installed devices...", flush=True)
+
+    devices = get_valid_installed_devices()
+
+    if not devices:
+        ok_dialog("Uninstall Device", "No installed devices found.")
+        return
+
+    current_device = get_current_device_index()
+    options: List[str] = []
+
+    for device_num, device_name in devices:
+        label = f"{device_num} : {device_name}"
+        if current_device is not None and device_num == current_device:
+            label += "  [CURRENT]"
+        options.append(label)
+
+    try:
+        idx = select_from_list("Uninstall Device", options,
+                               "Select a device to completely remove.", visible=16)
+    except GoBack:
+        return
+
+    if idx is None:
+        return
+
+    device_num, device_name = devices[idx]
+
+    if not confirm_dialog(
+        "Confirm Uninstall",
+        f"Remove this device and all its data?\n\n{device_num} : {device_name}\n\n"
+        "This will delete:\n"
+        "  - Z-drive firmware files\n"
+        "  - C-drive data (saves, installed apps)\n"
+        "  - ROM files\n"
+        "  - devices.yml entry\n\n"
+        "This cannot be undone!"
+    ):
+        return
+
+    clear_screen()
+    print(f"Removing device: {device_name} ...", flush=True)
+    log(f"Uninstall device: {device_num} : {device_name}")
+
+    removed = []
+    errors = []
+
+    z_drives_base = os.path.join(EKA_CONFIG, "data", "drives", "z")
+    c_drives_base = os.path.join(EKA_CONFIG, "data", "drives", "c")
+    roms_base     = os.path.join(EKA_CONFIG, "data", "roms")
+
+    device_key_lower = device_name.lower()
+
+    for base_dir, label in [
+        (z_drives_base, "Z-drive"),
+        (c_drives_base, "C-drive"),
+        (roms_base,     "ROMs"),
+    ]:
+        if not os.path.isdir(base_dir):
+            continue
+        for entry in os.listdir(base_dir):
+            if entry.lower() == device_key_lower:
+                full_path = os.path.join(base_dir, entry)
+                try:
+                    if os.path.isdir(full_path):
+                        shutil.rmtree(full_path)
+                    else:
+                        os.remove(full_path)
+                    removed.append(f"{label}: {full_path}")
+                    log(f"Removed {label}: {full_path}")
+                except Exception as ex:
+                    errors.append(f"{label}: {full_path}\n{ex}")
+                    log(f"Failed to remove {label} {full_path}: {ex}")
+
+    # Remove entry from devices.yml
+    devices_yml = os.path.join(EKA_CONFIG, "data", "devices.yml")
+    if os.path.isfile(devices_yml):
+        try:
+            with open(devices_yml, "r") as f:
+                yml_lines = f.readlines()
+
+            new_yml: List[str] = []
+            skip = False
+            found = False
+            for line in yml_lines:
+                stripped = line.rstrip()
+                # Top-level key: non-empty, not indented, ends with ':'
+                if stripped and not stripped[0].isspace() and stripped.endswith(":"):
+                    key = stripped[:-1].strip()
+                    if key.lower() == device_key_lower:
+                        skip = True
+                        found = True
+                        log(f"Removing devices.yml entry: {key}")
+                        continue
+                    else:
+                        skip = False
+                if not skip:
+                    new_yml.append(line)
+
+            if found:
+                with open(devices_yml, "w") as f:
+                    f.writelines(new_yml)
+                removed.append("devices.yml entry removed")
+                log(f"devices.yml updated, removed entry: {device_name}")
+            else:
+                log(f"devices.yml: entry '{device_name}' not found (already removed?)")
+        except Exception as ex:
+            errors.append(f"devices.yml: {ex}")
+            log(f"Failed to update devices.yml: {ex}")
+
+    # Auto-set device index after removal
+    _autoset_device_from_zdrive()
+
+    if errors:
+        err_text = "\n".join(errors[:3])
+        ok_dialog("Uninstall Result",
+                  f"Device removed with errors.\n\n"
+                  f"Removed: {len(removed)}\n"
+                  f"Errors: {len(errors)}\n\n{err_text}\n\nSee log: {EKA_LOG}")
+    else:
+        ok_dialog("Uninstall Complete",
+                  f"Device removed successfully.\n\n"
+                  f"{device_num} : {device_name}\n\n"
+                  f"Removed {len(removed)} item(s).\n\n"
+                  f"Device index in config.yml auto-updated.")
+
+# Uninstall apps / games
+def uninstall_apps():
+    if not select_and_set_device("app / game uninstall"):
+        return
+
+    clear_screen()
+    print("Loading installed app list...", flush=True)
+
+    ret, output = run_eka_capture(["--listapp"])
+    apps = parse_listapp_output(output)
+
+    if ret != 0 and not apps:
+        ok_dialog("Error", f"Could not get app list.\n\nSee log: {EKA_LOG}")
+        return
+
+    if not apps:
+        ok_dialog("Error", "No installed apps found.")
+        return
+
+    candidates, skipped_system, skipped_blank, skipped_dup = build_uid_candidates(apps)
+    candidates = sorted(candidates, key=lambda item: (item[0].lower(), item[1]))
+
+    if not candidates:
+        ok_dialog("Error", "No removable non-system apps found.")
+        return
+
+    app_options = [f"{name}  ({uid})" for name, uid in candidates]
+
+    try:
+        selected_indexes = select_multiple_from_list(
+            "Uninstall Apps / Games",
+            app_options,
+            f"Toggle apps with A, then press Y to uninstall.\n\nInstalled apps: {len(candidates)}",
+            visible=14
+        )
+    except GoBack:
+        return
+
+    if not selected_indexes:
+        ok_dialog("Uninstall Apps", "No apps selected.")
+        return
+
+    selected_apps = [candidates[i] for i in selected_indexes]
+
+    if not confirm_dialog(
+        "Confirm Uninstall",
+        f"Uninstall {len(selected_apps)} app(s)?\n\n"
+        + "\n".join(f"  {name} ({uid})" for name, uid in selected_apps[:8])
+        + ("\n  ..." if len(selected_apps) > 8 else "")
+        + "\n\nThis also removes matching .uid launcher files."
+    ):
+        return
+
+    success = 0
+    fail = 0
+    uid_removed = 0
+
+    for name, uid in selected_apps:
+        clear_screen()
+        print(f"Uninstalling: {name} ({uid})", flush=True)
+        ret = run_eka(["--remove", uid])
+        if eka_success(ret):
+            success += 1
+            log(f"Uninstalled app: {name} ({uid})")
+            safe_name = sanitize_uid_name(name)
+            for candidate_name in (f"{safe_name}.uid", f"{safe_name}_{uid}.uid"):
+                uid_path = os.path.join(EKA_ROMS_DIR, candidate_name)
+                if os.path.exists(uid_path):
+                    try:
+                        os.remove(uid_path)
+                        uid_removed += 1
+                        log(f"Removed .uid launcher: {uid_path}")
+                    except Exception as ex:
+                        log(f"Failed to remove .uid launcher {uid_path}: {ex}")
+        else:
+            fail += 1
+            log(f"Failed to uninstall app: {name} ({uid}) - code {ret}")
+
+    ok_dialog(
+        "Uninstall Complete",
+        f"Done!\n\n"
+        f"Uninstalled: {success}\n"
+        f"Failed: {fail}\n"
+        f".uid launchers removed: {uid_removed}\n\n"
+        + (f"See log: {EKA_LOG}" if fail else "")
+    )
+
+def show_installed_apps():
+    if not select_and_set_device("show installed apps"):
+        return
+
+    clear_screen()
+    print("Loading installed app list...", flush=True)
+
+    ret, output = run_eka_capture(["--listapp"])
+    apps = parse_listapp_output(output)
+
+    if not apps:
+        ok_dialog("Installed Apps", "No installed apps found.")
+        return
+
+    apps_sorted = sorted(apps, key=lambda x: x[0].lower())
+    options = [f"{name}  ({uid})" for name, uid in apps_sorted]
+
+    try:
+        select_from_list(
+            "Installed Apps / Games",
+            options,
+            info=f"Total: {len(apps_sorted)} installed apps",
+            visible=16
+        )
+    except GoBack:
+        return
 
 
 def main():
@@ -1643,17 +2297,22 @@ def main():
                         "[ RUN THIS FIRST ! ] : Setup eka2l1 (copy needed files to EmuELEC)",
                         "Import pre-configured devices-collection",
                         "Install firmware (.rpkg + .rom)",
+                        "Scan SIS/SISX files by platform and install",
                         "Install games and apps (.sis/.sisx)",
                         "Create UID launcher-files from installed games and apps (.uid)",
                         "Create gamelist.xml from .uid launcher-files",
                         "Show / change current device",
                         "Convert uppercase device paths and files to lowercase",
+                        "Show installed apps / games",
+                        "Uninstall apps / games",
+                        "Uninstall a device",
+                        "Complete Reset (delete all eka2l1 data)",
                         "Exit",
                     ],
                     "What would you like to do?"
                 )
 
-                if idx is None or idx == 8:
+                if idx is None or idx == 13:
                     break
                 if idx == 0:
                     try:
@@ -1672,27 +2331,52 @@ def main():
                         continue
                 elif idx == 3:
                     try:
-                        install_sis()
+                        scan_sis_by_platform()
                     except GoBack:
                         continue
                 elif idx == 4:
                     try:
-                        create_uid_launchers()
+                        install_sis()
                     except GoBack:
                         continue
                 elif idx == 5:
                     try:
-                        create_uid_gamelist()
+                        create_uid_launchers()
                     except GoBack:
                         continue
                 elif idx == 6:
                     try:
-                        change_device()
+                        create_uid_gamelist()
                     except GoBack:
                         continue
                 elif idx == 7:
                     try:
+                        change_device()
+                    except GoBack:
+                        continue
+                elif idx == 8:
+                    try:
                         convert_device_paths_to_lowercase()
+                    except GoBack:
+                        continue
+                elif idx == 9:
+                    try:
+                        show_installed_apps()
+                    except GoBack:
+                        continue
+                elif idx == 10:
+                    try:
+                        uninstall_apps()
+                    except GoBack:
+                        continue
+                elif idx == 11:
+                    try:
+                        uninstall_device()
+                    except GoBack:
+                        continue
+                elif idx == 12:
+                    try:
+                        reset_eka2l1()
                     except GoBack:
                         continue
             except GoBack:
@@ -1708,7 +2392,6 @@ def main():
         time.sleep(0.5)
         if controller:
             controller.close()
-
 
 if __name__ == "__main__":
     main()
