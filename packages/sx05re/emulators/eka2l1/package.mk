@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 PKG_NAME="eka2l1"
-PKG_VERSION="14e9e6eeb4dd62802486a6603b4b4c3bae8d34c5"
+PKG_VERSION="d2e7abb191bf41ffa1413100154590e0930aebfa"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/AveyondFly/EKA2L1"
