@@ -72,7 +72,6 @@ cache_get_device() {
   echo "${val%%:*}"
 }
 
-
 cache_set() {
   local key="$1"
   local val="$2"
@@ -98,7 +97,7 @@ cache_delete() {
 device_installed() {
   local dev="$1"
   [ -z "${dev}" ] && return 1
-  grep -q "^${dev}:" "${EKA_CONFIG_DIR}/data/devices.yml" 2>/dev/null
+  grep -qi "^${dev}:" "${EKA_CONFIG_DIR}/data/devices.yml" 2>/dev/null
 }
 
 set_active_device() {
@@ -108,6 +107,7 @@ set_active_device() {
   local idx
 
   idx="$(awk -v dev="${dev}" '
+    BEGIN { IGNORECASE=1 }
     /^[^ \t]/ {
       key = $0; gsub(/:.*/, "", key)
       if (key == dev) { print count+0; found=1; exit }
@@ -238,7 +238,7 @@ SCRIPTEOF
   rm -f "${tmpout}"
   log "Dialog returned: '${chosen}'"
 
-  if [ -z "${chosen}" ] || ! grep -q "^${chosen}:" "${EKA_CONFIG_DIR}/data/devices.yml" 2>/dev/null; then
+  if [ -z "${chosen}" ] || ! grep -qi "^${chosen}:" "${EKA_CONFIG_DIR}/data/devices.yml" 2>/dev/null; then
     log "Device selection invalid or cancelled (got: ${chosen})"
     exit 0
   fi
@@ -364,7 +364,7 @@ if [ -n "${ROMFILE}" ]; then
     case "${ROMFILE##*.}" in
       uid|UID)
         APP_UID="$(sed -n '1p' "${ROMFILE}" | tr -d '\r\n[:space:]')"
-        UID_DEVICE="$(sed -n '2p' "${ROMFILE}" | tr -d '\r\n[:space:]')"
+        UID_DEVICE="$(sed -n '2p' "${ROMFILE}" | tr -d '\r\n[:space:]' | tr '[:lower:]' '[:upper:]')"
         if [ -n "${APP_UID}" ]; then
           case "${APP_UID}" in 0x*|0X*) ;; *) APP_UID="0x${APP_UID}" ;; esac
           LAUNCH_MODE="uid"
