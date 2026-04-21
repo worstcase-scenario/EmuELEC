@@ -162,7 +162,7 @@ def show_menu(title: str, options: List[str], selected: int = 0,
               info: str = "", offset: int = 0, visible: int = 20) -> None:
     clear_screen()
     print("=" * 72)
-    print(f"  E K A 2 L 1   C O M M A N D E R  -  {title}")
+    print(f"  E K A 2 L 1   C O M M A N D E R  |  {title}")
     print("=" * 72)
     if info:
         print(f"\n{info}\n")
@@ -174,7 +174,7 @@ def show_menu(title: str, options: List[str], selected: int = 0,
     if end < total:
         print("    ...")
     print("\n" + "-" * 72)
-    print("D-Pad: Navigate | A: Select | B: Back | Select: Quit")
+    print("D-Pad: Navigate | A: Select | B: Back to Menu | Select: Quit")
     print("-" * 72)
     sys.stdout.flush()
 
@@ -1172,7 +1172,35 @@ def install_sis():
     except GoBack:
         return
 
-    sis_files = find_sis_files_recursive(sis_dir)
+    try:
+        scan_mode = select_from_list(
+            "SIS/SISX Scan Mode",
+            [
+                "Only this folder",
+                "Include subfolders",
+            ],
+            f"Selected directory:\n{sis_dir}\n\nChoose how SIS/SISX files should be scanned."
+        )
+    except GoBack:
+        return
+
+    if scan_mode is None:
+        return
+
+    recursive_scan = (scan_mode == 1)
+
+    if recursive_scan:
+        sis_files = find_sis_files_recursive(sis_dir)
+    else:
+        sis_files = sorted(
+            [
+                os.path.join(sis_dir, f)
+                for f in os.listdir(sis_dir)
+                if os.path.isfile(os.path.join(sis_dir, f))
+                and f.lower().endswith((".sis", ".sisx"))
+            ],
+            key=lambda p: p.lower()
+        )
 
     if not sis_files:
         ok_dialog("Error", f"No .sis or .sisx files found in:\n{sis_dir}")
@@ -1185,16 +1213,34 @@ def install_sis():
         for _f in sis_files:
             _h = sis_platform_hint(_f)
             hints[_h] = hints.get(_h, 0) + 1
-        hint_lines = "\n".join(f"  {v}x  {k}" for k, v in sorted(hints.items()))
-        hint_info = (f"{len(sis_files)} file(s) found recursively in:\n{sis_dir}\n\n"
-                     f"Detected platforms:\n{hint_lines}")
+
+        hint_lines = "\n".join(
+            f"  {v}x  {k}" for k, v in sorted(hints.items())
+        )
+
+        hint_info = (
+            f"{len(sis_files)} file(s) found "
+            f"{'recursively in' if recursive_scan else 'in'}:\n"
+            f"{sis_dir}\n\n"
+            f"Detected platforms:\n{hint_lines}"
+        )
+
+        install_options = [
+            (
+                "Install all SIS/SISX files recursively"
+                if recursive_scan
+                else "Install all SIS/SISX files in this folder"
+            ),
+            (
+                "Select SIS/SISX files individually (recursive)"
+                if recursive_scan
+                else "Select SIS/SISX files individually"
+            ),
+        ]
 
         mode_idx = select_from_list(
             "SIS/SISX Installer Mode",
-            [
-                "Install all SIS/SISX files (recursive)",
-                "Select SIS/SISX files individually (recursive)",
-            ],
+            install_options,
             hint_info
         )
     except GoBack:
@@ -1206,14 +1252,21 @@ def install_sis():
     selected_files = []
 
     if mode_idx == 0:
-        if not confirm_dialog(
-            "Install All",
-            f"Install all {len(sis_files)} SIS/SISX files recursively?\n\nDirectory:\n{sis_dir}"
-        ):
+        confirm_text = (
+            f"Install all {len(sis_files)} SIS/SISX files "
+            f"{'recursively' if recursive_scan else 'in this folder'}?\n\n"
+            f"Directory:\n{sis_dir}"
+        )
+
+        if not confirm_dialog("Install All", confirm_text):
             return
+
         selected_files = sis_files
     else:
-        sis_options = [f"{get_relative_path(f, sis_dir)}  [{sis_platform_hint(f)}]" for f in sis_files]
+        sis_options = [
+            f"{get_relative_path(f, sis_dir)}  [{sis_platform_hint(f)}]"
+            for f in sis_files
+        ]
 
         try:
             selected_indexes = select_multiple_from_list(
@@ -1247,6 +1300,7 @@ def install_sis():
         clear_screen()
         rel_name = get_relative_path(sis_file, sis_dir)
         hint = sis_platform_hint(sis_file)
+
         print(f"Installing {pos}/{len(selected_files)}:")
         print(f"  {rel_name}")
         print(f"  Platform: {hint}", flush=True)
@@ -1267,6 +1321,7 @@ def install_sis():
                     app_name,
                     image_out_dir
                 )
+
                 if copied_name:
                     artwork_copied += 1
                     log(f"Matched artwork for app '{app_name}' ({uid}): {copied_name}")
@@ -1294,6 +1349,7 @@ def install_sis():
     else:
         preview = "\n".join(failed_files[:8])
         more = ""
+
         if len(failed_files) > 8:
             more = f"\n... and {len(failed_files) - 8} more"
 
@@ -1388,7 +1444,7 @@ def show_multi_select_menu(title: str, options: List[str], checked: set, selecte
     if end < total:
         print("    ...")
     print("\n" + "-" * 72)
-    print("D-Pad: Navigate | A: Toggle | X: Toggle All | Y: Confirm | B: Back | Select: Quit")
+    print("D-Pad: Navigate | A: Toggle | X: Toggle All | Y: Confirm | B: Back to Menu | Select: Quit")
     print("-" * 72)
     sys.stdout.flush()
 
@@ -2292,9 +2348,9 @@ def main():
         while True:
             try:
                 idx = select_from_list(
-                    "Main Menu",
+                    "M A I N  M E N U",
                     [
-                        "[ RUN THIS FIRST ! ] : Setup eka2l1 (copy needed files to EmuELEC)",
+                        "Install and set up eka2l1 (EXECUTE ON FIRST RUN or AFTER COMPLETE RESET)",
                         "Import pre-configured devices-collection",
                         "Install firmware (.rpkg + .rom)",
                         "Scan SIS/SISX files by platform and install",
