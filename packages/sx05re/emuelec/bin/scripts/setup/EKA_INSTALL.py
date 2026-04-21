@@ -1167,8 +1167,9 @@ def install_sis():
 
     try:
         sis_dir = choose_directory_interactive(
-            "SIS/SISX: Select Directory", EKA_ROMS_DIR,
-            require_ext=[".sis", ".sisx"])
+        "SIS/SISX: Select Directory",
+        EKA_ROMS_DIR
+)
     except GoBack:
         return
 
