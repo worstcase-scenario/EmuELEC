@@ -295,6 +295,7 @@ get_run_name() {
     "the elder scrolls travels: shadowkey"|"shadowkey") echo "Elder Scrolls" ;;
     "the king of fighters: extreme"|"kof extreme") echo "KOF EXTREME" ;;
     "the roots: gates of chaos"|"the roots")    echo "The Roots" ;;
+    "the roots: gates of chaos"|"the roots")    echo "The Roots" ;;
     "the sims: bustin' out"|"the sims bustin out") echo "The Sims Bustin' Out" ;;
     "tiger woods pga tour 2004")                echo "TW 2004" ;;
     "tom clancy's ghost recon: jungle storm"|"ghost recon") echo "GhostRecon" ;;
@@ -360,7 +361,11 @@ mkdir -p "${EKA_DRIVES_DIR}" "${EKA_E_DIR}"
 
 # Detect launch mode
 if [ -n "${ROMFILE}" ]; then
-  if [ -f "${ROMFILE}" ]; then
+  # Special identification for generic Games App
+  if [[ "$(basename "${ROMFILE}")" == "games.symbian" ]]; then
+     LAUNCH_MODE="games_app"
+     log "Mode: N-Gage 2.0 Games Application"
+  elif [ -f "${ROMFILE}" ]; then
     case "${ROMFILE##*.}" in
       uid|UID)
         APP_UID="$(sed -n '1p' "${ROMFILE}" | tr -d '\r\n[:space:]')"
@@ -463,14 +468,36 @@ else
 fi
 
 log "eka2l1 exited with code ${EKA_EXIT}"
-# Cache the device only if the launch did not fail outright (exit code 1).
-# Signal exits like 139 mean the game ran but crashed — keep the cache.
-# Only cache if this wasn't a .uid file with a hardcoded device.
-if [ "${EKA_EXIT}" != "1" ] && [ -z "${UID_DEVICE}" ] && [ -z "${LAST_DEVICE}" ]; then
+
+# --- Post-Launch Logic ---
+
+# 1. Special Handling for the Games App (Closed via Kill Key)
+if [ "${LAUNCH_MODE}" = "games_app" ]; then
+  log "Preserving cache for Games App (ignores exit code)."
+  cache_set "${CKEY}" "${DEVICE_CODE}"
+
+# 2. Standard Handling for specific Games (Successful exit)
+elif [ "${EKA_EXIT}" = "0" ]; then
+  if [ "${LAUNCH_MODE}" = "uid" ] && [ -f "${ROMFILE}" ]; then
+    if [ "${DEVICE_CODE}" != "${UID_DEVICE}" ]; then
+      log "Updating .uid file with working device: ${DEVICE_CODE}"
+      FIRST_LINE=$(sed -n '1p' "${ROMFILE}")
+      echo "${FIRST_LINE}" > "${ROMFILE}"
+      echo "${DEVICE_CODE}" >> "${ROMFILE}"
+    fi
+  fi
   cache_set "${CKEY}" "${DEVICE_CODE}"
   log "Device cached: ${DEVICE_CODE}"
-fi
-if [ "${EKA_EXIT}" = "1" ] && [ -z "${UID_DEVICE}" ]; then
+
+# 3. Crash / Failure Handling
+else
+  log "Crash detected (Exit: ${EKA_EXIT}). Clearing cache."
   cache_delete "${CKEY}"
-  log "Launch failed, cache cleared"
+  if [ "${LAUNCH_MODE}" = "uid" ] && [ -f "${ROMFILE}" ]; then
+    log "Clearing .uid hint due to crash."
+    FIRST_LINE=$(sed -n '1p' "${ROMFILE}")
+    echo "${FIRST_LINE}" > "${ROMFILE}"
+  fi
 fi
+
+cleanup
