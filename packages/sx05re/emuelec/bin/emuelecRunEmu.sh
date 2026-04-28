@@ -320,6 +320,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
         fi
                ;;
+		"lightspark")
+		if [ "$EMU" = "lightspark" ]; then
+            set_kill_keys "lightspark"
+            RUNTHIS='${TBASH} lightsparkstart.sh "${ROMNAME}"'
+        fi
+               ;;
         "neocd")
                 if [ "${EMU}" = "fbneo" ]; then
             RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'

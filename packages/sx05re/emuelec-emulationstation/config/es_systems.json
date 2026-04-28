@@ -5386,6 +5386,31 @@
       ]
     },
 	{
+      "name": "lightspark",
+      "fullname": "Adobe Flash Player",
+      "manufacturer": "Macromedia",
+      "release": "1996",
+      "hardware": "computer",
+      "path": "/storage/roms/flash",
+      "platform": "flash",
+      "theme": "flash",
+      "command": "default",
+      "extensions": [
+        ".swf"
+      ],
+      "emulators": [
+        {
+          "name": "lightspark",
+          "cores": [
+            {
+              "name": "lightspark",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
 	"name": "x16",
 	"fullname": "Commander X16",
 	"manufacturer": "X16Community",
