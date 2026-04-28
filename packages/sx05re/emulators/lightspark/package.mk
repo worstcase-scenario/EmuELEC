@@ -2,11 +2,11 @@
 # Copyright (C) 2024-present EmuELEC (https://github.com/EmuELEC/EmuELEC)
 
 PKG_NAME="lightspark"
-PKG_VERSION="master"
+PKG_VERSION="bb7e6b5dfb777e33e19dbe92f4f10ca3fcf628e9"
 PKG_ARCH="aarch64"
 PKG_LICENSE="LGPL"
 PKG_SITE="https://github.com/lightspark/lightspark"
-PKG_URL="${PKG_SITE}/archive/refs/heads/master.tar.gz"
+PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain SDL2 ffmpeg glew cairo pango curl zlib libjpeg-turbo \
                     fontconfig pcre2 xz rtmpdump SDL2_mixer"
 PKG_LONGDESC="Lightspark - Open Source Flash Player (SWF standalone)"
