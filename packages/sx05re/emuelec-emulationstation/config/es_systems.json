@@ -4615,6 +4615,35 @@
       ]
     },
 	{
+      "name": "palm",
+      "fullname": "Palm OS (m515)",
+      "manufacturer": "Palm",
+      "release": "2002",
+      "hardware": "handheld",
+      "path": "/storage/roms/palm",
+      "platform": "palm",
+      "theme": "palm",
+      "command": "default",
+      "extensions": [
+        ".prc",
+        ".pdb",
+        ".img",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mu",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "archimedes",
       "fullname": "Archimede",
       "manufacturer": "Acorn Computers",
