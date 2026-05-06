@@ -4251,6 +4251,31 @@
       ]
     },
 	{
+      "name": "redshift",
+      "fullname": "TEC Redshift",
+      "manufacturer": "",
+      "release": "",
+      "hardware": "portable",
+      "path": "/storage/roms/redshift",
+      "platform": "redshift",
+      "theme": "redshift",
+      "command": "default",
+      "extensions": [
+        ".png"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "exa",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "wasm4",
       "fullname": "Wasm-4",
       "manufacturer": "Aduros",
