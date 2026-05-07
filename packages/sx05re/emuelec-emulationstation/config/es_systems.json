@@ -90,6 +90,7 @@
       "extensions": [
         ".7z",
         ".cmd",
+		".bighard",
         ".zip"
       ],
       "emulators": [
@@ -144,6 +145,7 @@
       "extensions": [
         ".7z",
         ".cmd",
+		".bighard",
         ".zip"
       ],
       "emulators": [
@@ -1221,6 +1223,7 @@
       "command": "default",
       "extensions": [
         ".7z",
+		".bighard",
         ".zip"
       ],
       "emulators": [
