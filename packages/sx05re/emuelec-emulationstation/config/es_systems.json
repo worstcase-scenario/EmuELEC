@@ -1049,6 +1049,7 @@
         ".sh",
         ".zip",
         ".iso",
+		".img",
         ".cue"
       ],
       "emulators": [
@@ -1069,6 +1070,9 @@
             },
             {
               "name": "dosbox_svn"
+            },
+            {
+              "name": "virtualxt"
             }
           ]
         }
