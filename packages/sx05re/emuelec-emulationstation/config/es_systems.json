@@ -5389,6 +5389,41 @@
       ]
     },
 	{
+	  "name": "memu",
+      "fullname": "Memotech MTX 512",
+      "manufacturer": "Memotech",
+      "release": "1984",
+      "hardware": "computer",
+      "path": "/storage/roms/mtx512",
+      "platform": "mtx512",
+      "theme": "mtx512",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".zip",
+        ".mtx"
+					],
+      "emulators": [
+        {
+          "name": "memu",
+          "cores": [
+            {
+              "name": "memu",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+	{
 	"name": "x16",
 	"fullname": "Commander X16",
 	"manufacturer": "X16Community",
