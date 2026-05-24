@@ -2,8 +2,8 @@
 # Copyright (C) 2024-present EmuELEC Team (https://github.com/EmuELEC/EmuELEC)
 
 PKG_NAME="biginstinct"
-PKG_VERSION="10"
-PKG_SHA256="5c29befbabefa6f65c60149de670e382101a315f41a20cdd2e738d59268c1629"
+PKG_VERSION="101"
+PKG_SHA256="5154200ce36c2984224a20e19913246533f08004100430a5abe7a0b1e3a1921a"
 PKG_ARCH="aarch64"
 PKG_LICENSE="Proprietary"
 PKG_SITE="https://www.richwhitehouse.com/ki"
