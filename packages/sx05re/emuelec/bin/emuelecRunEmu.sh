@@ -386,6 +386,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
         fi
 		;;	
+		"mtx512")
+        if [ "${EMU}" = "memu" ]; then
+            set_kill_keys "memu"
+            RUNTHIS='${TBASH} memustart.sh "${ROMNAME}"'
+        fi
+		;;	
         "dragon32"|"dragon64")
 			if [ "${EMU}" = "xroar" ]; then
 			set_kill_keys "xroar.aarch64"
