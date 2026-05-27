@@ -5144,6 +5144,31 @@
         }
       ]
     },
+		{
+      "name": "puzzlescript",
+      "fullname": "PuzzleScript",
+      "manufacturer": "",
+      "release": "",
+      "hardware": "computer",
+      "path": "/storage/roms/puzzlescript",
+      "platform": "puzzlescript",
+      "theme": "puzzlescript",
+      "command": "default",
+      "extensions": [
+        ".pz"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "puzzlescript",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
 	{
       "name": "zmachine",
       "fullname": "Z-Machine",
