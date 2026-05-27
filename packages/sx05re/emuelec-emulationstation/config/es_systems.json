@@ -4547,6 +4547,7 @@
       "extensions": [
         ".cmd",
 		".zip",
+		".bin",
 		".7z"
       ],
       "emulators": [
@@ -4554,8 +4555,40 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
+              "name": "amiarcadia",
               "default": true
+            },
+			{
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "tvgc",
+      "fullname": "Elektor TV Games Computer",
+      "manufacturer": "Elektor",
+      "release": "1979",
+      "hardware": "computer",
+      "path": "/storage/roms/tvgc",
+      "platform": "tvgc",
+      "theme": "tvgc",
+      "command": "default",
+      "extensions": [
+        ".tvc",
+		".zip"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "amiarcadia",
+              "default": true
+            },
+			{
+              "name": "mame"
             }
           ]
         }
@@ -4866,8 +4899,11 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
+              "name": "amiarcadia",
               "default": true
+            },
+			{
+              "name": "mame"
             }
           ]
         }
