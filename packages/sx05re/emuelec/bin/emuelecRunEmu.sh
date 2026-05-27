@@ -155,7 +155,12 @@ emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
 
-if [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
+# .bighard files always go to BigInstinct, regardless of platform/emu choice
+if [[ "${ROMNAME,,}" == *.bighard ]]; then
+    set_kill_keys "biginstinct"
+    RUNTHIS='${TBASH} biginstinctstart.sh "${ROMNAME}"'
+
+elif [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
 GPTOKEYB=$(get_ee_setting "gptokeyb" "${PLATFORM}" "${BASEROMNAME}")
 VIRTUAL_KB=
@@ -385,6 +390,12 @@ case ${PLATFORM} in
         if [ "${EMU}" = "oricutron" ]; then
             set_kill_keys "oricutron"
             RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
+        fi
+		;;	
+		"mtx512")
+        if [ "${EMU}" = "memu" ]; then
+            set_kill_keys "memu"
+            RUNTHIS='${TBASH} memustart.sh "${ROMNAME}"'
         fi
 		;;	
         "dragon32"|"dragon64")
