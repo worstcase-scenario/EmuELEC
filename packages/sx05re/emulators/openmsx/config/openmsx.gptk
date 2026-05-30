@@ -1,0 +1,33 @@
+[hotkeys]
+start+select = KEY_ESCAPE
+
+[config]
+deadzone = 1000
+
+[right_analog]
+up = KEY_UP
+down = KEY_DOWN
+left = KEY_LEFT
+right = KEY_RIGHT
+
+[left_analog]
+up = KEY_UP
+down = KEY_DOWN
+left = KEY_LEFT
+right = KEY_RIGHT
+
+[buttons]
+a = KEY_SPACE
+b = KEY_RETURN
+x = KEY_F1
+y = KEY_F5
+l1 = KEY_F6
+r1 = KEY_F7
+l2 = KEY_F8
+r2 = KEY_F9
+select = KEY_F10
+start = KEY_F11
+up = KEY_UP
+down = KEY_DOWN
+left = KEY_LEFT
+right = KEY_RIGHT

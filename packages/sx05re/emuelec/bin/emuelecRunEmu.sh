@@ -289,6 +289,12 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
                 fi
                 ;;	
+		"openmsx")
+                if [ "${EMU}" = "openmsx" ]; then
+				set_kill_keys "openmsx"
+				RUNTHIS='${TBASH} startopenmsx.sh "${ROMNAME}"'
+                fi
+                ;;	
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
