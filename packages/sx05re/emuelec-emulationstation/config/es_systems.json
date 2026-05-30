@@ -90,6 +90,7 @@
       "extensions": [
         ".7z",
         ".cmd",
+		".bighard",
         ".zip"
       ],
       "emulators": [
@@ -144,6 +145,7 @@
       "extensions": [
         ".7z",
         ".cmd",
+		".bighard",
         ".zip"
       ],
       "emulators": [
@@ -1047,6 +1049,7 @@
         ".sh",
         ".zip",
         ".iso",
+		".img",
         ".cue"
       ],
       "emulators": [
@@ -1067,6 +1070,9 @@
             },
             {
               "name": "dosbox_svn"
+            },
+            {
+              "name": "virtualxt"
             }
           ]
         }
@@ -1221,6 +1227,7 @@
       "command": "default",
       "extensions": [
         ".7z",
+		".bighard",
         ".zip"
       ],
       "emulators": [
@@ -4251,6 +4258,31 @@
       ]
     },
 	{
+      "name": "redshift",
+      "fullname": "TEC Redshift",
+      "manufacturer": "",
+      "release": "",
+      "hardware": "portable",
+      "path": "/storage/roms/redshift",
+      "platform": "redshift",
+      "theme": "redshift",
+      "command": "default",
+      "extensions": [
+        ".png"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "exa",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "wasm4",
       "fullname": "Wasm-4",
       "manufacturer": "Aduros",
@@ -4540,6 +4572,7 @@
       "extensions": [
         ".cmd",
 		".zip",
+		".bin",
 		".7z"
       ],
       "emulators": [
@@ -4547,8 +4580,40 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
+              "name": "amiarcadia",
               "default": true
+            },
+			{
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+	{
+      "name": "tvgc",
+      "fullname": "Elektor TV Games Computer",
+      "manufacturer": "Elektor",
+      "release": "1979",
+      "hardware": "computer",
+      "path": "/storage/roms/tvgc",
+      "platform": "tvgc",
+      "theme": "tvgc",
+      "command": "default",
+      "extensions": [
+        ".tvc",
+		".zip"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "amiarcadia",
+              "default": true
+            },
+			{
+              "name": "mame"
             }
           ]
         }
@@ -4615,8 +4680,37 @@
       ]
     },
 	{
+      "name": "palm",
+      "fullname": "Palm OS (m515)",
+      "manufacturer": "Palm",
+      "release": "2002",
+      "hardware": "handheld",
+      "path": "/storage/roms/palm",
+      "platform": "palm",
+      "theme": "palm",
+      "command": "default",
+      "extensions": [
+        ".prc",
+        ".pdb",
+        ".img",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mu",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
       "name": "archimedes",
-      "fullname": "Archimede",
+      "fullname": "Archimedes",
       "manufacturer": "Acorn Computers",
       "release": "1987",
       "hardware": "computer",
@@ -4830,8 +4924,11 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
+              "name": "amiarcadia",
               "default": true
+            },
+			{
+              "name": "mame"
             }
           ]
         }
@@ -5041,6 +5138,31 @@
           "cores": [
             {
               "name": "genesis_plus_gx",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+		{
+      "name": "puzzlescript",
+      "fullname": "PuzzleScript",
+      "manufacturer": "",
+      "release": "",
+      "hardware": "computer",
+      "path": "/storage/roms/puzzlescript",
+      "platform": "puzzlescript",
+      "theme": "puzzlescript",
+      "command": "default",
+      "extensions": [
+        ".pz"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "puzzlescript",
               "default": true
             }
           ]
@@ -5371,6 +5493,41 @@
           "cores": [
             {
               "name": "oricutron",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "mame"
+            }
+          ]
+        }
+      ]
+    },
+	{
+	  "name": "mtx512",
+      "fullname": "Memotech MTX 512",
+      "manufacturer": "Memotech",
+      "release": "1984",
+      "hardware": "computer",
+      "path": "/storage/roms/mtx512",
+      "platform": "mtx512",
+      "theme": "mtx512",
+      "command": "default",
+      "extensions": [
+        ".cmd",
+		".zip",
+        ".mtx"
+					],
+      "emulators": [
+        {
+          "name": "memu",
+          "cores": [
+            {
+              "name": "memu",
               "default": true
             }
           ]
