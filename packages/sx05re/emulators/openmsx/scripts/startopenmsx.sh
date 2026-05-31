@@ -37,21 +37,38 @@ esac
 MACHINE_ARG=""
 [ -n "$MACHINE" ] && MACHINE_ARG="-machine ${MACHINE}"
 
-# ZIP extraction
+# ZIP/M3U extraction
 ROMFILE="${ROM}"
 if [ "${ROMEXT,,}" = "zip" ]; then
   TMPDIR=$(mktemp -d /tmp/openmsx_XXXXXX)
   unzip -o "${ROM}" -d "${TMPDIR}" > /dev/null 2>&1
-  EXTRACTED=$(find "${TMPDIR}" -type f | head -1)
+  EXTRACTED=$(find "${TMPDIR}" -maxdepth 2 -type f | head -1)
   [ -n "${EXTRACTED}" ] && ROMFILE="${EXTRACTED}" && ROMEXT="${ROMFILE##*.}"
+elif [ "${ROMEXT,,}" = "m3u" ]; then
+  ROMDIR="$(dirname "${ROM}")"
+  TMPDIR=$(mktemp -d /tmp/openmsx_XXXXXX)
+  line=$(grep -m1 "." "${ROM}" | tr -d '\r')
+  ENTRY="${line}"
+  [ ! -f "${ENTRY}" ] && ENTRY="${ROMDIR}/${line}"
+  EXT="${ENTRY##*.}"
+  if [ "${EXT,,}" = "zip" ]; then
+    DISKDIR="${TMPDIR}/disk0"
+    mkdir -p "${DISKDIR}"
+    unzip -o "${ENTRY}" -d "${DISKDIR}" > /dev/null 2>&1
+    ENTRY=$(find "${DISKDIR}" -maxdepth 1 -type f | head -1)
+  fi
+  ROMFILE="${ENTRY}"
+  ROMEXT="${ROMFILE##*.}"
 fi
 
-# Media type
-case "${ROMEXT,,}" in
-  dsk|dmk) MEDIA="-diska" ;;
-  cas)     MEDIA="-cassettefile" ;;
-  *)       MEDIA="-cart" ;;
-esac
+# Media type (skipped for M3U which uses DISK_ARGS array)
+if [ "${ROMEXT,,}" != "m3u" ]; then
+  case "${ROMEXT,,}" in
+    dsk|dmk) MEDIA="-diska" ;;
+    cas)     MEDIA="-cassettefile" ;;
+    *)       MEDIA="-cart" ;;
+  esac
+fi
 
 # Settings
 [ ! -f "${OPENMSX_HOME}/share/settings.xml" ] && \
