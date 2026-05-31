@@ -1409,6 +1409,31 @@
         }
       ]
     },
+	{
+      "name": "openmsx-ld",
+      "fullname": "MSX Palcom LaserDisc",
+      "manufacturer": "Pioneer",
+      "release": "1983",
+      "hardware": "computer",
+      "path": "/storage/roms/msxlaserdisc",
+      "platform": "msxlaserdisc",
+      "theme": "msxlaserdisc",
+      "command": "default",
+      "extensions": [
+        ".ogv"
+      ],
+      "emulators": [
+        {
+          "name": "openmsx-ld",
+          "cores": [
+            {
+              "name": "openmsx-ld",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "odyssey2",
       "fullname": "Magnavox Odyssey 2",

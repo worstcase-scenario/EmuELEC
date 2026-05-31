@@ -1,58 +1,64 @@
 #!/bin/bash
-
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2024-present EmuELEC (https://github.com/EmuELEC)
+# Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
 . /etc/profile
 
 ROM="$1"
-ROMNAME="${ROM##*/}"
-ROMBASE="${ROMNAME%.*}"
-ROMEXT="${ROMNAME##*.}"
+ROMNAME="${ROM##*/}"; ROMBASE="${ROMNAME%.*}"; ROMEXT="${ROMNAME##*.}"
 
-# libGLX.so.0 is required by GLEW but absent from EmuELEC /usr/lib on Amlogic
 export LD_LIBRARY_PATH="/usr/config/emuelec/configs/openmsx/libs:${LD_LIBRARY_PATH}"
+export OPENMSX_HOME="/storage/.openMSX"
+export LIBGL_VSYNC=0
+export LIBGL_NOINTOVLHACK=1
 
-# User-writable config dir - consistent with other EmuELEC emulators
-export OPENMSX_HOME="/storage/.config/emuelec/configs/openmsx"
+# BIOS symlink
+mkdir -p /storage/.openMSX/share
+[ ! -e /storage/.openMSX/share/systemroms ] && \
+  ln -sf /storage/roms/bios/msx /storage/.openMSX/share/systemroms
 
-# Create systemroms symlink so openMSX finds BIOS files from the standard
-# EmuELEC BIOS location (/storage/roms/bios) without manual copying.
-if [ ! -e /storage/.config/emuelec/configs/openmsx/share/systemroms ]; then
-  ln -sf /storage/roms/bios/msx \
-    /storage/.config/emuelec/configs/openmsx/share/systemroms
-fi
-
-killall -9 gptokeyb 2>/dev/null
-
-GPTK_GAME="/storage/.config/emuelec/configs/openmsx/gptk/${ROMBASE}.gptk"
-GPTK_DEFAULT="/usr/config/emuelec/configs/openmsx/gptk/openmsx.gptk"
-
-if [ -f "$GPTK_GAME" ]; then
-    GPTK_CONFIG="$GPTK_GAME"
-else
-    GPTK_CONFIG="$GPTK_DEFAULT"
-fi
-
-gptokeyb 1 openmsx -c "$GPTK_CONFIG" &
+# gptk
+GPTK_DIR="/storage/.config/emuelec/configs/openmsx/gptk"
+GPTK_DEFAULT="${GPTK_DIR}/openmsx.gptk"
+[ ! -f "${GPTK_DEFAULT}" ] && mkdir -p "${GPTK_DIR}" && \
+  cp /usr/config/emuelec/configs/openmsx/gptk/openmsx.gptk "${GPTK_DEFAULT}"
+[ -f "${GPTK_DIR}/${ROMBASE}.gptk" ] && GPTK_CONFIG="${GPTK_DIR}/${ROMBASE}.gptk" || GPTK_CONFIG="${GPTK_DEFAULT}"
+gptokeyb 1 openmsx -c "${GPTK_CONFIG}" &
 sleep 1
 
+# Machine selection
 case "$ROM" in
-  */msx1/*|*/MSX1/*) MACHINE_ARG="-machine msx1" ;;
-  */msx2/*|*/MSX2/*) MACHINE_ARG="-machine msx2" ;;
-  */msx2+/*|*/MSX2+/*) MACHINE_ARG="-machine msx2plus" ;;
-  */msxturbor/*|*/MSXTURBOR/*) MACHINE_ARG="-machine turbor" ;;
-  *) MACHINE_ARG="" ;;
+  */msx1/*|*/MSX1/*)           MACHINE="msx1" ;;
+  */msx2/*|*/MSX2/*)           MACHINE="msx2" ;;
+  */msx2+/*|*/MSX2+/*)         MACHINE="msx2plus" ;;
+  */msxturbor/*|*/MSXTURBOR/*) MACHINE="turbor" ;;
+  *) MACHINE="" ;;
 esac
+MACHINE_ARG=""
+[ -n "$MACHINE" ] && MACHINE_ARG="-machine ${MACHINE}"
 
+# ZIP extraction
+ROMFILE="${ROM}"
+if [ "${ROMEXT,,}" = "zip" ]; then
+  TMPDIR=$(mktemp -d /tmp/openmsx_XXXXXX)
+  unzip -o "${ROM}" -d "${TMPDIR}" > /dev/null 2>&1
+  EXTRACTED=$(find "${TMPDIR}" -type f | head -1)
+  [ -n "${EXTRACTED}" ] && ROMFILE="${EXTRACTED}" && ROMEXT="${ROMFILE##*.}"
+fi
+
+# Media type
 case "${ROMEXT,,}" in
   dsk|dmk) MEDIA="-diska" ;;
   cas)     MEDIA="-cassettefile" ;;
   *)       MEDIA="-cart" ;;
 esac
 
-/usr/bin/openmsx \
-  ${MACHINE_ARG} \
-  ${MEDIA} "${ROM}"
+# Settings
+[ ! -f "${OPENMSX_HOME}/share/settings.xml" ] && \
+  INIT_CMD="set fullscreen on; set full_stretch on; set auto_enable_reverse off; set accuracy line; set resampler blip; set samples 2048; set frequency 44100; set scale_factor 1; set scale_algorithm simple; set vsync off; set fullspeedwhenloading on; set grabinput off; set sound_driver SDL" || \
+  INIT_CMD="set fullscreen on; set full_stretch on"
+
+/usr/bin/openmsx -command "${INIT_CMD}" ${MACHINE_ARG} ${MEDIA} "${ROMFILE}"
 
 killall -9 gptokeyb 2>/dev/null
+rm -rf /tmp/openmsx_* 2>/dev/null

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
-PKG_NAME="openmsx"
+PKG_NAME="openmsx-ld"
 PKG_VERSION="RELEASE_21_0"
 PKG_REV="0"
 PKG_ARCH="any"
@@ -9,90 +9,18 @@ PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/openMSX/openMSX"
 PKG_URL="${PKG_SITE}/archive/refs/tags/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf libpng zlib tcl alsa-lib glew"
-PKG_SHORTDESC="openMSX: The MSX emulator that aims for perfection"
+PKG_SHORTDESC="openMSX Laserdisc: Pioneer PX-7 emulation for Palcom LaserDisc games"
 PKG_TOOLCHAIN="manual"
-
-pre_configure_target() {
-  python3 - "${PKG_BUILD}/src/video/VisibleSurface.cc" << 'PYEOF'
-import sys, os
-
-fname = sys.argv[1]
-src = open(fname).read()
-
-old = 'void VisibleSurface::finish()\n{\n\tSDL_GL_SwapWindow(window.get());\n}'
-new = (
-'static GLuint _cur_prog=0,_cur_vbo=0;\n'
-'static GLint  _cur_pos=-1;\n'
-'static bool   _cur_failed=false;\n'
-'static void drawSoftwareCursor(SDL_Window* w)\n'
-'{\n'
-'    if(_cur_failed) return;\n'
-'    GLint curProg=0;\n'
-'    glGetIntegerv(GL_CURRENT_PROGRAM,&curProg);\n'
-'    if(curProg==0) return;\n'
-'    if(_cur_prog==0){\n'
-'        const char* vsh="#version 100\\nattribute vec2 p;\\nvoid main(){gl_Position=vec4(p,0.0,1.0);}\\n";\n'
-'        const char* fsh="#version 100\\nprecision mediump float;\\nvoid main(){gl_FragColor=vec4(1.0,1.0,1.0,1.0);}\\n";\n'
-'        GLuint vs=glCreateShader(GL_VERTEX_SHADER);\n'
-'        glShaderSource(vs,1,&vsh,0); glCompileShader(vs);\n'
-'        GLint ok=0; glGetShaderiv(vs,GL_COMPILE_STATUS,&ok);\n'
-'        if(!ok){char buf[256];glGetShaderInfoLog(vs,256,0,buf);fprintf(stderr,"CURSOR VS: %s\\n",buf);_cur_failed=true;return;}\n'
-'        GLuint fs=glCreateShader(GL_FRAGMENT_SHADER);\n'
-'        glShaderSource(fs,1,&fsh,0); glCompileShader(fs);\n'
-'        glGetShaderiv(fs,GL_COMPILE_STATUS,&ok);\n'
-'        if(!ok){char buf[256];glGetShaderInfoLog(fs,256,0,buf);fprintf(stderr,"CURSOR FS: %s\\n",buf);_cur_failed=true;return;}\n'
-'        _cur_prog=glCreateProgram();\n'
-'        glAttachShader(_cur_prog,vs); glAttachShader(_cur_prog,fs);\n'
-'        glLinkProgram(_cur_prog);\n'
-'        glGetProgramiv(_cur_prog,GL_LINK_STATUS,&ok);\n'
-'        if(!ok){char buf[256];glGetProgramInfoLog(_cur_prog,256,0,buf);fprintf(stderr,"CURSOR LINK: %s\\n",buf);_cur_failed=true;return;}\n'
-'        glDeleteShader(vs); glDeleteShader(fs);\n'
-'        _cur_pos=glGetAttribLocation(_cur_prog,"p");\n'
-'        glGenBuffers(1,&_cur_vbo);\n'
-'    }\n'
-'    int mx,my,ww,wh;\n'
-'    SDL_GetMouseState(&mx,&my);\n'
-'    SDL_GetWindowSize(w,&ww,&wh);\n'
-'    if(ww<=0||wh<=0) return;\n'
-'    float cx=(float)mx/ww*2.0f-1.0f;\n'
-'    float cy=1.0f-(float)my/wh*2.0f;\n'
-'    float sx=0.025f, sy=sx*(float)ww/(float)wh;\n'
-'    float v[]={cx,cy, cx+sx,cy-sy*0.5f, cx+sx*0.45f,cy-sy*1.3f};\n'
-'    GLint prevVbo;\n'
-'    glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&prevVbo);\n'
-'    glUseProgram(_cur_prog);\n'
-'    glBindBuffer(GL_ARRAY_BUFFER,_cur_vbo);\n'
-'    glBufferData(GL_ARRAY_BUFFER,sizeof(v),v,GL_DYNAMIC_DRAW);\n'
-'    glEnableVertexAttribArray(_cur_pos);\n'
-'    glVertexAttribPointer(_cur_pos,2,GL_FLOAT,GL_FALSE,0,0);\n'
-'    glDisable(GL_BLEND);\n'
-'    glDisable(GL_DEPTH_TEST);\n'
-'    glDrawArrays(GL_TRIANGLES,0,3);\n'
-'    glDisableVertexAttribArray(_cur_pos);\n'
-'    glBindBuffer(GL_ARRAY_BUFFER,prevVbo);\n'
-'    glUseProgram(curProg);\n'
-'}\n'
-'void VisibleSurface::finish()\n'
-'{\n'
-'    drawSoftwareCursor(window.get());\n'
-'    SDL_GL_SwapWindow(window.get());\n'
-'}'
-)
-src_norm = src.replace('\r\n', '\n')
-if 'drawSoftwareCursor' in src_norm:
-    print("Software cursor patch already applied, skipping"); sys.exit(0)
-if old not in src_norm:
-    print("WARNING: finish() pattern not found"); sys.exit(1)
-open(fname, "w").write(src_norm.replace(old, new, 1))
-print("Software cursor patch applied to VisibleSurface.cc")
-PYEOF
-}
 
 _openmsx_patch() {
   local b="$1"
 
   grep -rl 'static constexpr std::initializer_list' "${b}/src/" | \
     xargs sed -i 's/static constexpr std::initializer_list/static const std::initializer_list/g'
+
+  # Patch 2: suppress SUPERIMPOSE header prepend (needed for laserdisc video)
+  sed -i "s/tmpStrCat(\"#define SUPERIMPOSE \", char('0' + i), '\\\\n')/std::string()/g" \
+    "${b}/src/video/scalers/GLScaler.cc"
 
   sed -i 's/^#define OPENGL_VERSION OPENGL_2_1$/#define OPENGL_VERSION OPENGL_ES_2_0/' \
     "${b}/src/video/GLUtil.hh"
@@ -113,7 +41,6 @@ _openmsx_patch() {
 }
 
 make_target() {
-  pre_configure_target
   local sysroot="${SYSROOT_PREFIX}"
   local real_cxx="${CXX%% *}"
   local wname="$(basename "${real_cxx}")"
@@ -221,6 +148,7 @@ makeinstall_target() {
   local wname="$(basename "${real_cxx}")"
   local cxx_dir="${PKG_BUILD}/.cxx"
 
+  # Install data files via make install, then replace binary with openmsx-ld
   make -C ${PKG_BUILD} \
     OPENMSX_TARGET_CPU=${TARGET_ARCH} \
     OPENMSX_TARGET_OS=linux \
@@ -229,8 +157,14 @@ makeinstall_target() {
     DESTDIR=${INSTALL} \
     install
 
-  # Resolve SUPERIMPOSE=0 in shaders
-  python3 - "${INSTALL}/usr/share/shaders" << 'PYSHADER'
+  # Rename binary to openmsx-ld
+  mv ${INSTALL}/usr/bin/openmsx ${INSTALL}/usr/bin/openmsx-ld
+
+  # Generate SUPERIMPOSE=1 shaders for laserdisc video
+  mkdir -p ${INSTALL}/usr/share/shaders_laserdisc
+  cp ${INSTALL}/usr/share/shaders/*.frag ${INSTALL}/usr/share/shaders_laserdisc/ 2>/dev/null || true
+  cp ${INSTALL}/usr/share/shaders/*.vert ${INSTALL}/usr/share/shaders_laserdisc/ 2>/dev/null || true
+  python3 - "${INSTALL}/usr/share/shaders_laserdisc" << 'PYSHADER_LD'
 import sys, os, re
 sdir = sys.argv[1]
 for fn in os.listdir(sdir):
@@ -239,23 +173,22 @@ for fn in os.listdir(sdir):
     src = open(fpath).read()
     if '#if' not in src: continue
     src = re.sub(r'#if SUPERIMPOSE[^\n]*\n(.*?)(?:#else[^\n]*\n(.*?))?#endif[^\n]*\n',
-        lambda m: (m.group(2) or '').strip() + '\n', src, flags=re.DOTALL)
+        lambda m: (m.group(1) or '').strip()+'\n', src, flags=re.DOTALL)
     src = re.sub(r'#define SUPERIMPOSE [01]\n', '', src)
     open(fpath, 'w').write(src)
-    print('Resolved:', fn)
-PYSHADER
+    print('Resolved LD:', fn)
+PYSHADER_LD
+
+  # Remove regular shaders - not needed, only shaders_laserdisc matters
+  rm -rf ${INSTALL}/usr/share/shaders
 
   mkdir -p ${INSTALL}/usr/bin
-  cp ${PKG_DIR}/scripts/startopenmsx.sh ${INSTALL}/usr/bin/startopenmsx.sh
-  chmod +x ${INSTALL}/usr/bin/startopenmsx.sh
+  cp ${PKG_DIR}/scripts/startopenmsx-ld.sh ${INSTALL}/usr/bin/startopenmsx-ld.sh
+  chmod +x ${INSTALL}/usr/bin/startopenmsx-ld.sh
 
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk
-  cp ${PKG_DIR}/config/openmsx.gptk \
-    ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk/openmsx.gptk
-
-  for d in share/machines share/extensions share/scripts share/skins persistent savestates; do
-    mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/${d}
-  done
+  cp ${PKG_DIR}/config/openmsx-ld.gptk \
+    ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk/openmsx-ld.gptk
 
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/libs
   for lib in libGLX.so.0 libGLdispatch.so.0; do
