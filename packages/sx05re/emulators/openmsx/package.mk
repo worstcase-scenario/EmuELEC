@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
+# # SPDX-License-Identifier: GPL-2.0
+# # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
 PKG_NAME="openmsx"
 PKG_VERSION="RELEASE_21_0"
@@ -24,12 +24,21 @@ new = (
 'static GLuint _cur_prog=0,_cur_vbo=0;\n'
 'static GLint  _cur_pos=-1;\n'
 'static bool   _cur_failed=false;\n'
+'static int    _cur_last_x=-1,_cur_last_y=-1;\n'
+'static Uint32 _cur_last_move=0;\n'
 'static void drawSoftwareCursor(SDL_Window* w)\n'
 '{\n'
 '    if(_cur_failed) return;\n'
 '    GLint curProg=0;\n'
 '    glGetIntegerv(GL_CURRENT_PROGRAM,&curProg);\n'
 '    if(curProg==0) return;\n'
+'    int mx,my,ww,wh;\n'
+'    SDL_GetMouseState(&mx,&my);\n'
+'    if(mx!=_cur_last_x||my!=_cur_last_y){\n'
+'        _cur_last_x=mx; _cur_last_y=my;\n'
+'        _cur_last_move=SDL_GetTicks();\n'
+'    }\n'
+'    if(SDL_GetTicks()-_cur_last_move>3000) return;\n'
 '    if(_cur_prog==0){\n'
 '        const char* vsh="#version 100\\nattribute vec2 p;\\nvoid main(){gl_Position=vec4(p,0.0,1.0);}\\n";\n'
 '        const char* fsh="#version 100\\nprecision mediump float;\\nvoid main(){gl_FragColor=vec4(1.0,1.0,1.0,1.0);}\\n";\n'
@@ -50,8 +59,6 @@ new = (
 '        _cur_pos=glGetAttribLocation(_cur_prog,"p");\n'
 '        glGenBuffers(1,&_cur_vbo);\n'
 '    }\n'
-'    int mx,my,ww,wh;\n'
-'    SDL_GetMouseState(&mx,&my);\n'
 '    SDL_GetWindowSize(w,&ww,&wh);\n'
 '    if(ww<=0||wh<=0) return;\n'
 '    float cx=(float)mx/ww*2.0f-1.0f;\n'

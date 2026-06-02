@@ -11,6 +11,7 @@ export LD_LIBRARY_PATH="/usr/config/emuelec/configs/openmsx/libs:${LD_LIBRARY_PA
 export OPENMSX_HOME="/storage/.openMSX"
 export LIBGL_VSYNC=0
 export LIBGL_NOINTOVLHACK=1
+export LIBGL_RECYCLE_EGL=0
 
 # BIOS symlink
 mkdir -p /storage/.openMSX/share
@@ -24,7 +25,16 @@ GPTK_DEFAULT="${GPTK_DIR}/openmsx.gptk"
   cp /usr/config/emuelec/configs/openmsx/gptk/openmsx.gptk "${GPTK_DEFAULT}"
 [ -f "${GPTK_DIR}/${ROMBASE}.gptk" ] && GPTK_CONFIG="${GPTK_DIR}/${ROMBASE}.gptk" || GPTK_CONFIG="${GPTK_DEFAULT}"
 gptokeyb 1 openmsx -c "${GPTK_CONFIG}" &
-sleep 1
+
+# Kill loading screen overlay, freeze ES
+pkill -9 ffplay 2>/dev/null
+pkill -9 mpv 2>/dev/null
+killall -STOP emulationstation 2>/dev/null
+killall -STOP es 2>/dev/null
+fbfix $(emuelec-utils getmainfb) 2>/dev/null
+echo 0 > /sys/class/graphics/fb0/blank 2>/dev/null
+sync
+sleep 0.3
 
 # Machine selection
 case "$ROM" in
@@ -39,43 +49,47 @@ MACHINE_ARG=""
 
 # ZIP/M3U extraction
 ROMFILE="${ROM}"
+TMPDIR=$(mktemp -d /tmp/openmsx_XXXXXX)
 if [ "${ROMEXT,,}" = "zip" ]; then
-  TMPDIR=$(mktemp -d /tmp/openmsx_XXXXXX)
   unzip -o "${ROM}" -d "${TMPDIR}" > /dev/null 2>&1
   EXTRACTED=$(find "${TMPDIR}" -maxdepth 2 -type f | head -1)
-  [ -n "${EXTRACTED}" ] && ROMFILE="${EXTRACTED}" && ROMEXT="${ROMFILE##*.}"
+  [ -n "${EXTRACTED}" ] && ROMFILE="${EXTRACTED}"
 elif [ "${ROMEXT,,}" = "m3u" ]; then
   ROMDIR="$(dirname "${ROM}")"
-  TMPDIR=$(mktemp -d /tmp/openmsx_XXXXXX)
   line=$(grep -m1 "." "${ROM}" | tr -d '\r')
   ENTRY="${line}"
   [ ! -f "${ENTRY}" ] && ENTRY="${ROMDIR}/${line}"
-  EXT="${ENTRY##*.}"
-  if [ "${EXT,,}" = "zip" ]; then
-    DISKDIR="${TMPDIR}/disk0"
-    mkdir -p "${DISKDIR}"
-    unzip -o "${ENTRY}" -d "${DISKDIR}" > /dev/null 2>&1
-    ENTRY=$(find "${DISKDIR}" -maxdepth 1 -type f | head -1)
+  # Extract ZIP entry if needed
+  if [ "${ENTRY##*.}" = "zip" ] || [ "${ENTRY##*.}" = "ZIP" ]; then
+    unzip -o "${ENTRY}" -d "${TMPDIR}" > /dev/null 2>&1
+    EXTRACTED=$(find "${TMPDIR}" -maxdepth 2 -type f | head -1)
+    [ -n "${EXTRACTED}" ] && ROMFILE="${EXTRACTED}"
+  else
+    ROMFILE="${ENTRY}"
   fi
-  ROMFILE="${ENTRY}"
-  ROMEXT="${ROMFILE##*.}"
 fi
+ROMEXT="${ROMFILE##*.}"
 
-# Media type (skipped for M3U which uses DISK_ARGS array)
-if [ "${ROMEXT,,}" != "m3u" ]; then
-  case "${ROMEXT,,}" in
-    dsk|dmk) MEDIA="-diska" ;;
-    cas)     MEDIA="-cassettefile" ;;
-    *)       MEDIA="-cart" ;;
-  esac
-fi
+# Media type
+case "${ROMEXT,,}" in
+  dsk|dmk) MEDIA="-diska" ;;
+  cas)     MEDIA="-cassettefile" ;;
+  *)       MEDIA="-cart" ;;
+esac
 
 # Settings
 [ ! -f "${OPENMSX_HOME}/share/settings.xml" ] && \
-  INIT_CMD="set fullscreen on; set full_stretch on; set auto_enable_reverse off; set accuracy line; set resampler blip; set samples 2048; set frequency 44100; set scale_factor 1; set scale_algorithm simple; set vsync off; set fullspeedwhenloading on; set grabinput off; set sound_driver SDL" || \
-  INIT_CMD="set fullscreen on; set full_stretch on"
+  INIT_CMD="set fullscreen on; set full_stretch on; set auto_enable_reverse off; set accuracy line; set resampler blip; set samples 2048; set frequency 44100; set scale_factor 1; set scale_algorithm simple; set vsync off; set fullspeedwhenloading on; set grabinput off; set sound_driver SDL; set pointer_hide_delay 3" || \
+  INIT_CMD="set fullscreen on; set full_stretch on; set pointer_hide_delay 3"
 
-/usr/bin/openmsx -command "${INIT_CMD}" ${MACHINE_ARG} ${MEDIA} "${ROMFILE}"
+/usr/bin/openmsx \
+  -command "${INIT_CMD}" \
+  ${MACHINE_ARG} \
+  ${MEDIA} \
+  "${ROMFILE}"
 
 killall -9 gptokeyb 2>/dev/null
+killall -CONT emulationstation 2>/dev/null
+killall -CONT es 2>/dev/null
+fbfix $(emuelec-utils getmainfb) 2>/dev/null
 rm -rf /tmp/openmsx_* 2>/dev/null
