@@ -82,7 +82,7 @@ esac
   INIT_CMD="set fullscreen on" || \
   INIT_CMD="set fullscreen on"
 
-/emuelec/bin/openmsx \
+/usr/bin/openmsx \
   -command "${INIT_CMD}" \
   ${MACHINE_ARG} \
   ${MEDIA} \
