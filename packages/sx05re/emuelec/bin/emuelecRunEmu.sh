@@ -289,7 +289,7 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
                 fi
                 ;;	
-		"msx"|"msx2"|"msxturbor")
+		"msx"|"msx2"|"msx2+"|"msxturbor")
 				if [ "${EMU}" = "openmsx" ]; then
 				set_kill_keys "openmsx"
 				RUNTHIS='${TBASH} startopenmsx.sh "${ROMNAME}"'

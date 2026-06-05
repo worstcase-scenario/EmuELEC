@@ -1342,6 +1342,49 @@
         }
       ]
     },
+	 {
+      "name": "msx2+",
+      "fullname": "MSX2+",
+      "manufacturer": "Microsoft",
+      "release": "1988",
+      "hardware": "computer",
+      "path": "/storage/roms/msx2+",
+      "platform": "msx2+",
+      "theme": "msx2+",
+      "command": "default",
+      "extensions": [
+        ".7z",
+        ".cas",
+        ".dsk",
+        ".m3u",
+        ".mx1",
+        ".mx2",
+        ".rom",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "openmsx",
+          "cores": [
+            {
+              "name": "openmsx",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "bluemsx"
+            },
+            {
+              "name": "fmsx"
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "msxturbor",
       "fullname": "MSX TURBO R",
