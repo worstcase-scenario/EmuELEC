@@ -274,6 +274,7 @@
 LIBRETRO_CORES="2048 \
 81 \
 a5200 \
+amiarcadia \
 arduous \
 atari800 \
 b2 \
@@ -296,6 +297,7 @@ dosbox-svn \
 easyrpg \
 emuscv \
 ep128emu \
+exa-rs \
 fake_08 \
 fbalpha2012 \
 fbneo \
@@ -331,6 +333,7 @@ mgba \
 minivmac \
 mojozork \
 mrboom \
+mu \
 mupen64plus \
 neocd_libretro \
 nestopia \
@@ -346,6 +349,7 @@ prboom \
 prosystem \
 puae \
 puae2021 \
+pzretro \
 px68k \
 reminiscence \
 sameboy \
@@ -370,6 +374,7 @@ vbam \
 vecx \
 vice \
 vircon32 \
+virtualxt \
 wasm4 \
 yabasanshiro"
 

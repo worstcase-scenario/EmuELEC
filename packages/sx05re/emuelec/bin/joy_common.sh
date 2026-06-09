@@ -26,6 +26,58 @@ GAMEPAD_INFO_ALL="/tmp/jc/gamepad_info.txt"
 CONTROLLERS_PRIORITY_DATA=
 [[ -f "/tmp/controllerconfig.txt" ]] && CONTROLLERS_PRIORITY_DATA=$(cat "/tmp/controllerconfig.txt")
 
+jc_wipe_config_sub_heading() {
+    local config_file="$1"
+    local sub_heading="$2"
+    local tmp_file="$3"
+
+    shift
+    shift
+    shift
+
+    declare -a array_ref=("$@")
+
+    [[ -f "${tmp_file}" ]] && rm "${tmp_file}"
+    local LN=1
+    local START_LN=-1
+    [[ ! -f "${config_file}" ]] && return
+    local REGEX_SUB_HEADING='^\[.+\]$'
+    local SUB_HEADING_ACTIVE=0
+    while read -r line; do
+      if [[ "${line}" =~ $REGEX_SUB_HEADING ]]; then
+        if [[ "${line}" == "${sub_heading}" ]]; then
+          START_LN=${LN}
+          SUB_HEADING_ACTIVE=1
+        else
+          [[ ${START_LN} != -1 ]] && break
+        fi
+      fi
+      LN=$(( LN + 1 ))
+      if [[ "${SUB_HEADING_ACTIVE}" == 1 ]]; then
+        for item in "${array_ref[@]}"; do
+          local rx="^${item}\ *\=.+$"
+          [[ "${line}" =~ ${rx} ]] && echo "${line}" >> ${tmp_file}
+        done
+      fi
+    done < ${config_file}
+    if [[ ${START_LN} != -1 ]]; then
+      sed -i "${START_LN},$(( LN-1 ))d" "${config_file}"
+    fi
+}
+
+jc_set_record() {
+  local FILE=$1
+  local HEADER=$2
+  local KEY=$3
+  local VALUE=$4
+
+  local rec=$( cat "${FILE}" | grep -e "^${KEY} *= *.*$" )
+  if [[ -z "${rec}" ]]; then
+    sed -i "/${HEADER}/a ${KEY} = ${RUMBLE}" "${EMU_FILE}"
+  else
+    sed -i "s/^${KEY} *= *.*$/${KEY} = ${VALUE}/g" "${EMU_FILE}"
+  fi
+}
 
 jc_get_config() {
   local GAMEPAD_DATA=$(cat ${GAMEPAD_INFO_ALL} | grep -E -A6 "^Gamepad ${1}$")
