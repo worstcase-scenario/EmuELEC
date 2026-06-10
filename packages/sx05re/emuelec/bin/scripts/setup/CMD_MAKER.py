@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""EmuELEC MAME .cmd batch generator — direct fbdev renderer, no fbcon dependency."""
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
+# THIS SCRIPT HAS BEEN MADE WITH THE HELP OF CLAUDE.AI
 
 import os, glob, re, shutil, mmap, zlib, base64, json, struct, time, sys
 import xml.etree.ElementTree as ET
@@ -566,13 +566,29 @@ def ask_file_filter(default_exts):
 
 def find_rom_files(rom_dir, exts):
     files = []
+
     try:
-        for name in os.listdir(rom_dir):
-            if not os.path.isfile(os.path.join(rom_dir, name)): continue
-            if exts and os.path.splitext(name)[1].lower() not in exts: continue
-            if name.lower().endswith('.cmd'): continue
-            files.append(name)
-    except: pass
+        for root, dirs, filenames in os.walk(rom_dir):
+            # Ignore hidden directories
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
+
+            for name in filenames:
+                if name.startswith("."):
+                    continue
+
+                if exts and os.path.splitext(name)[1].lower() not in exts:
+                    continue
+
+                if name.lower().endswith(".cmd"):
+                    continue
+
+                # Store the path relative to the selected ROM directory
+                relpath = os.path.relpath(os.path.join(root, name), rom_dir)
+                files.append(relpath)
+
+    except Exception:
+        pass
+
     return sorted(files)
 
 # ---------------------------------------------------------------------------
