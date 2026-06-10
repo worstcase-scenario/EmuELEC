@@ -2,7 +2,7 @@
 # Copyright (C) 2024-present EmuELEC (https://github.com/EmuELEC/EmuELEC)
 
 PKG_NAME="lightspark"
-PKG_VERSION="bb7e6b5dfb777e33e19dbe92f4f10ca3fcf628e9"
+PKG_VERSION="9859895558490c95610be8a10cd5cc49e76b0d1e"
 PKG_ARCH="aarch64"
 PKG_LICENSE="LGPL"
 PKG_SITE="https://github.com/lightspark/lightspark"

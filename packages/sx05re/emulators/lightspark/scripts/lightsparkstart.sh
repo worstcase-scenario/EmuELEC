@@ -14,6 +14,7 @@ export LD_LIBRARY_PATH="${LIGHTSPARK_LIB}:${LD_LIBRARY_PATH}"
 
 # Kill old instances
 killall -9 gptokeyb 2>/dev/null
+killall -9 lightspark 2>/dev/null
 
 # Check for game-specific gptk config
 GPTK_GAME="/storage/.config/emuelec/configs/lightspark/gptk/${ROMBASE}.gptk"
