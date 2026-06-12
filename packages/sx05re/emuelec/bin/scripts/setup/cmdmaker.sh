@@ -8,7 +8,7 @@
 CMD_MAKER_SCRIPT="/usr/bin/scripts/setup/CMD_MAKER.py"
 
 function cmdmaker_confirm() {
-    text_viewer -y -w -t "C M D M A K E R" -f 24 -m "Welcome to the .cmd Maker.\n\nThis script will guide you through creating .cmd files for MAME ROMs.\n\n\nIf you want to use your own system-list, put your listmedia.txt into the /storage/roms folder and it will be selectable.\n\n\nController Navigation:\n\n- D-Pad: Navigate menus with up and down, use left and right button for page down and page up\n\n\n- A/Start: Confirm selection\n- B: Go back\n- Select: Exit program\n\nContinue?"
+    text_viewer -y -w -t "C M D M A K E R" -f 24 -m "Welcome to the .cmd Maker.\n\nThis script will guide you through creating .cmd files for MAME ROMs.\n\n\nIf you want to use your own system-list, put your listmedia.txt into the /storage/roms folder and it will be selectable.\n\n\nController Navigation:\n\n- D-Pad: Navigate menus with up and down, use left and right button for page down and page up\n\n- A/Start: Confirm selection\n- B: Go back\n- Select: Exit program\n\nContinue?"
 
     if [[ $? == 21 ]]; then
         if cmdmaker_start; then
