@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
-# THIS SCRIPT HAS BEEN MADE WITH THE HELP OF CLAUDE.AI
+# MADE WITH THE HELP OF CLAUDE.AI
 
 import os, glob, re, shutil, mmap, zlib, base64, json, struct, time, sys
 import xml.etree.ElementTree as ET
@@ -59,6 +59,7 @@ COL_SEL_FG  = bytes([0x18, 0x18, 0x18, 0xFF])   # dark text on white
 COL_TITLE   = bytes([0x00, 0xD0, 0xD0, 0xFF])   # cyan
 COL_DIM     = bytes([0x80, 0x80, 0x80, 0xFF])   # grey
 COL_BORDER  = bytes([0x40, 0x40, 0x40, 0xFF])   # dark border
+COL_YELLOW  = bytes([0x00, 0xD0, 0xFF, 0xFF])   # yellow (BGRA)
 
 COLS = FB_W // CELL_W   # ~101
 ROWS = FB_H // CELL_H   # ~45
@@ -312,53 +313,80 @@ def draw_screen(title: str, items: List[str], selected: int, offset: int,
         fb_text(COLS - len(sub) - 2, SUBTITLE_ROW, sub, COL_DIM, COL_BG)
     # Separator
     fb_hline(SEP1_ROW)
-    # Info lines (up to 2 lines)
-    if info:
-        lines = info.split('\n')
-        for i, line in enumerate(lines[:2]):
-            fb_text(2, INFO_START + i, line[:COLS-4], COL_TITLE, COL_BG)
+    # Info lines — dynamic height, max half the screen
+    info_lines = info.split('\n') if info else []
+    max_info = (ROWS - 8) // 2  # never use more than half the screen for info
+    info_lines = info_lines[:max_info]
+    for i, line in enumerate(info_lines):
+        # First line cyan, rest white (for cmd content block)
+        col = COL_TITLE if i == 0 else (COL_DIM if not line.strip() else COL_FG)
+        fb_text(2, INFO_START + i, line[:COLS-4], col, COL_BG)
+    # Dynamic list start: below info block
+    list_start = INFO_START + max(len(info_lines), 1) + 1
+    list_rows  = SEP2_ROW - list_start
     # List items
-    end = min(offset + LIST_ROWS, len(items))
+    end = min(offset + list_rows, len(items))
     for i in range(offset, end):
-        row = LIST_START + (i - offset)
+        row = list_start + (i - offset)
         text = items[i]
+        is_confirm = text.startswith('--- ') and text.endswith(' ---')
+        is_sep     = text.startswith('--- ') and not text.endswith(' ---')
         if len(text) > COLS - 4:
             text = text[:COLS - 7] + '...'
-        if i == selected:
+        if is_confirm:
+            # Green separator line above confirm entry
+            if row > list_start:
+                sep_color = bytes([0x00, 0x80, 0x00, 0xFF])
+                fb_rect(0, (row - 1) * CELL_H + CELL_H - 2, FB_W, 2, sep_color)
+            if i == selected:
+                fb_fill_row(row, bytes([0x00, 0x90, 0x00, 0xFF]))
+                fb_text_centered(row, f"> {text} <", bytes([0xE0, 0xFF, 0xE0, 0xFF]), bytes([0x00, 0x90, 0x00, 0xFF]))
+            else:
+                fb_fill_row(row, COL_BG)
+                fb_text_centered(row, text, bytes([0x00, 0xD0, 0x00, 0xFF]), COL_BG)
+        elif is_sep:
+            fb_fill_row(row, COL_BG)
+            fb_text(2, row, text, COL_DIM, COL_BG, COLS - 2)
+        elif i == selected:
             fb_fill_row(row, COL_SEL_BG)
             fb_text(2, row, f"> {text}", COL_SEL_FG, COL_SEL_BG, COLS - 2)
         else:
             fb_text(2, row, f"  {text}", COL_FG, COL_BG, COLS - 2)
     # Scroll indicator
     if end < len(items):
-        fb_text(COLS - 5, LIST_START + LIST_ROWS - 1, " ... ", COL_DIM, COL_BG)
+        fb_text(COLS - 5, list_start + list_rows - 1, " ... ", COL_DIM, COL_BG)
     # Bottom bar
     fb_hline(SEP2_ROW)
     hint = "D-Pad:Navigate  A:Select  B:Back  Select:Quit  L/R:Page"
     fb_text_centered(HINT_ROW, hint, COL_DIM, COL_BG)
     fb_hline(SEP3_ROW)
     fb_flip()
+    return list_rows
 
-def select_from_list(title: str, items: List[str], info: str = "") -> Optional[int]:
+def select_from_list(title: str, items: List[str], info: str = "", initial_selected: int = 0) -> Optional[int]:
     if not items: return None
     total = len(items)
-    selected = 0
+    selected = max(0, min(initial_selected, total - 1))
     offset = 0
+    cur_list_rows = LIST_ROWS  # initial estimate, updated after first draw
     while True:
-        if selected < offset: offset = selected
-        elif selected >= offset + LIST_ROWS: offset = selected - LIST_ROWS + 1
-        offset = max(0, min(offset, max(0, total - LIST_ROWS)))
-        draw_screen(title, items, selected, offset, info, total)
+        # Only adjust offset when selected is out of view — never reset it
+        if selected < offset:
+            offset = selected
+        elif selected >= offset + cur_list_rows:
+            offset = selected - cur_list_rows + 1
+        offset = max(0, offset)
+        cur_list_rows = draw_screen(title, items, selected, offset, info, total)
         key = controller.wait_for_input()
         if key == 'select': raise UserQuit()
         elif key == 'up':
-            if selected > 0: selected -= 1
+            selected = (selected - 1) % total
         elif key == 'down':
-            if selected < total - 1: selected += 1
+            selected = (selected + 1) % total
         elif key == 'left':
-            selected = max(0, selected - LIST_ROWS)
+            selected = max(0, selected - cur_list_rows)
         elif key == 'right':
-            selected = min(total - 1, selected + LIST_ROWS)
+            selected = min(total - 1, selected + cur_list_rows)
         elif key == 'a': return selected
         elif key == 'b': raise GoBack()
 
@@ -528,7 +556,55 @@ def choose_system(systems):
         if idx is None: raise GoBack()
         return all_systems[idx]
 
-def choose_media(entries):
+def detect_media_types(rom_dir, entries):
+    """Scan rom_dir for files and return MediaEntry list that match by extension.
+    Also peeks inside ZIP/7z archives to check contained file extensions."""
+    try:
+        found_exts = set()
+        for name in os.listdir(rom_dir):
+            if name.startswith('.') or name.lower().endswith('.cmd'): continue
+            ext = os.path.splitext(name)[1].lower()
+            if not ext: continue
+            found_exts.add(ext)
+            # Peek inside archives
+            if ext in ('.zip', '.7z'):
+                contents = _archive_contents(os.path.join(rom_dir, name))
+                for inner in contents.split(', '):
+                    inner_ext = os.path.splitext(inner)[1].lower()
+                    if inner_ext: found_exts.add(inner_ext)
+    except Exception:
+        return []
+    matches = []
+    for entry in entries:
+        entry_exts = set(e.lower() for e in entry.exts)
+        if entry_exts & found_exts:
+            matches.append(entry)
+    return matches
+
+def choose_media(entries, rom_dir=None):
+    """Choose media type, with optional auto-detect from rom_dir."""
+    # Auto-detect if rom_dir provided
+    if rom_dir:
+        matches = detect_media_types(rom_dir, entries)
+        if len(matches) == 1:
+            m = matches[0]
+            if confirm_dialog(
+                "Media Type Detected",
+                f"Scanned: {rom_dir}\n\nDetected media type:\n{m.media_name} ({m.brief})\n{' '.join(m.exts[:5])}\n\nUse this?",
+                True
+            ):
+                return m
+        elif len(matches) > 1:
+            auto_options = [f"{e.media_name} ({e.brief}) {' '.join(e.exts[:3])}" for e in matches]
+            auto_options.append('[ Show all media types ]')
+            dir_short = rom_dir if len(rom_dir) <= COLS - 10 else '...' + rom_dir[-(COLS - 13):]
+            info = f"Scanned: {dir_short}\nFound {len(matches)} matching type(s) — select one or show all."
+            idx = select_from_list("Detected Media Types", auto_options, info)
+            if idx is None: raise GoBack()
+            if idx < len(matches):
+                return matches[idx]
+            # Fall through to full list
+    # Full manual list
     options = [f"{e.media_name} ({e.brief}) {' '.join(e.exts[:3])}" for e in entries]
     idx = select_from_list("Select Media Type", options)
     if idx is None: raise GoBack()
@@ -538,14 +614,49 @@ def choose_directory_interactive(prompt, start_dir='/storage/roms'):
     current = os.path.abspath(start_dir)
     while True:
         try:
-            subdirs = sorted(d for d in os.listdir(current) if os.path.isdir(os.path.join(current, d)) and not d.startswith('.'))
-        except: subdirs = []
-        options = ['[Use This Directory]']
-        if current != '/': options.append('[.. Parent Directory]')
-        options.extend(subdirs)
-        idx = select_from_list(prompt, options, f"Current: {current}")
-        if idx is None: raise GoBack()
-        sel = options[idx]
+            entries = os.listdir(current)
+            subdirs = sorted(d for d in entries if os.path.isdir(os.path.join(current, d)) and not d.startswith('.'))
+            files   = sorted(f for f in entries if os.path.isfile(os.path.join(current, f)) and not f.startswith('.') and not f.lower().endswith('.cmd'))
+        except:
+            subdirs = []; files = []
+
+        # Navigable options
+        nav = ['[Use This Directory]']
+        if current != '/': nav.append('[.. Parent Directory]')
+        nav.extend(subdirs)
+
+        # Display list: nav items + separator + file list (non-navigable)
+        display = list(nav)
+        if files:
+            display.append('--- Files in this directory ---')
+            display.extend(f'  {f}' for f in files)
+
+        dir_short = current if len(current) <= COLS - 10 else '...' + current[-(COLS - 13):]
+        info = f"Current: {dir_short}"
+
+        nav_total = len(nav)
+        selected = 0
+        offset = 0
+
+        while True:
+            if selected < offset: offset = selected
+            elif selected >= offset + LIST_ROWS: offset = selected - LIST_ROWS + 1
+            offset = max(0, min(offset, max(0, len(display) - LIST_ROWS)))
+            draw_screen(prompt, display, selected, offset, info, nav_total)
+            key = controller.wait_for_input()
+            if key == 'select': raise UserQuit()
+            elif key == 'up':
+                selected = (selected - 1) % nav_total
+            elif key == 'down':
+                selected = (selected + 1) % nav_total
+            elif key == 'left':
+                selected = max(0, selected - LIST_ROWS)
+            elif key == 'right':
+                selected = min(nav_total - 1, selected + LIST_ROWS)
+            elif key == 'a': break
+            elif key == 'b': raise GoBack()
+
+        sel = nav[selected]
         if sel == '[Use This Directory]': return current
         elif sel == '[.. Parent Directory]':
             parent = os.path.dirname(current)
@@ -555,6 +666,7 @@ def choose_directory_interactive(prompt, start_dir='/storage/roms'):
 def ask_file_filter(default_exts):
     exts = [x.lower() for x in (default_exts or [])]
     if '.zip' not in exts: exts.append('.zip')
+    if '.7z' not in exts: exts.append('.7z')
     if not exts: return []
     ext_str = ' '.join(exts[:8]) + (f' (+{len(exts)-8})' if len(exts) > 8 else '')
     if confirm_dialog("File Filter", f"Filter by these file types?\n\n{ext_str}", True):
@@ -564,32 +676,196 @@ def ask_file_filter(default_exts):
     if choice is None: raise GoBack()
     return [] if choice == 0 else [exts[choice - 1]]
 
-def find_rom_files(rom_dir, exts):
+def find_rom_files(rom_dir, exts, extra_dirs=None):
+    """Find ROM files in rom_dir and optionally in extra_dirs (list of subdir names)."""
     files = []
-
     try:
-        for root, dirs, filenames in os.walk(rom_dir):
-            # Ignore hidden directories
-            dirs[:] = [d for d in dirs if not d.startswith(".")]
-
-            for name in filenames:
-                if name.startswith("."):
-                    continue
-
-                if exts and os.path.splitext(name)[1].lower() not in exts:
-                    continue
-
-                if name.lower().endswith(".cmd"):
-                    continue
-
-                # Store the path relative to the selected ROM directory
-                relpath = os.path.relpath(os.path.join(root, name), rom_dir)
-                files.append(relpath)
-
+        # Files directly in rom_dir
+        for name in sorted(os.listdir(rom_dir)):
+            if name.startswith('.'): continue
+            if not os.path.isfile(os.path.join(rom_dir, name)): continue
+            if name.lower().endswith('.cmd'): continue
+            if exts and os.path.splitext(name)[1].lower() not in exts: continue
+            files.append(name)
+        # Files in selected subdirs (recursive)
+        for subdir in (extra_dirs or []):
+            subpath = os.path.join(rom_dir, subdir)
+            for root, dirs, filenames in os.walk(subpath):
+                dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
+                for name in sorted(filenames):
+                    if name.startswith('.'): continue
+                    if name.lower().endswith('.cmd'): continue
+                    if exts and os.path.splitext(name)[1].lower() not in exts: continue
+                    relpath = os.path.relpath(os.path.join(root, name), rom_dir)
+                    files.append(relpath)
     except Exception:
         pass
+    return files
 
-    return sorted(files)
+def get_subdirs_with_rom_files(rom_dir, exts):
+    """Return sorted list of direct subdirs of rom_dir that contain matching ROM files."""
+    result = []
+    try:
+        for entry in sorted(os.scandir(rom_dir), key=lambda e: e.name):
+            if not entry.is_dir() or entry.name.startswith('.'): continue
+            for root, dirs, filenames in os.walk(entry.path):
+                dirs[:] = [d for d in dirs if not d.startswith('.')]
+                for name in filenames:
+                    if name.startswith('.'): continue
+                    if name.lower().endswith('.cmd'): continue
+                    if exts and os.path.splitext(name)[1].lower() not in exts: continue
+                    result.append(entry.name)
+                    break
+                else: continue
+                break
+    except Exception:
+        pass
+    return result
+
+def ask_subdirs(rom_dir, exts):
+    """Ask user which subdirectories to include. Returns list of subdir names or []."""
+    subdirs = get_subdirs_with_rom_files(rom_dir, exts)
+    if not subdirs:
+        return []
+    # Ask: none / all / pick individually via checkbox list
+    idx = _simple_dialog(
+        "Subdirectories Found",
+        f"{len(subdirs)} subdirectory/ies with matching\nfiles found.\n\nInclude subdirectories?",
+        ["No", "All subdirectories", "Select individually"]
+    )
+    if idx <= 0:
+        return []
+    if idx == 1:
+        return subdirs
+    # idx == 2: checkbox list of all subdirs
+    selected = set(range(len(subdirs)))  # all selected by default
+    cursor = 0
+    while True:
+        labels = []
+        for i, sub in enumerate(subdirs):
+            mark = '[x]' if i in selected else '[ ]'
+            labels.append(f"{mark} {sub}")
+        labels.append('--- CONFIRM SELECTION ---')
+        n_sel = len(selected)
+        choice = select_from_list(
+            f"Select Subdirectories ({n_sel}/{len(subdirs)})",
+            labels,
+            "A:Toggle  Last item:Confirm",
+            initial_selected=cursor
+        )
+        if choice is None:
+            raise GoBack()
+        cursor = choice
+        if choice == len(subdirs):  # CONFIRM
+            break
+        if choice in selected:
+            selected.discard(choice)
+        else:
+            selected.add(choice)
+    return [subdirs[i] for i in sorted(selected)]
+
+def _archive_contents(filepath: str) -> str:
+    """Return a string showing all filenames inside a zip/7z."""
+    ext = os.path.splitext(filepath)[1].lower()
+    try:
+        if ext == '.zip':
+            import zipfile
+            with zipfile.ZipFile(filepath, 'r') as zf:
+                names = sorted(n for n in zf.namelist() if not n.endswith('/'))
+                return ', '.join(os.path.basename(n) for n in names)
+        if ext == '.7z':
+            import subprocess
+            r = subprocess.run(['7z', 'l', '-slt', filepath],
+                               capture_output=True, text=True, timeout=3)
+            if r.returncode == 0:
+                found = []
+                for line in r.stdout.splitlines():
+                    if line.startswith('Path = ') and not line.endswith(os.path.basename(filepath)):
+                        found.append(os.path.basename(line[7:].strip()))
+                return ', '.join(found)
+    except Exception:
+        pass
+    return ''
+
+def ask_file_selection(rom_files: list, rom_dir: str = '') -> list:
+    """Show found files as a checkbox list. All selected by default, A toggles."""
+    if not rom_files:
+        return []
+    # Pre-compute archive contents for display (once)
+    archive_exts = {'.zip', '.7z'}
+    hints = {}
+    for f in rom_files:
+        ext = os.path.splitext(f)[1].lower()
+        if ext in archive_exts:
+            full = os.path.join(rom_dir, f) if rom_dir else f
+            contents = _archive_contents(full)
+            if contents:
+                hints[f] = contents
+
+    selected = set(range(len(rom_files)))  # all selected by default
+    cursor = 0  # persistent cursor position across redraws
+    while True:
+        labels = []
+        index_map = []
+        for i, f in enumerate(rom_files):
+            mark = '[x]' if i in selected else '[ ]'
+            hint = hints.get(f, '')
+            max_w = COLS - 6
+            fname = f if len(f) <= max_w else '...' + f[-(max_w - 3):]
+            if hint:
+                first_line = f"{mark} {fname}"
+                inline = f"{first_line}  [{hint}]"
+                if len(inline) <= COLS - 2:
+                    labels.append(inline)
+                    index_map.append(i)
+                else:
+                    labels.append(first_line)
+                    index_map.append(i)
+                    chunk_w = max_w - 4
+                    hint_str = f"[{hint}]"
+                    while hint_str:
+                        chunk = hint_str[:chunk_w]
+                        if len(hint_str) > chunk_w:
+                            cut = chunk.rfind(', ')
+                            if cut > 0:
+                                chunk = hint_str[:cut + 1]
+                                hint_str = hint_str[cut + 2:]
+                            else:
+                                hint_str = hint_str[chunk_w:]
+                        else:
+                            hint_str = ''
+                        labels.append(f"     {chunk}")
+                        index_map.append(-1)
+            else:
+                labels.append(f"{mark} {fname}")
+                index_map.append(i)
+        labels.append('--- CONFIRM SELECTION ---')
+        index_map.append(-2)
+        n_sel = len(selected)
+        info = f"Found {len(rom_files)} file(s).  Selected: {n_sel}\nA:Toggle  L/R:Page  Last item:Confirm"
+        choice = select_from_list(
+            f"Select Files ({n_sel}/{len(rom_files)})",
+            labels,
+            info,
+            initial_selected=cursor
+        )
+        if choice is None:
+            raise GoBack()
+        cursor = choice  # remember cursor position
+        mapped = index_map[choice]
+        if mapped == -2:  # CONFIRM
+            break
+        if mapped == -1:  # continuation line — toggle parent
+            for j in range(choice - 1, -1, -1):
+                if index_map[j] >= 0:
+                    mapped = index_map[j]
+                    break
+        if mapped >= 0:
+            if mapped in selected:
+                selected.discard(mapped)
+            else:
+                selected.add(mapped)
+    return [rom_files[i] for i in sorted(selected)]
 
 # ---------------------------------------------------------------------------
 # CMD building / writing
@@ -608,17 +884,49 @@ def write_cmd_file(cmd_path, cmd_line):
     with open(cmd_path, 'w', encoding='utf-8') as f:
         f.write(cmd_line + '\n')
 
-def review_cmd(cmd_path, cmd_line, accept_all):
+def show_remaining_files(remaining: list):
+    """Show all remaining files before bulk-creating. Returns True to confirm, False to cancel."""
+    while True:
+        labels = [os.path.basename(f) if len(os.path.basename(f)) <= COLS - 4
+                  else '...' + os.path.basename(f)[-(COLS - 7):]
+                  for f in remaining]
+        labels.append('--- CONFIRM: CREATE ALL ---')
+        info = f"Will create .cmd for {len(remaining)} file(s).\nB:Cancel"
+        idx = select_from_list(
+            f"Create All — {len(remaining)} files",
+            labels,
+            info
+        )
+        if idx is None: return False
+        if idx == len(remaining): return True  # CONFIRM
+
+def review_cmd(cmd_path, cmd_line, accept_all, remaining=None):
     if accept_all: return cmd_line, True, True
-    disp_path = cmd_path if len(cmd_path) <= 65 else '...' + cmd_path[-62:]
-    disp_cmd  = cmd_line if len(cmd_line) <= 68 else cmd_line[:65] + '...'
-    info = f"File: {disp_path}\n\nCommand: {disp_cmd}"
+    # Build info block: path + full cmd content wrapped at COLS-4
+    disp_path = cmd_path if len(cmd_path) <= COLS - 4 else '...' + cmd_path[-(COLS - 7):]
+    # Word-wrap cmd_line at COLS-4
+    max_w = COLS - 4
+    words = cmd_line.split(' ')
+    lines = []; cur = ''
+    for w in words:
+        if cur and len(cur) + 1 + len(w) > max_w:
+            lines.append(cur); cur = w
+        else:
+            cur = (cur + ' ' + w).strip() if cur else w
+    if cur: lines.append(cur)
+    cmd_wrapped = '\n'.join(lines)
+    info = f"Output: {disp_path}\n\n.cmd content:\n{cmd_wrapped}"
     idx = select_from_list("Create .cmd File",
         ["CREATE .CMD FOR THIS ROM", "SKIP THIS ROM",
          "CREATE FOR ALL SELECTED", "BACK"], info)
     if idx is None or idx == 3: raise GoBack()
     if idx == 0: return cmd_line, True, False
-    if idx == 2: return cmd_line, True, True
+    if idx == 2:
+        all_remaining = [cmd_path] + (remaining or [])
+        if show_remaining_files(all_remaining):
+            return cmd_line, True, True
+        else:
+            return None, False, False
     return None, False, False
 
 # ---------------------------------------------------------------------------
@@ -663,20 +971,25 @@ def run_preset_mode(systems):
             system = choose_system(systems)
             media = rom_dir = None; exts = []; rom_files = []; step = 1; continue
         if step == 1:
-            try: media = choose_media(systems[system]); step = 2
+            try: rom_dir = choose_directory_interactive("Select ROM Directory"); step = 2
             except GoBack: step = 0; continue
         if step == 2:
-            try: rom_dir = choose_directory_interactive("Select ROM Directory"); step = 3
+            try: media = choose_media(systems[system], rom_dir=rom_dir); step = 3
             except GoBack: step = 1; continue
         if step == 3:
             try:
                 while True:
                     exts = ask_file_filter(media.exts)
-                    rom_files = find_rom_files(rom_dir, exts)
+                    extra_dirs = ask_subdirs(rom_dir, exts)
+                    rom_files = find_rom_files(rom_dir, exts, extra_dirs=extra_dirs)
                     if rom_files: break
                     action = back_exit_dialog("No Files Found", f"No ROM files found in:\n{rom_dir}")
                     if action == 'exit': raise UserQuit()
-                ok_dialog("Files Found", f"Found {len(rom_files)} ROM file(s)."); step = 4
+                rom_files = ask_file_selection(rom_files, rom_dir)
+                if not rom_files:
+                    ok_dialog("No Files Selected", "No files were selected.")
+                else:
+                    step = 4
             except GoBack: step = 2; continue
         # step 4: process
         template = build_default_template_preset(system, media)
@@ -686,8 +999,10 @@ def run_preset_mode(systems):
             rom_path = os.path.join(rom_dir, name)
             cmd_line = apply_template(template, rom_path)
             cmd_path = os.path.join(rom_dir, os.path.splitext(name)[0] + '.cmd')
+            # remaining = files after current one
+            remaining_paths = [os.path.join(rom_dir, rom_files[j]) for j in range(i + 1, len(rom_files))]
             try:
-                sel_cmd, accepted, accept_all = review_cmd(cmd_path, cmd_line, accept_all)
+                sel_cmd, accepted, accept_all = review_cmd(cmd_path, cmd_line, accept_all, remaining=remaining_paths)
             except GoBack:
                 step = 3; break
             if accepted and sel_cmd:
@@ -716,14 +1031,14 @@ def run_custom_mode(systems):
 
         elif step == 1:
             try:
-                media = choose_media(systems[system])
+                rom_dir = choose_directory_interactive("Select ROM Directory")
                 step = 2
             except GoBack:
                 step = 0
 
         elif step == 2:
             try:
-                rom_dir = choose_directory_interactive("Select ROM Directory")
+                media = choose_media(systems[system], rom_dir=rom_dir)
                 step = 3
             except GoBack:
                 step = 1
@@ -732,14 +1047,19 @@ def run_custom_mode(systems):
             try:
                 while True:
                     exts = ask_file_filter(media.exts)
-                    rom_files = find_rom_files(rom_dir, exts)
+                    extra_dirs = ask_subdirs(rom_dir, exts)
+                    rom_files = find_rom_files(rom_dir, exts, extra_dirs=extra_dirs)
                     if rom_files:
                         break
                     action = back_exit_dialog("No Files Found",
                         f"No ROM files found in:\n{rom_dir}")
                     if action == 'exit':
                         raise UserQuit()
-                step = 4
+                rom_files = ask_file_selection(rom_files, rom_dir)
+                if not rom_files:
+                    ok_dialog("No Files Selected", "No files were selected.")
+                else:
+                    step = 4
             except GoBack:
                 step = 2
 
@@ -757,12 +1077,13 @@ def run_custom_mode(systems):
         elif step == 5:
             accept_all = False; created = []
             go_back = False
-            for name in rom_files:
+            for i, name in enumerate(rom_files):
                 rom_path = os.path.join(rom_dir, name)
                 cmd_line = apply_template(template, rom_path)
                 cmd_path = os.path.join(rom_dir, os.path.splitext(name)[0] + '.cmd')
+                remaining_paths = [os.path.join(rom_dir, rom_files[j]) for j in range(i + 1, len(rom_files))]
                 try:
-                    sel_cmd, accepted, accept_all = review_cmd(cmd_path, cmd_line, accept_all)
+                    sel_cmd, accepted, accept_all = review_cmd(cmd_path, cmd_line, accept_all, remaining=remaining_paths)
                 except GoBack:
                     go_back = True; break
                 if accepted and sel_cmd:
