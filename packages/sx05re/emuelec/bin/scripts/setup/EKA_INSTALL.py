@@ -1,824 +1,1367 @@
 #!/usr/bin/env python3
-"""EmuELEC eka2l1 firmware installer, SIS game installer, device manager, UID launcher creator & gamelist generator (controller UI)."""
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
-# Created with Claude.ai
+# THIS FILE HAS BEEN CREATED BY CLAUDE.AI
 
-import os, glob, sys, time, subprocess, shutil, re, datetime, xml.etree.ElementTree as ET, struct, zipfile
-from typing import List, Optional, Tuple, Dict, Set
+import os, glob, sys, time, subprocess, shutil, re, mmap, zlib, base64, json, select as _select
+from typing import List, Optional, Tuple
 from evdev import InputDevice, list_devices, ecodes as e
 
-# === PATHS ===
-EKA_EXE = "/usr/bin/eka2l1/eka2l1_sdl2"
-EKA_CONFIG = "/storage/.config/eka2l1"
-EKA_BIOS = "/storage/roms/bios/eka2l1"
-EKA_ROMS = "/storage/roms/ngage"
-EKA_LOG = "/emuelec/logs/eka2l1-install.log"
-EKA_YML = os.path.join(EKA_CONFIG, "config.yml")
-MEDIA_IMG = os.path.join(EKA_ROMS, "media", "images")
-MEDIA_VID = os.path.join(EKA_ROMS, "media", "videos")
-IMG_EXTS = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
-VID_EXTS = (".mp4", ".avi", ".mkv", ".mov", ".wmv")
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+EKA_EXE        = "/usr/bin/eka2l1/eka2l1_sdl2"
+EKA_CONFIG     = "/storage/.config/eka2l1"
+EKA_BIOS_DIR   = "/storage/roms/bios/eka2l1"
+EKA_ROMS_DIR   = "/storage/roms/ngage"
+EKA_LOG        = "/emuelec/logs/eka2l1-install.log"
+EKA_CONFIG_YML = os.path.join(EKA_CONFIG, "config.yml")
 
+# ---------------------------------------------------------------------------
+# Exceptions
+# ---------------------------------------------------------------------------
 class UserQuit(Exception): pass
-class GoBack(Exception): pass
+class GoBack(Exception):   pass
 
-controller = None
+def wait_for_controller(preferred_path=None):
+    log("Waiting for controller...")
+    if preferred_path:
+        try:
+            dev = InputDevice(preferred_path)
+            return dev
+        except OSError:
+            pass
+    while True:
+        for path in list_devices():
+            try: dev = InputDevice(path)
+            except OSError: continue
+            caps = dev.capabilities()
+            keys = caps.get(e.EV_KEY, [])
+            abs_caps = caps.get(e.EV_ABS, [])
+            has_face = any(b in keys for b in (e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST))
+            has_dpad = any(b in keys for b in (e.BTN_DPAD_UP, e.BTN_DPAD_DOWN, e.BTN_DPAD_LEFT, e.BTN_DPAD_RIGHT))
+            has_hat  = any(a in abs_caps for a in (e.ABS_HAT0X, e.ABS_HAT0Y))
+            if has_face or has_dpad or has_hat:
+                return dev
+        time.sleep(1.0)
+
+# Keys that auto-repeat when held
+_REPEAT_KEYS   = {'left', 'right', 'up', 'down'}
+_REPEAT_DELAY  = 0.4   # seconds before repeat starts
+_REPEAT_RATE   = 0.08  # seconds between repeats
+
+def _map_event(event, last_hat_x, last_hat_y):
+    """Map a single evdev event to an action string, or None."""
+    if event.type == e.EV_KEY and event.value == 1:
+        code = event.code
+        if code == e.BTN_DPAD_UP:    return 'up',   last_hat_x, last_hat_y
+        if code == e.BTN_DPAD_DOWN:  return 'down', last_hat_x, last_hat_y
+        if code == e.BTN_DPAD_LEFT:  return 'left', last_hat_x, last_hat_y
+        if code == e.BTN_DPAD_RIGHT: return 'right',last_hat_x, last_hat_y
+        if code in (e.BTN_SOUTH, e.BTN_START): return 'a', last_hat_x, last_hat_y
+        if code == e.BTN_EAST:   return 'b',      last_hat_x, last_hat_y
+        if code == e.BTN_NORTH:  return 'y',      last_hat_x, last_hat_y
+        if code == e.BTN_WEST:   return 'x',      last_hat_x, last_hat_y
+        if code == e.BTN_TL:     return 'l1',     last_hat_x, last_hat_y
+        if code == e.BTN_TR:     return 'r1',     last_hat_x, last_hat_y
+        if code in (e.BTN_SELECT, e.BTN_MODE): return 'select', last_hat_x, last_hat_y
+        if code == e.KEY_UP:    return 'up',    last_hat_x, last_hat_y
+        if code == e.KEY_DOWN:  return 'down',  last_hat_x, last_hat_y
+        if code == e.KEY_LEFT:  return 'left',  last_hat_x, last_hat_y
+        if code == e.KEY_RIGHT: return 'right', last_hat_x, last_hat_y
+        if code == e.KEY_ENTER: return 'a',     last_hat_x, last_hat_y
+        if code in (e.KEY_ESC, e.KEY_BACKSPACE): return 'b', last_hat_x, last_hat_y
+    if event.type == e.EV_ABS:
+        if event.code == e.ABS_HAT0Y:
+            if event.value < 0 and last_hat_y >= 0:
+                return 'up',   last_hat_x, event.value
+            if event.value > 0 and last_hat_y <= 0:
+                return 'down', last_hat_x, event.value
+            return None, last_hat_x, 0
+        if event.code == e.ABS_HAT0X:
+            if event.value < 0 and last_hat_x >= 0:
+                return 'left',  event.value, last_hat_y
+            if event.value > 0 and last_hat_x <= 0:
+                return 'right', event.value, last_hat_y
+            return None, 0, last_hat_y
+    return None, last_hat_x, last_hat_y
 
 class ControllerInput:
-    def __init__(self, pref: Optional[str] = None):
-        self.dev = self._wait(pref)
-        self.path = getattr(self.dev, "path", pref)
-        self.hat = [0, 0]
+    def __init__(self, preferred_path=None):
+        self.dev         = wait_for_controller(preferred_path)
+        self.last_hat_x  = 0
+        self.last_hat_y  = 0
+        self._held       = None   # currently held repeatable key
+        self._held_since = 0.0
+        self._next_rep   = 0.0
 
-    def _wait(self, pref: Optional[str]) -> InputDevice:
-        print("\nWaiting for controller...", flush=True)
-        if pref:
-            try: return InputDevice(pref)
-            except OSError: pass
+    def wait_for_input(self) -> str:
+        import select as _select
+        fd = self.dev.fd
         while True:
-            for p in list_devices():
-                try:
-                    dev = InputDevice(p)
-                    caps = dev.capabilities()
-                    keys = caps.get(e.EV_KEY, [])
-                    absv = caps.get(e.EV_ABS, [])
-                    if any(b in keys for b in (e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST, e.BTN_DPAD_UP, e.BTN_DPAD_DOWN, e.BTN_DPAD_LEFT, e.BTN_DPAD_RIGHT)) or any(a in absv for a in (e.ABS_HAT0X, e.ABS_HAT0Y)):
-                        print(f"Controller: {dev.name}", flush=True)
-                        return dev
-                except OSError: continue
-            time.sleep(1)
+            now = time.monotonic()
+            # If a repeatable key is held, compute how long to wait
+            if self._held:
+                wait = max(0.0, self._next_rep - now)
+            else:
+                wait = 5.0  # no key held — block until event
 
-    def reconnect(self):
-        old = self.path
-        self.close()
-        self.hat = [0, 0]
-        print("\nController disconnected. Reconnecting...", flush=True)
-        self.dev = self._wait(old)
-        self.path = getattr(self.dev, "path", old)
+            ready = _select.select([fd], [], [], wait)[0]
 
-    def read(self) -> str:
-        while True:
-            try:
-                for ev in self.dev.read_loop():
-                    if ev.type == e.EV_KEY and ev.value == 1:
-                        c = ev.code
-                        if c in (e.BTN_DPAD_UP, e.KEY_UP): return 'up'
-                        if c in (e.BTN_DPAD_DOWN, e.KEY_DOWN): return 'down'
-                        if c in (e.BTN_DPAD_LEFT, e.KEY_LEFT): return 'left'
-                        if c in (e.BTN_DPAD_RIGHT, e.KEY_RIGHT): return 'right'
-                        if c in (e.BTN_SOUTH, e.BTN_START, e.KEY_ENTER): return 'a'
-                        if c in (e.BTN_EAST, e.KEY_ESC, e.KEY_BACKSPACE): return 'b'
-                        if c == e.BTN_NORTH: return 'y'
-                        if c == e.BTN_WEST: return 'x'
-                        if c in (e.BTN_SELECT, e.BTN_MODE): return 'select'
-                    if ev.type == e.EV_ABS:
-                        if ev.code == e.ABS_HAT0Y:
-                            v = ev.value
-                            if v < 0 and self.hat[1] >= 0: self.hat[1] = v; return 'up'
-                            if v > 0 and self.hat[1] <= 0: self.hat[1] = v; return 'down'
-                            if v == 0: self.hat[1] = 0
-                        if ev.code == e.ABS_HAT0X:
-                            v = ev.value
-                            if v < 0 and self.hat[0] >= 0: self.hat[0] = v; return 'left'
-                            if v > 0 and self.hat[0] <= 0: self.hat[0] = v; return 'right'
-                            if v == 0: self.hat[0] = 0
-            except OSError as ex:
-                if getattr(ex, "errno", None) == 19:
-                    self.reconnect()
-                    continue
-                raise
+            if ready:
+                # Drain all pending events
+                action = None
+                for event in self.dev.read():
+                    # Track key releases to cancel repeat
+                    if event.type == e.EV_KEY and event.value == 0:
+                        code = event.code
+                        released = None
+                        if code in (e.BTN_DPAD_LEFT, e.KEY_LEFT):   released = 'left'
+                        elif code in (e.BTN_DPAD_RIGHT, e.KEY_RIGHT): released = 'right'
+                        elif code in (e.BTN_DPAD_UP, e.KEY_UP):       released = 'up'
+                        elif code in (e.BTN_DPAD_DOWN, e.KEY_DOWN):   released = 'down'
+                        if released and released == self._held:
+                            self._held = None
+                    # Hat axis release
+                    if event.type == e.EV_ABS:
+                        if event.code == e.ABS_HAT0Y and event.value == 0:
+                            self.last_hat_y = 0
+                            if self._held in ('up', 'down'): self._held = None
+                        if event.code == e.ABS_HAT0X and event.value == 0:
+                            self.last_hat_x = 0
+                            if self._held in ('left', 'right'): self._held = None
+                    mapped, self.last_hat_x, self.last_hat_y = _map_event(
+                        event, self.last_hat_x, self.last_hat_y)
+                    if mapped:
+                        action = mapped
+                        if mapped in _REPEAT_KEYS:
+                            self._held      = mapped
+                            self._held_since = time.monotonic()
+                            self._next_rep   = self._held_since + _REPEAT_DELAY
+                        else:
+                            self._held = None
+                if action:
+                    return action
+            else:
+                # Timeout — fire repeat if key still held
+                if self._held:
+                    now = time.monotonic()
+                    if now >= self._next_rep:
+                        self._next_rep = now + _REPEAT_RATE
+                        return self._held
 
     def close(self):
         try: self.dev.close()
         except: pass
 
-def init_controller(p: Optional[str] = None):
+controller = None
+def init_controller(preferred_path=None):
     global controller
-    controller = ControllerInput(p)
+    controller = ControllerInput(preferred_path)
 
-def unblank():
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Embedded font (DejaVuSansMono 28pt, CELL 19x24, base64+zlib+json)
+# ---------------------------------------------------------------------------
+_FONT_B64 = "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"
+
+def _load_font():
+    raw = zlib.decompress(base64.b64decode(_FONT_B64))
+    data = json.loads(raw)
+    cw, ch = data['cell_w'], data['cell_h']
+    glyphs = {int(k): bytes(v) for k, v in data['glyphs'].items()}
+    return cw, ch, glyphs
+
+CELL_W, CELL_H, GLYPHS = _load_font()  # 19x37 for size=28
+
+# Glyph render cache: (char_code, fg_bytes, bg_bytes) -> rendered bytes (CELL_H*CELL_W*4)
+_GLYPH_CACHE: dict = {}
+_GLYPH_ROW   = CELL_W * 4
+
+def _prerender(ch: int, fg: bytes, bg: bytes) -> bytes:
+    key = (ch, fg, bg)
+    cached = _GLYPH_CACHE.get(key)
+    if cached: return cached
+    glyph = GLYPHS.get(ch, GLYPHS[32])
+    buf = bytearray(CELL_H * _GLYPH_ROW)
+    for row_i in range(CELL_H):
+        base = row_i * _GLYPH_ROW
+        row_base = row_i * CELL_W
+        for col_i in range(CELL_W):
+            p = base + col_i * 4
+            buf[p:p+4] = fg if glyph[row_base + col_i] > 128 else bg
+    result = bytes(buf)
+    _GLYPH_CACHE[key] = result
+    return result
+
+# ---------------------------------------------------------------------------
+# Framebuffer renderer
+# ---------------------------------------------------------------------------
+FB_DEV    = '/dev/fb0'
+FB_W      = 1920
+FB_H      = 1080
+FB_BPP    = 4          # BGRA32
+FB_STRIDE = FB_W * FB_BPP
+
+# Colour palette (BGRA bytes)
+COL_BG      = bytes([0x18, 0x18, 0x18, 0xFF])   # dark grey
+COL_FG      = bytes([0xFF, 0xFF, 0xFF, 0xFF])   # white
+COL_SEL_BG  = bytes([0xFF, 0xFF, 0xFF, 0xFF])   # white background for selection
+COL_SEL_FG  = bytes([0x18, 0x18, 0x18, 0xFF])   # dark text on white
+COL_TITLE   = bytes([0x00, 0xD0, 0xD0, 0xFF])   # cyan
+COL_DIM     = bytes([0x80, 0x80, 0x80, 0xFF])   # grey
+COL_BORDER  = bytes([0x40, 0x40, 0x40, 0xFF])   # dark border
+COL_YELLOW  = bytes([0x00, 0xD0, 0xFF, 0xFF])   # yellow (BGRA)
+
+COLS = FB_W // CELL_W   # ~101
+ROWS = FB_H // CELL_H   # ~45
+
+_fb_file = None
+_fb_map  = None
+_bb      = None   # back-buffer (bytearray)
+_bb_mv   = None   # memoryview into _bb for fast row writes
+
+def fb_open():
+    global _fb_file, _fb_map, _bb, _bb_mv
+    _fb_file = open(FB_DEV, 'rb+')
+    _fb_map  = mmap.mmap(_fb_file.fileno(), FB_W * FB_H * FB_BPP)
+    _bb      = bytearray(FB_W * FB_H * FB_BPP)
+    _bb_mv   = memoryview(_bb)
+
+def fb_close():
+    if _fb_map:  _fb_map.close()
+    if _fb_file: _fb_file.close()
+
+def unblank_framebuffer():
     for p in ("/sys/class/graphics/fb0/blank", "/sys/class/graphics/fb1/blank"):
         try:
             with open(p, "w") as f: f.write("0")
-        except: pass
+        except Exception: pass
 
-def cls():
-    unblank()
-    print("\033[2J\033[H", end='', flush=True)
+def progress_screen(title: str, message: str = ""):
+    """Show a status screen during long operations."""
+    fb_fill(COL_BG)
+    fb_fill_row(TITLE_ROW, COL_SEL_BG)
+    fb_text_centered(TITLE_ROW, f"  {title}  ", COL_SEL_FG, COL_SEL_BG)
+    fb_hline(SEP1_ROW)
+    if message:
+        for i, line in enumerate(message.split('\n')[:ROWS - 8]):
+            fb_text(2, INFO_START + i, line[:COLS - 4], COL_FG, COL_BG)
+    fb_text_centered(ROWS - 2, "Please wait...", COL_DIM, COL_BG)
+    fb_flip()
 
-MENU_WIDTH = 100
+def fb_flip():
+    """Blit back-buffer to framebuffer in one write — eliminates flicker."""
+    _fb_map[0:FB_W * FB_H * FB_BPP] = _bb
 
-def _fit(line: str, width: int) -> str:
-    return line[:width].ljust(width)
+def fb_fill(color: bytes):
+    """Fill back-buffer with one colour."""
+    row = color * FB_W
+    for y in range(FB_H):
+        off = y * FB_STRIDE
+        _bb[off:off + FB_STRIDE] = row
 
-def _frame(text: str, char: str = "-", width: int = MENU_WIDTH) -> int:
-    print(char * width)
-    print(text[:width].center(width))
-    print(char * width)
-    return width
+def fb_rect(x: int, y: int, w: int, h: int, color: bytes):
+    row = color * w
+    x_off = x * FB_BPP
+    row_bytes = w * FB_BPP
+    for row_y in range(y, min(y + h, FB_H)):
+        off = row_y * FB_STRIDE + x_off
+        _bb[off:off + row_bytes] = row
 
-def menu(title: str, opts: List[str], sel: int = 0, info: str = "", off: int = 0, vis: int = 20, checks: Optional[Set[int]] = None):
-    cls()
-    width = MENU_WIDTH
+def fb_char(cx: int, cy: int, ch: int, fg: bytes, bg: bytes):
+    """Draw one character cell — uses pre-rendered cache + memoryview slices."""
+    rendered = _prerender(ch, fg, bg)
+    src = memoryview(rendered)
+    base = cy * FB_STRIDE + cx * FB_BPP
+    for row_i in range(CELL_H):
+        dst = base + row_i * FB_STRIDE
+        _bb_mv[dst:dst + _GLYPH_ROW] = src[row_i * _GLYPH_ROW:(row_i + 1) * _GLYPH_ROW]
 
-    _frame(f"E K A 2 L 1   C O M M A N D E R  -  {title}", "=", width)
+def fb_text(col: int, row: int, text: str, fg: bytes, bg: bytes, max_cols: int = 0):
+    """Draw text at grid position (col, row) into back-buffer."""
+    if max_cols > 0:
+        text = text[:max_cols]
+    x = col * CELL_W
+    y = row * CELL_H
+    for i, ch in enumerate(text):
+        if col + i >= COLS:
+            break
+        fb_char(x + i * CELL_W, y, ord(ch), fg, bg)
 
-    if info:
-        for line in info.split('\n'):
-            if len(line) > width:
-                line = line[:width-3] + "..."
-            print(_fit(line, width))
-        print()
+def fb_text_centered(row: int, text: str, fg: bytes, bg: bytes, fill_row: bool = False):
+    if fill_row:
+        fb_rect(0, row * CELL_H, FB_W, CELL_H, bg)
+    col = max(0, (COLS - len(text)) // 2)
+    fb_text(col, row, text, fg, bg)
 
-    end = min(off + vis, len(opts))
-    for i in range(off, end):
-        marker = "  > " if i == sel else "    "
-        mark = f"{'[x]' if i in checks else '[ ]'} " if checks is not None else ""
-        line = marker + mark + opts[i]
-        if len(line) > width:
-            line = line[:width-3] + "..."
-        print(_fit(line, width))
+def fb_fill_row(row: int, color: bytes):
+    fb_rect(0, row * CELL_H, FB_W, CELL_H, color)
 
-    if end < len(opts):
-        print(_fit("    ...", width))
+def fb_hline(row: int, char: str = '─'):
+    fb_text(0, row, char * COLS, COL_BORDER, COL_BG)
 
-    footer = "D-Pad: Navigate | A: Select | B: Back | Select: Quit" if checks is None else \
-             "D-Pad: Navigate | A: Toggle | X: Toggle All | Y: Confirm | B: Back | Select: Quit"
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# UI rendering
+# ---------------------------------------------------------------------------
+TITLE_ROW    = 0
+SUBTITLE_ROW = 1
+SEP1_ROW     = 2
+INFO_START   = 3
+LIST_START   = 5
+LIST_ROWS    = ROWS - LIST_START - 3   # visible list items
+SEP2_ROW     = ROWS - 3
+HINT_ROW     = ROWS - 2
+SEP3_ROW     = ROWS - 1
 
-    _frame(footer, "-", width)
-    sys.stdout.flush()
+def draw_screen(title: str, items: List[str], selected: int, offset: int,
+                info: str = "", total: int = 0):
+    fb_fill(COL_BG)
+    # Title bar
+    fb_fill_row(TITLE_ROW, COL_SEL_BG)
+    fb_text_centered(TITLE_ROW, f"  {title}  ", COL_SEL_FG, COL_SEL_BG)
+    # Subtitle / counter
+    if total > 0:
+        sub = f"{selected+1}/{total}"
+        fb_text(COLS - len(sub) - 2, SUBTITLE_ROW, sub, COL_DIM, COL_BG)
+    # Separator
+    fb_hline(SEP1_ROW)
+    # Info lines — dynamic height, max half the screen
+    info_lines = info.split('\n') if info else []
+    max_info = (ROWS - 8) // 2  # never use more than half the screen for info
+    info_lines = info_lines[:max_info]
+    for i, line in enumerate(info_lines):
+        # First line cyan, rest white (for cmd content block)
+        col = COL_TITLE if i == 0 else (COL_DIM if not line.strip() else COL_FG)
+        fb_text(2, INFO_START + i, line[:COLS-4], col, COL_BG)
+    # Dynamic list start: below info block
+    list_start = INFO_START + max(len(info_lines), 1) + 1
+    list_rows  = SEP2_ROW - list_start
+    # List items
+    end = min(offset + list_rows, len(items))
+    for i in range(offset, end):
+        row = list_start + (i - offset)
+        text = items[i]
+        is_confirm = text.startswith('--- ') and text.endswith(' ---')
+        is_sep     = text.startswith('--- ') and not text.endswith(' ---')
+        if len(text) > COLS - 4:
+            text = text[:COLS - 7] + '...'
+        if is_confirm:
+            # Green separator line above confirm entry
+            if row > list_start:
+                sep_color = bytes([0x00, 0x80, 0x00, 0xFF])
+                fb_rect(0, (row - 1) * CELL_H + CELL_H - 2, FB_W, 2, sep_color)
+            if i == selected:
+                fb_fill_row(row, bytes([0x00, 0x90, 0x00, 0xFF]))
+                fb_text_centered(row, f"> {text} <", bytes([0xE0, 0xFF, 0xE0, 0xFF]), bytes([0x00, 0x90, 0x00, 0xFF]))
+            else:
+                fb_fill_row(row, COL_BG)
+                fb_text_centered(row, text, bytes([0x00, 0xD0, 0x00, 0xFF]), COL_BG)
+        elif is_sep:
+            fb_fill_row(row, COL_BG)
+            fb_text(2, row, text, COL_DIM, COL_BG, COLS - 2)
+        elif i == selected:
+            fb_fill_row(row, COL_SEL_BG)
+            fb_text(2, row, f"> {text}", COL_SEL_FG, COL_SEL_BG, COLS - 2)
+        else:
+            fb_text(2, row, f"  {text}", COL_FG, COL_BG, COLS - 2)
+    # Scroll indicator
+    if end < len(items):
+        fb_text(COLS - 5, list_start + list_rows - 1, " ... ", COL_DIM, COL_BG)
+    # Bottom bar
+    fb_hline(SEP2_ROW)
+    hint = "D-Pad:Navigate  A:Select  B:Back  Select:Quit  L/R:Page"
+    fb_text_centered(HINT_ROW, hint, COL_DIM, COL_BG)
+    fb_hline(SEP3_ROW)
+    fb_flip()
+    return list_rows
 
-def select(title: str, items: List[str], info: str = "", vis: int = 20) -> Optional[int]:
+def select_from_list(title: str, items: List[str], info: str = "", initial_selected: int = 0) -> Optional[int]:
     if not items: return None
-    sel, off, tot = 0, 0, len(items)
+    total = len(items)
+    selected = max(0, min(initial_selected, total - 1))
+    offset = 0
+    cur_list_rows = LIST_ROWS  # initial estimate, updated after first draw
     while True:
-        off = max(0, min(max(0, tot - vis), sel - vis + 1 if sel >= off + vis else sel if sel < off else off))
-        menu(title, items, sel, info, off, vis)
-        k = controller.read()
-        if k == 'select': raise UserQuit()
-        elif k == 'up': sel = max(0, sel - 1)
-        elif k == 'down': sel = min(tot - 1, sel + 1)
-        elif k == 'left': sel = max(0, sel - vis)
-        elif k == 'right': sel = min(tot - 1, sel + vis)
-        elif k == 'a': return sel
-        elif k == 'b': raise GoBack()
+        # Only adjust offset when selected is out of view — never reset it
+        if selected < offset:
+            offset = selected
+        elif selected >= offset + cur_list_rows:
+            offset = selected - cur_list_rows + 1
+        offset = max(0, offset)
+        cur_list_rows = draw_screen(title, items, selected, offset, info, total)
+        key = controller.wait_for_input()
+        if key == 'select': raise UserQuit()
+        elif key == 'up':
+            selected = (selected - 1) % total
+        elif key == 'down':
+            selected = (selected + 1) % total
+        elif key == 'left':
+            selected = max(0, selected - cur_list_rows)
+        elif key == 'right':
+            selected = min(total - 1, selected + cur_list_rows)
+        elif key == 'a': return selected
+        elif key == 'b': raise GoBack()
 
-def ok(title: str, msg: str) -> None:
+def _simple_dialog(title: str, message: str, options: List[str], selected_init: int = 0) -> int:
+    selected = selected_init
     while True:
-        menu(title, ["OK"], 0, msg)
-        k = controller.read()
-        if k == 'select': raise UserQuit()
-        if k in ('a', 'b'): return
+        fb_fill(COL_BG)
+        fb_fill_row(TITLE_ROW, COL_SEL_BG)
+        fb_text_centered(TITLE_ROW, f"  {title}  ", COL_SEL_FG, COL_SEL_BG)
+        fb_hline(SEP1_ROW)
+        # Message
+        lines = message.split('\n')
+        for i, line in enumerate(lines[:ROWS - 10]):
+            fb_text(2, 3 + i, line[:COLS - 4], COL_FG, COL_BG)
+        # Options
+        opt_row = 3 + len(lines) + 2
+        for i, opt in enumerate(options):
+            if i == selected:
+                fb_fill_row(opt_row + i, COL_SEL_BG)
+                fb_text_centered(opt_row + i, f"> {opt} <", COL_SEL_FG, COL_SEL_BG)
+            else:
+                fb_text_centered(opt_row + i, f"  {opt}  ", COL_FG, COL_BG)
+        fb_hline(SEP2_ROW)
+        fb_text_centered(HINT_ROW, "D-Pad:Navigate  A:Confirm  B:Back", COL_DIM, COL_BG)
+        fb_flip()
+        key = controller.wait_for_input()
+        if key == 'select': raise UserQuit()
+        elif key in ('up', 'down'): selected = 1 - selected if len(options) == 2 else (selected - 1 if key == 'up' else selected + 1) % len(options)
+        elif key == 'a': return selected
+        elif key == 'b': return -1
 
-def confirm(title: str, msg: str, yes: bool = True) -> bool:
-    opts, sel = ["Yes", "No"], 0 if yes else 1
+def confirm_dialog(title: str, message: str, default_yes: bool = True) -> bool:
+    sel = _simple_dialog(title, message, ["Yes", "No"], 0 if default_yes else 1)
+    return sel == 0
+
+def ok_dialog(title: str, message: str):
+    _simple_dialog(title, message, ["OK"], 0)
+
+def back_exit_dialog(title: str, message: str) -> str:
+    sel = _simple_dialog(title, message, ["BACK", "EXIT"], 0)
+    if sel == 1: return "exit"
+    return "back"
+
+# ---------------------------------------------------------------------------
+# Command line editor (fbdev version)
+# ---------------------------------------------------------------------------
+def select_multiple_from_list(title: str, items: List[str], info: str = "") -> Optional[List[int]]:
+    """Checkbox list — A toggles, last item confirms."""
+    if not items:
+        return []
+    checked = set(range(len(items)))
+    cursor = 0
     while True:
-        menu(title, opts, sel, msg)
-        k = controller.read()
-        if k == 'select': raise UserQuit()
-        elif k in ('up', 'down'): sel = 1 - sel
-        elif k == 'a': return sel == 0
-        elif k == 'b': return False
+        labels = [f"{'[x]' if i in checked else '[ ]'} {items[i]}" for i in range(len(items))]
+        labels.append('--- CONFIRM SELECTION ---')
+        n_chk = len(checked)
+        full_info = info + f"\nSelected: {n_chk}/{len(items)}  A:Toggle  Last item:Confirm"
+        choice = select_from_list(title, labels, full_info, initial_selected=cursor)
+        if choice is None:
+            raise GoBack()
+        cursor = choice
+        if choice == len(items):
+            return sorted(checked)
+        if choice in checked:
+            checked.discard(choice)
+        else:
+            checked.add(choice)
 
-def multi_select(title: str, items: List[str], info: str = "", vis: int = 16) -> Optional[List[int]]:
-    if not items: return []
-    sel, off, tot, chk = 0, 0, len(items), set()
-    while True:
-        off = max(0, min(max(0, tot - vis), sel - vis + 1 if sel >= off + vis else sel if sel < off else off))
-        menu(title, items, sel, info, off, vis, chk)
-        k = controller.read()
-        if k == 'select': raise UserQuit()
-        elif k == 'up': sel = max(0, sel - 1)
-        elif k == 'down': sel = min(tot - 1, sel + 1)
-        elif k == 'left': sel = max(0, sel - vis)
-        elif k == 'right': sel = min(tot - 1, sel + vis)
-        elif k == 'a': chk.discard(sel) if sel in chk else chk.add(sel)
-        elif k == 'x': chk.clear() if len(chk) == tot else chk.update(range(tot))
-        elif k == 'y': return sorted(chk)
-        elif k == 'b': raise GoBack()
-
-def browse(prompt: str, start: str, exts: Optional[List[str]] = None) -> str:
-    cur = os.path.abspath(start)
+def choose_directory_interactive(prompt, start_dir='/storage/roms'):
+    current = os.path.abspath(start_dir)
     while True:
         try:
-            dirs = sorted(d for d in os.listdir(cur) if os.path.isdir(os.path.join(cur, d)) and not d.startswith('.'))
-        except: dirs = []
-        opts = []
-        if exts is None:
-            opts.append("[Use This Directory]")
-        else:
-            has = any(f.lower().endswith(tuple(exts)) for f in os.listdir(cur) if os.path.isfile(os.path.join(cur, f)))
-            if has:
-                opts.append(f"[Use This Directory]  ({'/'.join(e.lstrip('.').upper() for e in exts)} found)")
-        if cur != "/":
-            opts.append("[.. Parent]")
-        opts.extend(dirs)
-        idx = select(prompt, opts, f"Current: {cur}")
-        if idx is None: raise GoBack()
-        sel = opts[idx]
-        if sel.startswith("[Use"):
-            return cur
-        elif sel == "[.. Parent]":
-            parent = os.path.dirname(cur)
-            if parent and parent != cur:
-                cur = parent
-        else:
-            cur = os.path.join(cur, sel)
+            entries = os.listdir(current)
+            subdirs = sorted(d for d in entries if os.path.isdir(os.path.join(current, d)) and not d.startswith('.'))
+            files   = sorted(f for f in entries if os.path.isfile(os.path.join(current, f)) and not f.startswith('.') and not f.lower().endswith('.cmd'))
+        except:
+            subdirs = []; files = []
 
+        # Navigable options
+        nav = ['[Use This Directory]']
+        if current != '/': nav.append('[.. Parent Directory]')
+        nav.extend(subdirs)
+
+        # Display list: nav items + separator + file list (non-navigable)
+        display = list(nav)
+        if files:
+            display.append('--- Files in this directory ---')
+            display.extend(f'  {f}' for f in files)
+
+        dir_short = current if len(current) <= COLS - 10 else '...' + current[-(COLS - 13):]
+        info = f"Current: {dir_short}"
+
+        nav_total = len(nav)
+        selected = 0
+        offset = 0
+
+        while True:
+            if selected < offset: offset = selected
+            elif selected >= offset + LIST_ROWS: offset = selected - LIST_ROWS + 1
+            offset = max(0, min(offset, max(0, len(display) - LIST_ROWS)))
+            draw_screen(prompt, display, selected, offset, info, nav_total)
+            key = controller.wait_for_input()
+            if key == 'select': raise UserQuit()
+            elif key == 'up':
+                selected = (selected - 1) % nav_total
+            elif key == 'down':
+                selected = (selected + 1) % nav_total
+            elif key == 'left':
+                selected = max(0, selected - LIST_ROWS)
+            elif key == 'right':
+                selected = min(nav_total - 1, selected + LIST_ROWS)
+            elif key == 'a': break
+            elif key == 'b': raise GoBack()
+
+        sel = nav[selected]
+        if sel == '[Use This Directory]': return current
+        elif sel == '[.. Parent Directory]':
+            parent = os.path.dirname(current)
+            if parent != current: current = parent
+        else: current = os.path.join(current, sel)
+
+# ---------------------------------------------------------------------------
+# Log / run helper
+# ---------------------------------------------------------------------------
 def log(msg: str):
     try:
         with open(EKA_LOG, "a") as f:
             f.write(msg + "\n")
-    except:
+    except Exception:
         pass
 
+
 def run_eka(args: List[str], timeout: int = 120) -> int:
-    import threading
     cmd = [EKA_EXE] + args
-    log("Run: " + " ".join(cmd))
-    stop = threading.Event()
-
-    spinner = "|/-\\"
-
-    def _spin():
-        i = 0
-        while not stop.wait(2.0):
-            unblank()
-            print(f"\r  {spinner[i % 4]} Working...", end='', flush=True)
-            i += 1
-
-    t = threading.Thread(target=_spin, daemon=True)
-    t.start()
+    log("Running: " + " ".join(cmd))
     try:
-        with open(EKA_LOG, "a") as logf:
-            r = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout, stdout=logf, stderr=logf)
-        return r.returncode
+        result = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout)
+        return result.returncode
     except subprocess.TimeoutExpired:
-        log("Timeout")
-        return 124
+        log("Process timed out")
+        return 0
     except Exception as ex:
-        log(f"Err: {ex}")
+        log(f"Exception: {ex}")
         return 1
-    finally:
-        stop.set()
-        t.join(timeout=3)
-        print("\r" + " " * 20 + "\r", end='', flush=True)
-        
-def run_cap(args: List[str], timeout: int = 120) -> Tuple[int, str]:
+
+
+def run_eka_capture(args: List[str], timeout: int = 120) -> Tuple[int, str]:
     cmd = [EKA_EXE] + args
-    log("Cap: " + " ".join(cmd))
+    log("Running (capture): " + " ".join(cmd))
+
     try:
-        r = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace")
-        out = r.stdout or ""
-        if out: log(out.rstrip())
-        return r.returncode, out
+        result = subprocess.run(
+            cmd,
+            cwd=EKA_CONFIG,
+            timeout=timeout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            errors="replace",
+        )
+        output = result.stdout or ""
+        if output:
+            log(output.rstrip())
+        return result.returncode, output
     except subprocess.TimeoutExpired as ex:
-        out = (ex.stdout or "") if isinstance(ex.stdout, str) else ""
-        if out: log(out.rstrip())
-        log("Timeout")
-        return 124, out  # BUGFIX: Return timeout code
+        output = (ex.stdout or "") if isinstance(ex.stdout, str) else ""
+        if output:
+            log(output.rstrip())
+        log("Process timed out")
+        return 124, output
     except Exception as ex:
-        log(f"Err: {ex}")
+        log(f"Exception: {ex}")
         return 1, ""
 
-def ok_ret(ret: int) -> bool:
-    return ret in (0, -6, -11, 245)
 
-# === DEVICE ===
-def get_dev_idx() -> Optional[int]:
-    if not os.path.exists(EKA_YML): return None
+def eka_success(ret: int) -> bool:
+    """eka2l1 often segfaults (exit -11 / 245) after install - treat as success."""
+    return ret in (0, -11, 245)
+
+# ---------------------------------------------------------------------------
+# Device handling
+# ---------------------------------------------------------------------------
+def parse_listdevices_output(output: str) -> List[Tuple[int, str]]:
+    devices: List[Tuple[int, str]] = []
+    for raw_line in output.splitlines():
+        line = raw_line.strip()
+        match = re.match(r'^(\d+)\s*:\s*(.+)$', line)
+        if match:
+            devices.append((int(match.group(1)), match.group(2).strip()))
+    return devices
+
+
+def get_current_device_index() -> Optional[int]:
+    if not os.path.exists(EKA_CONFIG_YML):
+        return None
+
     try:
-        with open(EKA_YML, "r", encoding="utf-8") as f:
+        with open(EKA_CONFIG_YML, "r", encoding="utf-8") as f:
             for line in f:
-                m = re.match(r'^\s*device\s*:\s*([0-9]+)\s*$', line)
-                if m: return int(m.group(1))
-    except Exception as ex: log(f"cfg read err: {ex}")
+                match = re.match(r'^\s*device\s*:\s*([0-9]+)\s*$', line)
+                if match:
+                    return int(match.group(1))
+    except Exception as ex:
+        log(f"Failed to read config.yml: {ex}")
+
     return None
 
-def get_dev_name() -> Optional[str]:
-    idx = get_dev_idx()
-    if idx is None: return None
-    dy = os.path.join(EKA_CONFIG, "data", "devices.yml")
-    if not os.path.isfile(dy): return None
-    try:
-        with open(dy) as f:
-            i = 0
-            for line in f:
-                s = line.rstrip()
-                if s and not s.startswith(" ") and s.endswith(":"):
-                    if i == idx: return s[:-1]
-                    i += 1
-    except: pass
-    return None
 
-def set_dev_idx(index: int) -> None:
+def set_device_index(index: int) -> None:
     os.makedirs(EKA_CONFIG, exist_ok=True)
-    lines = []
-    if os.path.exists(EKA_YML):
+
+    lines: List[str] = []
+    if os.path.exists(EKA_CONFIG_YML):
         try:
-            with open(EKA_YML, "r", encoding="utf-8") as f: lines = f.readlines()
+            with open(EKA_CONFIG_YML, "r", encoding="utf-8") as f:
+                lines = f.readlines()
         except Exception as ex:
-            log(f"cfg read err: {ex}")
+            log(f"Failed to read existing config.yml: {ex}")
             lines = []
+
     replaced = False
-    new_lines = []
+    new_lines: List[str] = []
+
     for line in lines:
         if re.match(r'^\s*device\s*:\s*[0-9]+\s*$', line):
             new_lines.append(f"device: {index}\n")
             replaced = True
         else:
             new_lines.append(line)
+
     if not replaced:
-        if new_lines and not new_lines[-1].endswith("\n"): new_lines[-1] += "\n"
+        if new_lines and not new_lines[-1].endswith("\n"):
+            new_lines[-1] += "\n"
         new_lines.append(f"device: {index}\n")
-    with open(EKA_YML, "w", encoding="utf-8") as f: f.writelines(new_lines)
-    log(f"Set device: {index}")
 
-def get_valid_devs() -> List[Tuple[int, str]]:
-    z_base = os.path.join(EKA_CONFIG, "data", "drives", "z")
-    if not os.path.isdir(z_base): return []
+    with open(EKA_CONFIG_YML, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+
+    log(f"Set device to {index} in {EKA_CONFIG_YML}")
+
+
+def change_device():
+    progress_screen("Loading Device List", "Querying eka2l1...")
+
+    ret, output = run_eka_capture(["--listdevices"])
+    devices = parse_listdevices_output(output)
+
+    if ret != 0 and not devices:
+        ok_dialog("Error", f"Could not get device list.\n\nSee log: {EKA_LOG}")
+        return
+
+    if not devices:
+        ok_dialog("Error", "No devices found.")
+        return
+
+    current_device = get_current_device_index()
+    options: List[str] = []
+
+    for device_num, device_name in devices:
+        label = f"{device_num} : {device_name}"
+        if current_device is not None and device_num == current_device:
+            label += "  [CURRENT]"
+        options.append(label)
+
+    info = "Select device to write into config.yml"
+
     try:
-        z_dirs = {d.lower(): d for d in os.listdir(z_base) if os.path.isdir(os.path.join(z_base, d))}
-    except Exception as ex: log(f"z read err: {ex}"); return []
-    if not z_dirs: return []
-    devices = []
-    dy = os.path.join(EKA_CONFIG, "data", "devices.yml")
-    if os.path.isfile(dy):
-        try:
-            with open(dy) as f:
-                i = 0
-                for line in f:
-                    s = line.rstrip()
-                    if s and not s.startswith(" ") and s.endswith(":"):
-                        name = s[:-1]
-                        if name.lower() in z_dirs:
-                            devices.append((i, name))
-                            log(f"Valid dev {i}: {name}")
-                        i += 1
-        except Exception as ex: log(f"dev.yml err: {ex}")
-    log(f"Valid devs: {len(devices)}")
-    return devices
+        idx = select_from_list("Change Device", options, info)
+    except GoBack:
+        return
 
-def pick_dev(action: str) -> bool:
-    cls(); print("Loading devices...", flush=True)
-    devs = get_valid_devs()
-    if not devs:
-        ok("Error", f"No devices found.\nInstall firmware first.\n\nLog: {EKA_LOG}")
+    if idx is None:
+        return
+
+    device_num, device_name = devices[idx]
+
+    warning = ""
+    if "Don't Select this Rom" in device_name or "brick EKA2L1" in device_name:
+        warning = "\n\nWARNING:\nThis device is marked as unsafe in EKA2L1."
+
+    if not confirm_dialog(
+        "Confirm Device",
+        f"Set this device?\n\n{device_num} : {device_name}{warning}"
+    ):
+        return
+
+    try:
+        set_device_index(device_num)
+        ok_dialog("Done", f"Device changed successfully.\n\ndevice: {device_num}")
+    except Exception as ex:
+        log(f"Failed to write config.yml: {ex}")
+        ok_dialog("Error", f"Could not write config.yml\n\nSee log: {EKA_LOG}")
+
+# ---------------------------------------------------------------------------
+# Uppercase-to-lowercase converter for device trees
+# ---------------------------------------------------------------------------
+def is_within_path(path: str, base: str) -> bool:
+    try:
+        return os.path.commonpath([os.path.abspath(path), os.path.abspath(base)]) == os.path.abspath(base)
+    except Exception:
         return False
-    cur = get_dev_idx()
-    opts = [f"{n} : {name}{'  [CURRENT]' if cur == n else ''}" for n, name in devs]
-    idx = select("Select Device", opts, f"For: {action}", 16)
-    if idx is None: return False
-    n, name = devs[idx]
-    if not confirm("Confirm", f"Use for: {action}\n\n{n} : {name}"): return False
-    try:
-        set_dev_idx(n)
-        log(f"Set dev {n} for: {action}")
-        return True
-    except Exception as ex:
-        log(f"Set dev err: {ex}")
-        ok("Error", f"Could not set device\n\nLog: {EKA_LOG}")
-        return False
-
-def change_dev():
-    cls(); print("Loading devices...", flush=True)
-    devs = get_valid_devs()
-    if not devs:
-        ok("Error", f"No devices found.\nInstall firmware first.\n\nLog: {EKA_LOG}")
-        return
-    cur = get_dev_idx()
-    opts = [f"{n} : {name}{'  [CURRENT]' if cur == n else ''}" for n, name in devs]
-    idx = select("Change Device", opts, "Select device for config.yml", 16)
-    if idx is None: return
-    n, name = devs[idx]
-    if not confirm("Confirm", f"Set device?\n\n{n} : {name}"): return
-    try:
-        set_dev_idx(n)
-        ok("Done", f"Device changed.\n\ndevice: {n}")
-    except Exception as ex:
-        log(f"cfg write err: {ex}")
-        ok("Error", f"Could not write config.yml\n\nLog: {EKA_LOG}")
-
-# === LOWERCASE ===
-def lower_tree(root: str):
-    root = os.path.abspath(root)
-    final = root
-    def tmp_name(p):
-        b = p + ".__tmp__"
-        i = 1
-        while os.path.exists(b):
-            b = f"{p}.__tmp__{i}"; i += 1
-        return b
-    def ren(src, dst):
-        if src == dst: return src
-        sa, da = os.path.abspath(src), os.path.abspath(dst)
-        if sa.lower() == da.lower():
-            t = tmp_name(sa)
-            os.rename(sa, t)
-            os.rename(t, da)
-            return da
-        if os.path.exists(da): raise FileExistsError(f"Exists: {da}")
-        os.rename(sa, da)
-        return da
-    renamed, errors = [], []
-    for cr, ds, fs in os.walk(root, topdown=False):
-        for n in fs:
-            s, d = os.path.join(cr, n), os.path.join(cr, n.lower())
-            if s != d:
-                try: renamed.append((s, ren(s, d)))
-                except Exception as ex: errors.append(f"File: {s}\n-> {d}\n{ex}"); log(f"ERR file: {s} -> {d}: {ex}")
-        for n in ds:
-            s, d = os.path.join(cr, n), os.path.join(cr, n.lower())
-            if s != d:
-                try: renamed.append((s, ren(s, d)))
-                except Exception as ex: errors.append(f"Dir: {s}\n-> {d}\n{ex}"); log(f"ERR dir: {s} -> {d}: {ex}")
-    p, b = os.path.dirname(root), os.path.basename(root)
-    lb = b.lower()
-    if b != lb:
-        try:
-            final = ren(root, os.path.join(p, lb))
-            renamed.append((root, final))
-        except Exception as ex: errors.append(f"Root: {root}\n-> {os.path.join(p, lb)}\n{ex}"); log(f"ERR root: {root}: {ex}")
-    return renamed, errors, final
-
-def conv_lower():
-    try:
-        td = browse("Lowercase: Select Folder", os.path.join(EKA_CONFIG, "data"))
-    except GoBack: return
-    warn = ""
-    at = os.path.abspath(td)
-    if at == "/": warn = "\n\nWARNING: Will rename from root!"
-    elif at == "/storage": warn = "\n\nWARNING: Will rename all of /storage!"
-    if not confirm("Confirm", f"Lowercase recursively?\n\n{td}{warn}"): return
-    cls(); print("Converting...", flush=True)
-    renamed, errors, final = lower_tree(td)
-    if errors:
-        ok("Result", f"Errors occurred.\n\nRenamed: {len(renamed)}\nErrors: {len(errors)}\n\n" + "\n\n".join(errors[:3]) + (f"\n\n... +{len(errors)-3}" if len(errors) > 3 else "") + f"\n\nLog: {EKA_LOG}")
-        return
-    if not renamed:
-        ok("Result", f"Nothing to rename.\nAll lowercase in:\n{td}")
-        return
-    ok("Result", f"Converted: {len(renamed)} items\n\nFinal: {final}\n\nLog: {EKA_LOG}")
-
-# === FIRMWARE ===
-def install_fw():
-    try:
-        bd = browse("Firmware: Select Dir", EKA_BIOS)
-    except GoBack: return
-    rp = sorted(glob.glob(os.path.join(bd, "*.rpkg")) + glob.glob(os.path.join(bd, "*.RPKG")))
-    rm = sorted(glob.glob(os.path.join(bd, "*.rom")) + glob.glob(os.path.join(bd, "*.ROM")))
-    if not rp: ok("Error", f"No .rpkg in:\n{bd}"); return
-    if not rm: ok("Error", f"No .rom in:\n{bd}"); return
-    rpkg = rp[0]
-    if len(rp) > 1:
-        try:
-            i = select("Select RPKG", [os.path.basename(f) for f in rp])
-            if i is None: return
-            rpkg = rp[i]
-        except GoBack: return
-    rom = rm[0]
-    if len(rm) > 1:
-        try:
-            i = select("Select ROM", [os.path.basename(f) for f in rm])
-            if i is None: return
-            rom = rm[i]
-        except GoBack: return
-    if not confirm("Install", f"RPKG: {os.path.basename(rpkg)}\nROM:  {os.path.basename(rom)}\n\nInstall?"): return
-    sd = os.path.join(EKA_CONFIG, "data", "roms", "rm-409")
-    os.makedirs(sd, exist_ok=True)
-    try: shutil.copy2(rom, os.path.join(sd, os.path.basename(rom)))
-    except: pass
-    cls(); print("Installing firmware...", flush=True)
-    print(f"  {os.path.basename(rpkg)}\n  {os.path.basename(rom)}\n\nThis may take a few minutes...", flush=True)
-    ret = run_eka(["--installdevice", rpkg, rom], timeout=1800)
-    if ok_ret(ret):
-        _autoset_dev()
-        ok("Done", "Firmware installed!\n\n(Non-zero exit is normal)\n\nDevice auto-set.")
-    else:
-        ok("Error", f"Failed (code {ret})\n\nLog: {EKA_LOG}")
-
-# === SIS DETECTION ===
-_SIS_V2 = b'\x7a\x1a\x20\x10'
-_ZIP = b'\x50\x4b\x03\x04'
-_SISV1_UIDS: Set[int] = {0x1000006D, 0x10003A12}
-
-_SIS_PLAT_UIDS: List[Tuple[bytes, str]] = [
-    (b'\x5f\x31\x28\x10', "s60v5"), (b'\x90\x30\x28\x10', "s60v5"), (b'\x0b\x6b\x28\x10', "s60v5"),
-    (b'\x61\x79\x1f\x10', "s60v3"), (b'\xbe\x32\x20\x10', "s60v3"), (b'\xae\x52\x27\x10', "s60v3"), (b'\x13\x35\x28\x10', "s60v3"),
-    (b'\x78\x3b\x00\x20', "s60v3"), (b'\x79\x3b\x00\x20', "s60v3"), (b'\x7a\x3b\x00\x20', "s60v3"), (b'\x7b\x3b\x00\x20', "s60v3"),
-    (b'\xd2\x8e\x1f\x10', "s60v2"),
-    (b'\x88\x6f\x1f\x10', "s60v1"),
-    (b'\x00\x63\x1f\x10', "uiq3"), (b'\xdf\x63\x1f\x10', "uiq3"),
-]
-
-_PLAT_INFO: Dict[str, Tuple[str, str]] = {
-    "s60v1": ("S60 1st Edition", "N-Gage 1 (NEM-4 / RM-26)"),
-    "s60v2": ("S60 2nd Edition", "N-Gage 1 (NEM-4 / RM-26)"),
-    "s60v3": ("S60 3rd Edition", "N-Gage 2.0 (RM-409)"),
-    "s60v5": ("S60 5th Edition", "S60v5 (RM-356)"),
-    "uiq3": ("UIQ3", "UIQ3 Device"),
-    "sisv1": ("S60 1st/2nd Edition", "N-Gage 1 (NEM-4 / RM-26)"),
-    "unknown": ("Unknown Format", "—"),
-}
-_PLAT_ORD = ["s60v1", "s60v2", "s60v3", "s60v5", "uiq3", "sisv1", "unknown"]
-_UID3_RNG = [(0x20000000, 0x2FFFFFFF, "s60v3"), (0xA0000000, 0xAFFFFFFF, "s60v3"), (0x10000000, 0x1FFFFFFF, "s60v1")]
-
-def _det_sisv2(data: bytes) -> str:
-    if len(data) < 12: return "unknown"
-    chunk, max_scan, scanned, offset, overlap = 262144, 4 * 1024 * 1024, 0, 0, b""
-    while scanned < max_scan and offset < len(data):
-        c = data[offset:offset + chunk]
-        w = overlap + c
-        for sig, key in _SIS_PLAT_UIDS:
-            if sig in w:
-                log(f"Detected {key} via {sig.hex()}")
-                return key
-        overlap = w[-3:] if len(w) >= 3 else w
-        scanned += len(c); offset += chunk
-    uid3 = struct.unpack_from("<I", data, 8)[0]
-    for lo, hi, key in _UID3_RNG:
-        if lo <= uid3 <= hi:
-            log(f"Detected {key} via UID3 0x{uid3:08X}")
-            return key
-    log(f"Default s60v3 (UID3 0x{uid3:08X})")
-    return "s60v3"
-
-def _det_sis(data: bytes) -> str:
-    if len(data) < 4: return "unknown"
-    h = data[:12]
-    if len(h) >= 8:
-        uid2 = struct.unpack_from("<I", h, 4)[0]
-        if uid2 in _SISV1_UIDS:
-            log(f"sisv1 UID2 0x{uid2:08X}")
-            return "sisv1"
-    if h[:4] != _SIS_V2:
-        log(f"Unknown magic {h[:4].hex()}")
-        return "unknown"
-    return _det_sisv2(data)
-
-def det_plat(path: str) -> str:
-    try:
-        with open(path, "rb") as f: magic = f.read(4)
-    except Exception as ex:
-        log(f"Cannot read {path}: {ex}")
-        return "unknown"
-    if len(magic) < 4: return "unknown"
-    if magic == _ZIP:
-        log(f"SISX: {path}")
-        try:
-            with zipfile.ZipFile(path, "r") as zf:
-                sn = next((n for n in zf.namelist() if n.lower() == "content.sis"), None)
-                if sn is None: sn = next((n for n in zf.namelist() if n.lower().endswith(".sis")), None)
-                if sn:
-                    log(f"Extracted {sn}")
-                    return _det_sis(zf.read(sn))
-                log("No .sis in SISX")
-        except Exception as ex: log(f"SISX err: {ex}")
-        return "unknown"
-    log(f"SIS: {path}")
-    try:
-        with open(path, "rb") as f: return _det_sis(f.read(4 * 1024 * 1024))
-    except Exception as ex: log(f"SIS err: {ex}"); return "unknown"
-
-def plat_hint(path: str) -> str:
-    k = det_plat(path)
-    p = _PLAT_INFO.get(k, _PLAT_INFO["unknown"])
-    return f"{p[0]}  →  {p[1]}"
-
-def find_sis(root: str, recursive: bool = True) -> List[str]:
-    if recursive:
-        return sorted(
-            (os.path.join(cr, n) for cr, _, fs in os.walk(root)
-             for n in fs if n.lower().endswith(('.sis', '.sisx'))),
-            key=str.lower
-        )
-    else:
-        return sorted(
-            (os.path.join(root, n) for n in os.listdir(root)
-             if os.path.isfile(os.path.join(root, n))
-             and n.lower().endswith(('.sis', '.sisx'))),
-            key=str.lower
-        )
 
 
+def compute_lowercase_path(path: str) -> str:
+    parent = os.path.dirname(path)
+    base = os.path.basename(path)
+    return os.path.join(parent, base.lower())
 
-def rel_path(path: str, base: str) -> str:
-    try: return os.path.relpath(path, base).replace("\\", "/")
-    except: return os.path.basename(path)
 
-# === SYSTEM APPS ===
-def is_sys(name: str) -> bool:
-    n = name.lower().strip()
-    core = {'', 'sysap', 'starter', 'installer', 'applications', 'app. manager', 'app manager', 'settings',
-            'configuration', 'sysstart', 'sysinit', 'system', 'system apps', 'system programs', 'programs'}
-    phone = {'telephone', 'phone', 'dialer', 'call divert', 'call transfer', 'voice mailbox', 'voicemail',
-             'speed dial', 'fixed dialling', 'auto lock', 'autolock', 'device lock', 'pin', 'sim services',
-             'sim directory', 'sim toolkit', 'ussd', 'cell broadcast', 'push viewer', 'pushviewer', 'messaging',
-             'sms', 'mms', 'email', 'e-mail', 'mail', 'nokia messaging'}
-    pim = {'contacts', 'phonebook', 'address book', 'calendar', 'scheduler', 'to-do', 'todo', 'tasks', 'notes',
-           'notepad', 'memo', 'memos', 'clock', 'alarm clock', 'world clock', 'calculator', 'converter',
-           'unit converter', 'currency converter'}
-    media = {'realone player', 'realplayer', 'music player', 'audio player', 'video player', 'videoui', 'gallery',
-             'images', 'photos', 'radio', 'visual radio', 'internet radio', 'fm radio', 'recorder', 'sound recorder',
-             'voice recorder', 'camera', 'camcorder', 'video recorder', 'multimedia', 'media player', 'music',
-             'videos', 'podcasts', 'ovi music', 'nokia music'}
-    conn = {'bluetooth', 'irda', 'infrared', 'usb', 'wlan', 'wi-fi', 'wifi', 'connections', 'connectivity',
-            'data call', 'gprs', 'edge', '3g', 'network', 'sync', 'synchronization', 'pc suite', 'ovi suite'}
-    web = {'web', 'browser', 'internet', 'services', 'download', 'downloads', 'ovi store', 'nokia store',
-           'download!', 'get it now', 'ovi music store', 'nokia music store', 'search', 'search online'}
-    files = {'file manager', 'files', 'memory', 'memory card', 'mmc', 'mass storage', 'memory manager',
-             'application manager', 'sw update', 'software update', 'firmware update'}
-    help_a = {'help', 'user guide', 'tutorial', 'about', 'about product', 'about phone', 'device info',
-              'phone info', 'license', 'activation', 'register', 'registration'}
-    ngage = {'discover n-gage', 'n-gage', 'ngage', 'n-gage app', 'ngage app', 'game launcher', 'my games',
-             'games', 'play', 'arena', 'n-gage arena', 'ngage arena', 'friends', 'n-gage friends', 'profile',
-             'n-gage profile', 'shop', 'n-gage shop', 'ngage shop'}
-    display = {'screensaver', 'screen saver', 'themes', 'wallpaper', 'background', 'display', 'home screen',
-               'active idle', 'active standby', 'today', 'dashboard', 'widgets'}
-    utils = {'zip manager', 'zip', 'compress', 'decompress', 'backup', 'restore', 'device manager', 'task manager',
-             'processes', 'logs', 'call log', 'call logs', 'message log', 'data counter', 'packet data',
-             'connection manager', 'net monitor'}
-    nokia = {'ovi', 'nokia', 'ovi maps', 'maps', 'gps', 'navigation', 'ovi contacts', 'ovi share', 'ovi sync',
-             'nokia maps', 'nokia email', 'nokia messaging', 'nokia internet radio', 'nokia photo browser',
-             'nokia custom dictionary', 'quickoffice', 'adobe reader', 'pdf reader'}
-    return n in (core | phone | pim | media | conn | web | files | help_a | ngage | display | utils | nokia)
+def collect_lowercase_rename_ops(root: str) -> Tuple[List[Tuple[str, str]], List[str]]:
+    ops: List[Tuple[str, str]] = []
+    errors: List[str] = []
 
-# === APP HELPERS ===
-def parse_apps(out: str) -> List[Tuple[str, str]]:
-    apps = []
-    for line in out.splitlines():
-        line = line.strip()
-        m = re.match(r'^\d+\s*:\s*(.*?)\s*\(UID:\s*(0x[0-9a-fA-F]+)\)\s*$', line)
-        if m:
-            apps.append((m.group(1).strip(), m.group(2).strip().lower()))
-    return apps
+    for current_root, dirs, files in os.walk(root, topdown=False):
+        for name in sorted(files):
+            if name != name.lower():
+                old_path = os.path.join(current_root, name)
+                new_path = os.path.join(current_root, name.lower())
+                ops.append((old_path, new_path))
 
-def get_apps() -> dict:
-    ret, out = run_cap(["--listapp"])
-    if ret != 0 and not out.strip(): return {}
-    return {uid: name.strip() for name, uid in parse_apps(out)}
+        for name in sorted(dirs):
+            if name != name.lower():
+                old_path = os.path.join(current_root, name)
+                new_path = os.path.join(current_root, name.lower())
+                ops.append((old_path, new_path))
 
-def find_new_app(before: dict, after: dict) -> Optional[Tuple[str, str]]:
-    new = [u for u in after if u not in before]
-    if len(new) == 1: return after[new[0]], new[0]
-    cands = [(after[u], u) for u in new if not is_sys(after[u])]
-    return cands[0] if cands else None
+    root_base = os.path.basename(root)
+    if root_base and root_base != root_base.lower():
+        ops.append((root, compute_lowercase_path(root)))
 
-def sanitize(name: str) -> str:
-    name = re.sub(r'[\\/:*?"<>|]', '_', name).replace("'", "_")
-    name = re.sub(r'\s+', ' ', name).strip()
-    while name.startswith('.'): name = '_' + name[1:]
-    return name or 'unnamed'
-
-# === MEDIA ===
-def _media_cache(media_dir: str) -> Dict[str, str]:
-    if not os.path.isdir(media_dir): return {}
-    try:
-        return {os.path.splitext(f)[0].lower(): f for f in os.listdir(media_dir)
-                if os.path.isfile(os.path.join(media_dir, f))}
-    except Exception as ex: log(f"Media cache err: {ex}"); return {}
-
-def _find_media(name: str, cache: Dict[str, str], media_dir: str, out_dir: str) -> str:
-    sn = sanitize(name).lower()
-    if sn in cache:
-        full = os.path.join(media_dir, cache[sn])
-        try:
-            r = os.path.relpath(full, out_dir).replace("\\", "/")
-            return f"./{r}" if not r.startswith(("./", "/")) else r
-        except: pass
-    fb = "ngage.png" if media_dir == MEDIA_IMG else "ngage.mp4"
-    fb_path = os.path.join(media_dir, fb)
-    if os.path.exists(fb_path):
-        try:
-            r = os.path.relpath(fb_path, out_dir).replace("\\", "/")
-            return f"./{r}" if not r.startswith(("./", "/")) else r
-        except: pass
-    return f"./media/{'images' if media_dir == MEDIA_IMG else 'videos'}/{fb}"
-
-def _copy_media(src_folder: str, app_name: str, media_dir: str, exts: Tuple[str, ...]) -> bool:
-    try:
-        cands = sorted([os.path.join(src_folder, n) for n in os.listdir(src_folder)
-                       if os.path.isfile(os.path.join(src_folder, n)) and n.lower().endswith(exts)],
-                      key=lambda p: os.path.basename(p).lower())
-    except: return False
-    if not cands: return False
-    os.makedirs(media_dir, exist_ok=True)
-    src = cands[0]
-    ext = os.path.splitext(src)[1].lower()
-    target = os.path.join(media_dir, f"{sanitize(app_name)}{ext}")
-    try:
-        shutil.copy2(src, target)
-        log(f"Media: {src} -> {target}")
-        return True
-    except Exception as ex: log(f"Media err: {ex}"); return False
-
-# === GAMELIST ===
-def _parse_gamelist(path: str) -> Dict[str, List[str]]:
-    entries = {}
-    if not os.path.exists(path): return entries
-    try:
-        tree = ET.parse(path)
-        for game in tree.getroot().findall('game'):
-            pe = game.find('path')
-            if pe is not None and pe.text:
-                key = pe.text.strip().lower()
-                xml_str = ET.tostring(game, encoding='unicode')
-                entries[key] = ['\t' + line for line in xml_str.strip().split('\n')]
-    except Exception as ex: log(f"Parse gamelist err: {ex}")
-    return entries
-
-def _update_entry(lines: List[str], name: str, dev: str, img: str, vid: str) -> List[str]:
-    updated = []
-    for line in lines:
-        if '<name>' in line and '</name>' in line:
-            line = f'\t\t<name>{xml_esc(name)}</name>'
-        elif '<desc>' in line and '</desc>' in line:
-            d = f"[{dev.upper()}] {name}" if dev else name
-            line = f'\t\t<desc>{xml_esc(d)}</desc>'
-        elif '<image>' in line and '</image>' in line:
-            line = f'\t\t<image>{xml_esc(img)}</image>'
-        elif '<video>' in line and '</video>' in line:
-            line = f'\t\t<video>{xml_esc(vid)}</video>'
-        updated.append(line)
-    return updated
-
-def xml_esc(t: str) -> str:
-    return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&apos;")
-
-def create_gamelist():
-    try:
-        uid_dir = browse("Gamelist: Select UID Dir", EKA_ROMS)
-    except GoBack: return
-
-    uid_files = sorted(glob.glob(os.path.join(uid_dir, "*.uid")) + glob.glob(os.path.join(uid_dir, "*.UID")))
-    if not uid_files:
-        ok("Error", f"No .uid files in:\n{uid_dir}")
-        return
-
-    out_file = os.path.join(EKA_ROMS, "gamelist.xml")
-    backup = None
-
-    existing = {}
-    if os.path.exists(out_file):
-        if not confirm("Overwrite?", f"gamelist.xml exists.\n\nOverwrite? Backup will be created."): return
-        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup = f"{out_file}.{ts}.bak"
-        try:
-            shutil.copy2(out_file, backup)
-            log(f"Backup: {backup}")
-        except Exception as ex: log(f"Backup err: {ex}")
-        existing = _parse_gamelist(out_file)
-        log(f"Loaded {len(existing)} existing entries")
-
-    img_cache = _media_cache(MEDIA_IMG)
-    vid_cache = _media_cache(MEDIA_VID)
-    log(f"Media: {len(img_cache)} imgs, {len(vid_cache)} vids")
-
-    lines = ['<?xml version="1.0"?>', '<gameList>']
-    processed = set()
-
-    for uf in uid_files:
-        base = os.path.basename(uf)
-        name = os.path.splitext(base)[0]
-
-        try:
-            rp = os.path.relpath(uf, EKA_ROMS).replace("\\", "/")
-        except: rp = base
-        if not rp.startswith(("./", "/")): rp = "./" + rp
-
-        dev = ""
-        try:
-            with open(uf, encoding="utf-8") as f:
-                fl = f.read().splitlines()
-                if len(fl) >= 2 and fl[1].strip(): dev = fl[1].strip()
-        except: pass
-
-        key = rp.lower()
-        processed.add(key)
-
-        img = _find_media(name, img_cache, MEDIA_IMG, EKA_ROMS)
-        vid = _find_media(name, vid_cache, MEDIA_VID, EKA_ROMS)
-
-        if key in existing:
-            lines.extend(_update_entry(existing[key], name, dev, img, vid))
-            log(f"Updated: {name}")
+    target_to_source: dict = {}
+    for old_path, new_path in ops:
+        if new_path in target_to_source and target_to_source[new_path] != old_path:
+            errors.append(
+                f'Collision: both\n{target_to_source[new_path]}\nand\n{old_path}\nwould become\n{new_path}'
+            )
             continue
 
-        desc = f"[{dev.upper()}] {name}" if dev else name
-        lines.append('\t<game>')
-        lines.append(f'\t\t<path>{xml_esc(rp)}</path>')
-        lines.append(f'\t\t<name>{xml_esc(name)}</name>')
-        lines.append(f'\t\t<desc>{xml_esc(desc)}</desc>')
-        lines.append(f'\t\t<image>{xml_esc(img)}</image>')
-        lines.append(f'\t\t<video>{xml_esc(vid)}</video>')
-        lines.append('\t</game>')
+        target_to_source[new_path] = old_path
 
-    kept = 0
-    for k, v in existing.items():
-        if k not in processed:
-            lines.extend(v)
-            kept += 1
+        if os.path.exists(new_path) and os.path.abspath(new_path) != os.path.abspath(old_path):
+            errors.append(f'Collision: target already exists\n{new_path}')
+
+    return ops, errors
+
+
+def convert_tree_to_lowercase(root_path):
+    renamed = []
+    errors = []
+
+    root_path = os.path.abspath(root_path)
+    final_root = root_path
+
+    def unique_temp_name(path):
+        base = path + ".__tmp_lowercase__"
+        candidate = base
+        idx = 1
+        while os.path.exists(candidate):
+            candidate = f"{base}{idx}"
+            idx += 1
+        return candidate
+
+    def safe_case_rename(src, dst):
+        if src == dst:
+            return src
+
+        src_abs = os.path.abspath(src)
+        dst_abs = os.path.abspath(dst)
+
+        if src_abs.lower() == dst_abs.lower():
+            tmp = unique_temp_name(src_abs)
+            os.rename(src_abs, tmp)
+            os.rename(tmp, dst_abs)
+            return dst_abs
+
+        if os.path.exists(dst_abs):
+            raise FileExistsError(f"Target already exists: {dst_abs}")
+
+        os.rename(src_abs, dst_abs)
+        return dst_abs
+
+    for current_root, dirs, files in os.walk(root_path, topdown=False):
+        for name in files:
+            src = os.path.join(current_root, name)
+            dst = os.path.join(current_root, name.lower())
+
+            if src == dst:
+                continue
+
+            try:
+                new_path = safe_case_rename(src, dst)
+                renamed.append((src, new_path))
+                log(f"Renamed file: {src} -> {new_path}")
+            except Exception as ex:
+                errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{ex}")
+                log(f"ERROR renaming file: {src} -> {dst} ({ex})")
+
+        for name in dirs:
+            src = os.path.join(current_root, name)
+            dst = os.path.join(current_root, name.lower())
+
+            if src == dst:
+                continue
+
+            try:
+                new_path = safe_case_rename(src, dst)
+                renamed.append((src, new_path))
+                log(f"Renamed dir: {src} -> {new_path}")
+            except Exception as ex:
+                errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{ex}")
+                log(f"ERROR renaming dir: {src} -> {dst} ({ex})")
+
+    parent = os.path.dirname(root_path)
+    base = os.path.basename(root_path)
+    lower_base = base.lower()
+
+    if base != lower_base:
+        src = root_path
+        dst = os.path.join(parent, lower_base)
+        try:
+            final_root = safe_case_rename(src, dst)
+            renamed.append((src, final_root))
+            log(f"Renamed root dir: {src} -> {final_root}")
+        except Exception as ex:
+            errors.append(f"Failed to rename\n{src}\n->\n{dst}\n{ex}")
+            log(f"ERROR renaming root dir: {src} -> {dst} ({ex})")
+
+    return renamed, errors, final_root
+
+
+def convert_device_paths_to_lowercase():
+    start_dir = "/storage/.config/eka2l1/data"
+
+    try:
+        target_dir = choose_directory_interactive(
+            "Lowercase Converter: Select Folder",
+            start_dir
+        )
+    except GoBack:
+        return
+
+    warning = ""
+    abs_target = os.path.abspath(target_dir)
+
+    if abs_target == "/":
+        warning = "\n\nWARNING:\nThis will rename files and folders recursively from the root directory."
+    elif abs_target == "/storage":
+        warning = "\n\nWARNING:\nThis will rename the complete contents of /storage recursively."
+
+    if not confirm_dialog(
+        "Confirm Lowercase Conversion",
+        "Convert folder names and file names to lowercase recursively?\n\n"
+        f"Selected folder:\n{target_dir}{warning}"
+    ):
+        return
+
+    progress_screen("Lowercase Converter", "Renaming files...")
+
+    renamed, errors, final_root = convert_tree_to_lowercase(target_dir)
+
+    if errors:
+        preview = "\n\n".join(errors[:3])
+        more = ""
+        if len(errors) > 3:
+            more = f"\n\n... and {len(errors) - 3} more error(s)."
+        ok_dialog(
+            "Conversion Result",
+            f"Conversion stopped with errors.\n\n"
+            f"Renamed: {len(renamed)}\n"
+            f"Errors: {len(errors)}\n\n"
+            f"{preview}{more}\n\nSee log: {EKA_LOG}"
+        )
+        return
+
+    if not renamed:
+        ok_dialog(
+            "Conversion Result",
+            f"Nothing to rename.\n\nAll names are already lowercase in:\n{target_dir}"
+        )
+        return
+
+    renamed_sorted = sorted(renamed, key=lambda item: item[1].lower())
+    options = [f"{os.path.basename(new)}  <=  {os.path.basename(old)}" for old, new in renamed_sorted]
+    try:
+        select_from_list(
+            "Lowercase Conversion Result",
+            options,
+            f"Converted: {len(renamed)}\nFinal folder: {final_root}\n\nPress A or B to return."
+        )
+    except (GoBack, UserQuit):
+        pass
+
+# ---------------------------------------------------------------------------
+# Mode 1: Install firmware
+# ---------------------------------------------------------------------------
+def install_firmware():
+    try:
+        bios_dir = choose_directory_interactive(
+            "Firmware: Select Directory", EKA_BIOS_DIR)
+    except GoBack:
+        return
+
+    rpkg_files = sorted(glob.glob(os.path.join(bios_dir, "*.rpkg")) +
+                        glob.glob(os.path.join(bios_dir, "*.RPKG")))
+    rom_files = sorted(glob.glob(os.path.join(bios_dir, "*.rom")) +
+                       glob.glob(os.path.join(bios_dir, "*.ROM")))
+
+    if not rpkg_files:
+        ok_dialog("Error", f"No .rpkg file found in:\n{bios_dir}")
+        return
+    if not rom_files:
+        ok_dialog("Error", f"No .rom file found in:\n{bios_dir}")
+        return
+
+    rpkg = rpkg_files[0]
+    if len(rpkg_files) > 1:
+        try:
+            idx = select_from_list("Select RPKG", [os.path.basename(f) for f in rpkg_files])
+            if idx is None:
+                return
+            rpkg = rpkg_files[idx]
+        except GoBack:
+            return
+
+    rom = rom_files[0]
+    if len(rom_files) > 1:
+        try:
+            idx = select_from_list("Select ROM", [os.path.basename(f) for f in rom_files])
+            if idx is None:
+                return
+            rom = rom_files[idx]
+        except GoBack:
+            return
+
+    info = (
+        f"RPKG: {os.path.basename(rpkg)}\n"
+        f"ROM:  {os.path.basename(rom)}\n\n"
+        f"Install firmware?"
+    )
+    if not confirm_dialog("Install Firmware", info):
+        return
+
+    seed_dir = os.path.join(EKA_CONFIG, "data", "roms", "rm-409")
+    os.makedirs(seed_dir, exist_ok=True)
+    try:
+        shutil.copy2(rom, os.path.join(seed_dir, os.path.basename(rom)))
+    except Exception:
+        pass
+
+    progress_screen("Installing Firmware",
+        f"{os.path.basename(rpkg)}\n{os.path.basename(rom)}\n\nThis may take a few minutes...")
+
+    ret = run_eka(["--installdevice", rpkg, rom])
+
+    if eka_success(ret):
+        ok_dialog("Done", "Firmware installed successfully!\n\n(Non-zero exit after install is normal)")
+    else:
+        ok_dialog("Error", f"Installation failed (code {ret})\n\nSee log: {EKA_LOG}")
+
+# ---------------------------------------------------------------------------
+# Mode 2: Install SIS games
+# ---------------------------------------------------------------------------
+def find_sis_files_recursive(root_dir: str) -> List[str]:
+    sis_files: List[str] = []
+    valid_exts = (".sis", ".sisx")
+    for current_root, _, files in os.walk(root_dir):
+        for name in files:
+            if name.lower().endswith(valid_exts):
+                sis_files.append(os.path.join(current_root, name))
+    return sorted(sis_files, key=lambda p: p.lower())
+
+
+def get_relative_path(path: str, base: str) -> str:
+    try:
+        rel = os.path.relpath(path, base)
+        return rel.replace("\\", "/")
+    except Exception:
+        return os.path.basename(path)
+
+
+def parse_listapp_to_map(output: str) -> dict:
+    app_map = {}
+    for name, uid in parse_listapp_output(output):
+        app_map[uid.lower()] = name.strip()
+    return app_map
+
+
+def get_installed_apps_map() -> dict:
+    ret, output = run_eka_capture(["--listapp"])
+    if ret != 0 and not output.strip():
+        return {}
+    return parse_listapp_to_map(output)
+
+
+def find_new_app_after_install(before_apps: dict, after_apps: dict) -> Optional[Tuple[str, str]]:
+    new_uids = [uid for uid in after_apps if uid not in before_apps]
+    if len(new_uids) == 1:
+        uid = new_uids[0]
+        return after_apps[uid], uid
+
+    candidates = []
+    for uid in new_uids:
+        name = after_apps[uid]
+        if not is_system_app(name):
+            candidates.append((name, uid))
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    if candidates:
+        return candidates[0]
+
+    return None
+
+
+def find_graphic_in_same_folder(folder: str) -> Optional[str]:
+    exts = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
+    candidates = []
+
+    try:
+        for name in os.listdir(folder):
+            full = os.path.join(folder, name)
+            if os.path.isfile(full) and name.lower().endswith(exts):
+                candidates.append(full)
+    except Exception:
+        return None
+
+    if not candidates:
+        return None
+
+    return sorted(candidates, key=lambda p: os.path.basename(p).lower())[0]
+
+
+def copy_matching_image_for_uid(source_folder: str, app_name: str, uid_output_dir: str) -> Optional[str]:
+    image_src = find_graphic_in_same_folder(source_folder)
+    if not image_src:
+        return None
+
+    os.makedirs(uid_output_dir, exist_ok=True)
+
+    safe_name = sanitize_uid_name(app_name)
+    ext = os.path.splitext(image_src)[1].lower()
+    target_name = f"{safe_name}{ext}"
+    target_path = os.path.join(uid_output_dir, target_name)
+
+    try:
+        shutil.copy2(image_src, target_path)
+        log(f"Copied artwork: {image_src} -> {target_path}")
+        return target_name
+    except Exception as ex:
+        log(f"Failed to copy artwork {image_src} -> {target_path}: {ex}")
+        return None
+
+
+def install_sis():
+    try:
+        sis_dir = choose_directory_interactive(
+            "SIS/SISX: Select Directory", EKA_ROMS_DIR)
+    except GoBack:
+        return
+
+    sis_files = find_sis_files_recursive(sis_dir)
+
+    if not sis_files:
+        ok_dialog("Error", f"No .sis or .sisx files found in:\n{sis_dir}")
+        return
+
+    image_out_dir = os.path.join(sis_dir, "media", "images")
+
+    try:
+        mode_idx = select_from_list(
+            "SIS/SISX Installer Mode",
+            [
+                "Install all SIS/SISX files (recursive)",
+                "Select SIS/SISX files individually (recursive)",
+            ],
+            f"{len(sis_files)} file(s) found recursively in:\n{sis_dir}"
+        )
+    except GoBack:
+        return
+
+    if mode_idx is None:
+        return
+
+    selected_files = []
+
+    if mode_idx == 0:
+        if not confirm_dialog(
+            "Install All",
+            f"Install all {len(sis_files)} SIS/SISX files recursively?\n\nDirectory:\n{sis_dir}"
+        ):
+            return
+        selected_files = sis_files
+    else:
+        sis_options = [get_relative_path(f, sis_dir) for f in sis_files]
+
+        try:
+            selected_indexes = select_multiple_from_list(
+                "Select SIS/SISX Files",
+                sis_options,
+                f"Directory:\n{sis_dir}\n\nToggle files with A, press Y to install."
+            )
+        except GoBack:
+            return
+
+        if not selected_indexes:
+            ok_dialog("SIS/SISX Installer", "No SIS/SISX files selected.")
+            return
+
+        selected_files = [sis_files[i] for i in selected_indexes]
+
+        if not confirm_dialog(
+            "Install Selected",
+            f"Install {len(selected_files)} selected SIS/SISX file(s)?"
+        ):
+            return
+
+    success = 0
+    fail = 0
+    failed_files = []
+    artwork_copied = 0
+    artwork_failed = 0
+
+    for pos, sis_file in enumerate(selected_files, start=1):
+        rel_name = get_relative_path(sis_file, sis_dir)
+        progress_screen(f"Installing {pos}/{len(selected_files)}", rel_name)
+
+        before_apps = get_installed_apps_map()
+        ret = run_eka(["--install", sis_file])
+        after_apps = get_installed_apps_map()
+
+        if eka_success(ret):
+            success += 1
+            log(f"SIS/SISX installed successfully: {sis_file}")
+
+            new_app = find_new_app_after_install(before_apps, after_apps)
+            if new_app:
+                app_name, uid = new_app
+                copied_name = copy_matching_image_for_uid(
+                    os.path.dirname(sis_file),
+                    app_name,
+                    image_out_dir
+                )
+                if copied_name:
+                    artwork_copied += 1
+                    log(f"Matched artwork for app '{app_name}' ({uid}): {copied_name}")
+                else:
+                    artwork_failed += 1
+                    log(f"No artwork copied for app '{app_name}' ({uid}) from folder {os.path.dirname(sis_file)}")
+            else:
+                artwork_failed += 1
+                log(f"Could not determine new app UID/name after install: {sis_file}")
+        else:
+            fail += 1
+            failed_files.append(rel_name)
+            log(f"SIS/SISX install failed ({ret}): {sis_file}")
+
+    if fail == 0:
+        ok_dialog(
+            "Done",
+            f"Installation completed successfully.\n\n"
+            f"Installed: {success}\n"
+            f"Failed: {fail}\n"
+            f"Artwork copied: {artwork_copied}\n"
+            f"Artwork unresolved: {artwork_failed}\n\n"
+            f"Artwork target:\n{image_out_dir}"
+        )
+    else:
+        preview = "\n".join(failed_files[:8])
+        more = ""
+        if len(failed_files) > 8:
+            more = f"\n... and {len(failed_files) - 8} more"
+
+        ok_dialog(
+            "Installation Result",
+            f"Completed.\n\n"
+            f"Installed: {success}\n"
+            f"Failed: {fail}\n"
+            f"Artwork copied: {artwork_copied}\n"
+            f"Artwork unresolved: {artwork_failed}\n\n"
+            f"Failed files:\n{preview}{more}\n\nSee log:\n{EKA_LOG}"
+        )
+
+# ---------------------------------------------------------------------------
+# UID launcher creator
+# ---------------------------------------------------------------------------
+def parse_listapp_output(output: str) -> List[Tuple[str, str]]:
+    apps: List[Tuple[str, str]] = []
+    for raw_line in output.splitlines():
+        line = raw_line.strip()
+        match = re.match(r'^\d+\s*:\s*(.*?)\s*\(UID:\s*(0x[0-9a-fA-F]+)\)\s*$', line)
+        if match:
+            name = match.group(1).strip()
+            uid = match.group(2).strip().lower()
+            apps.append((name, uid))
+    return apps
+
+
+def sanitize_uid_name(name: str) -> str:
+    name = re.sub(r'[\\/:*?"<>|]', '_', name)
+    name = name.replace("'", "_")
+    name = re.sub(r'\s+', ' ', name).strip()
+    while name.startswith('.'):
+        name = '_' + name[1:]
+    if not name:
+        name = 'unnamed'
+    return name
+
+
+def is_system_app(name: str) -> bool:
+    name_lc = name.lower().strip()
+    system_names = {
+        '', 'installer', 'applications', 'help', 'screensaver', 'telephone', 'app. manager',
+        'messaging', 'recorder', 'multimedia', 'settings', 'call divert', 'sysap', 'startup',
+        'voice mailbox', 'profiles', 'to-do', 'calendar', 'calculator', 'clock', 'notes',
+        'speed dial', 'favourites', 'bluetooth', 'ussd', 'composer', 'fixed dialling',
+        'autolock', 'save certificate', 'info message', 'bounce', 'about product',
+        'services', 'pushviewer', 'download', 'realone player', 'screen shot',
+        'memory card', 'converter', 'videoui', 'contacts', 'images', 'menu',
+        'cell broadcast', 'log', 'e-mail', 'sim services', 'service nos.',
+        'sim directory', 'radio', 'music player', 'unlockmmc'
+    }
+    return name_lc in system_names
+
+
+def build_uid_candidates(apps: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], int, int, int]:
+    candidates: List[Tuple[str, str]] = []
+    seen_uids = set()
+    skipped_system = 0
+    skipped_blank = 0
+    skipped_dup = 0
+
+    for name, uid in apps:
+        name = name.strip()
+        uid = uid.strip().lower()
+
+        if not name:
+            skipped_blank += 1
+            continue
+        if uid in seen_uids:
+            skipped_dup += 1
+            continue
+        if is_system_app(name):
+            seen_uids.add(uid)
+            skipped_system += 1
+            continue
+
+        seen_uids.add(uid)
+        candidates.append((name, uid))
+
+    return candidates, skipped_system, skipped_blank, skipped_dup
+
+
+def show_available_uid_apps(candidates: List[Tuple[str, str]]) -> None:
+    if not candidates:
+        ok_dialog('Available Apps', 'No launchable non-system apps found.')
+        return
+
+    options = [f'{name} ({uid})' for name, uid in candidates]
+    try:
+        select_from_list(
+            'Available Apps',
+            options,
+            f'Available launchable apps: {len(candidates)}\n\nPress A to continue or B to go back.'
+        )
+    except GoBack:
+        raise
+    except UserQuit:
+        raise
+
+
+def show_generated_uid_list(created_entries: List[Tuple[str, str, str]], out_dir: str) -> None:
+    if not created_entries:
+        ok_dialog('Generated UID Files', f'No UID files were created.\n\nOutput: {out_dir}')
+        return
+
+    options = [f"{name} -> {uid} [{filename}]" for name, uid, filename in created_entries]
+    try:
+        select_from_list(
+            'Generated UID Files',
+            options,
+            f'Output: {out_dir}\nCreated: {len(created_entries)}\n\nPress A or B to return.'
+        )
+    except (GoBack, UserQuit):
+        pass
+
+
+def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[Tuple[str, str, str]]:
+    created_entries: List[Tuple[str, str, str]] = []
+    os.makedirs(out_dir, exist_ok=True)
+
+    for name, uid in selected_apps:
+        safe_name = sanitize_uid_name(name)
+        target = os.path.join(out_dir, f'{safe_name}.uid')
+        if os.path.exists(target):
+            target = os.path.join(out_dir, f'{safe_name}_{uid}.uid')
+
+        try:
+            with open(target, 'w', encoding='utf-8') as f:
+                f.write(uid + '\n')
+            log(f'Created UID launcher: {target} -> {uid}')
+            created_entries.append((name, uid, os.path.basename(target)))
+        except Exception as ex:
+            log(f'Failed to create UID launcher {target}: {ex}')
+
+    return created_entries
+
+
+def xml_escape(text: str) -> str:
+    return (text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;")
+                .replace("'", "&apos;"))
+
+
+def create_uid_gamelist():
+    try:
+        uid_dir = choose_directory_interactive(
+            "Gamelist: Select UID Directory", EKA_ROMS_DIR)
+    except GoBack:
+        return
+
+    uid_files = sorted(glob.glob(os.path.join(uid_dir, "*.uid")) +
+                       glob.glob(os.path.join(uid_dir, "*.UID")))
+
+    if not uid_files:
+        ok_dialog("Error", f"No .uid files found in:\n{uid_dir}")
+        return
+
+    out_file = os.path.join(uid_dir, "gamelist.xml")
+    image_dir = os.path.join(uid_dir, "media", "images")
+
+    if os.path.exists(out_file):
+        if not confirm_dialog(
+            "Overwrite?",
+            f"gamelist.xml already exists in:\n{uid_dir}\n\nOverwrite it?"
+        ):
+            return
+
+    lines = ['<?xml version="1.0"?>', '<gameList>']
+
+    for uid_file in uid_files:
+        base = os.path.basename(uid_file)
+        name = os.path.splitext(base)[0]
+
+        image_tag = "./media/images/ngage.png"
+        for ext in (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp"):
+            candidate = os.path.join(image_dir, name + ext)
+            if os.path.exists(candidate):
+                image_tag = f"./media/images/{xml_escape(name + ext)}"
+                break
+
+        lines.append('\t<game>')
+        lines.append(f'\t\t<path>./{xml_escape(base)}</path>')
+        lines.append(f'\t\t<name>{xml_escape(name)}</name>')
+        lines.append(f'\t\t<desc>{xml_escape(name)}</desc>')
+        lines.append(f'\t\t<image>{image_tag}</image>')
+        lines.append('\t\t<video>./media/videos/ngage.mp4</video>')
+        lines.append('\t</game>')
 
     lines.append('</gameList>')
 
@@ -826,360 +1369,109 @@ def create_gamelist():
         with open(out_file, "w", encoding="utf-8", newline="\n") as f:
             f.write("\n".join(lines) + "\n")
     except Exception as ex:
-        log(f"Write err: {ex}")
-        ok("Error", f"Failed to write gamelist.xml:\n{ex}")
+        log(f"Failed to write gamelist.xml {out_file}: {ex}")
+        ok_dialog("Error", f"Failed to write gamelist.xml:\n{ex}")
         return
 
-    bm = f"\nBackup: {backup}" if backup else ""
-    ok("Done", f"gamelist.xml created.\n\nUIDs: {len(uid_files)}\nKept existing: {kept}\nImages: {len(img_cache)}\nVideos: {len(vid_cache)}{bm}")
+    ok_dialog(
+        "Done",
+        f"gamelist.xml created successfully.\n\n"
+        f"UID files: {len(uid_files)}\n"
+        f"Output:\n{out_file}"
+    )
 
-# === INSTALLATION ===
-def _install_files(files: List[str], sis_dir: str, info_plat: Tuple[str, str]):
-    if not pick_dev(f"install {info_plat[0]} files"):
-        return
 
-    dev_name = get_dev_name() or ""
-    success = fail = art_ok = art_fail = vid_ok = 0
-    failed = []
-
-    for pos, sf in enumerate(files, 1):
-        cls()
-        rn = rel_path(sf, sis_dir)
-        plat_label = info_plat[0] if info_plat[0] != "Mixed" else "Mixed platforms (see per-file hints)"
-        print(f"Installing {pos}/{len(files)}:\n  {rn}\n  Platform: {plat_label}", flush=True)
-
-        before = get_apps()
-        ret = run_eka(["--install", sf])
-        after = get_apps()
-
-        if ok_ret(ret):
-            success += 1
-            log(f"OK: {sf}")
-            new = find_new_app(before, after)
-            if new:
-                app, uid = new
-                write_uid([(app, uid)], EKA_ROMS, dev_name)
-                if _copy_media(os.path.dirname(sf), app, MEDIA_IMG, IMG_EXTS): art_ok += 1
-                else: art_fail += 1
-                if _copy_media(os.path.dirname(sf), app, MEDIA_VID, VID_EXTS): vid_ok += 1
-            else:
-                art_fail += 1
-        else:
-            fail += 1
-            failed.append(rn)
-            log(f"FAIL {ret}: {sf}")
-
-    res = (f"Platform: {info_plat[0]}\n\nInstalled: {success}\nFailed: {fail}\n"
-           f"Artwork: {art_ok} OK, {art_fail} missing\nVideos: {vid_ok} copied")
-    if failed:
-        res += "\n\nFailed:\n" + "\n".join(failed[:8]) + (f"\n... +{len(failed)-8}" if len(failed) > 8 else "")
-        res += f"\n\nLog: {EKA_LOG}"
-    ok("Result", res)
-
-def scan_sis():
+def create_uid_launchers():
     try:
-        sd = browse("Scan SIS: Select Dir", EKA_ROMS)
-    except GoBack: return
-
-    cls(); print("Scanning...", flush=True)
-    files = find_sis(sd)
-    if not files:
-        ok("Result", f"No .sis/.sisx in:\n{sd}")
+        out_dir = choose_directory_interactive(
+            'UID Creator: Select Output Directory', '/storage/roms')
+    except GoBack:
         return
 
-    groups = {}
-    for f in files:
-        plat = det_plat(f)
-        groups.setdefault(plat, []).append(f)
+    progress_screen("Loading App List", "Querying eka2l1...")
 
-    present = [k for k in _PLAT_ORD if k in groups]
-    opts = [f"[{len(groups[k]):3d}]  {_PLAT_INFO[k][0]}  →  {_PLAT_INFO[k][1]}" for k in present]
+    ret, output = run_eka_capture(['--listapp'])
+    apps = parse_listapp_output(output)
 
-    while True:
-        try:
-            idx = select("Scan: Select Platform", opts, f"Found {len(files)} file(s)", 10)
-        except GoBack: return
-        if idx is None: return
+    if ret != 0 and not apps:
+        ok_dialog('Error', f'Could not get app list.\n\nSee log: {EKA_LOG}')
+        return
 
-        key = present[idx]
-        chosen = groups[key]
-        info = _PLAT_INFO[key]
+    if not apps:
+        ok_dialog('Error', 'No installed apps found.')
+        return
 
-        fopts = [rel_path(f, sd) for f in chosen]
-        try:
-            sel = multi_select(f"Select: {info[0]}", fopts,
-                              f"Platform: {info[0]} → {info[1]}\n\nA: Toggle, X: All, Y: Install", 14)
-        except GoBack: continue
-        if not sel:
-            ok("Scan", "No files selected.")
-            continue
+    candidates, skipped_system, skipped_blank, skipped_dup = build_uid_candidates(apps)
+    candidates = sorted(candidates, key=lambda item: (item[0].lower(), item[1]))
 
-        selected = [chosen[i] for i in sel]
-        _install_files(selected, sd, info)
-
-def install_sis():
-    if not pick_dev("SIS/SISX installation"): return
+    if not candidates:
+        ok_dialog('Error', 'No launchable non-system apps found.')
+        return
 
     try:
-        sd = browse("SIS: Select Dir", EKA_ROMS, [".sis", ".sisx"])
-    except GoBack: return
-
-    files = find_sis(sd, recursive=False)
-
-    if not files:
-        ok("Error", f"No .sis/.sisx in:\n{sd}")
+        show_available_uid_apps(candidates)
+        mode_idx = select_from_list(
+            'UID Creator Mode',
+            ['Create all UID launcher files', 'Select apps individually'],
+            f'Output: {out_dir}\n\nAvailable apps: {len(candidates)}'
+        )
+    except GoBack:
         return
 
-    hints = {}
-    for f in files:
-        h = plat_hint(f)
-        hints[h] = hints.get(h, 0) + 1
-    hl = "\n".join(f"  {v}x  {k}" for k, v in sorted(hints.items()))
+    if mode_idx is None:
+        return
 
-    try:
-        mode = select("SIS Installer", ["Install all (recursive)", "Select individually (recursive)"],
-                     f"{len(files)} file(s)\n\nDetected:\n{hl}")
-    except GoBack: return
-    if mode is None: return
+    selected_apps: List[Tuple[str, str]] = []
 
-    if mode == 0:
-        if not confirm("Install All", f"Install all {len(files)} files?\n\n{sd}"): return
-        selected = files
-    else:
-        sopts = [f"{rel_path(f, sd)}  [{plat_hint(f)}]" for f in files]
-        try:
-            sel = multi_select("Select SIS/SISX", sopts, f"{sd}\n\nA: Toggle, Y: Install", 14)
-        except GoBack: return
-        if not sel:
-            ok("SIS", "None selected.")
+    if mode_idx == 0:
+        if not confirm_dialog(
+            'Create All UID Files',
+            f'Create {len(candidates)} UID launcher files in:\n\n{out_dir}'
+        ):
             return
-        selected = [files[i] for i in sel]
-        if not confirm("Install", f"Install {len(selected)} file(s)?"): return
-
-    _install_files(selected, sd, ("Mixed", "See per-file hints"))
-
-# === UID CREATOR ===
-def build_cands(apps: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], int, int, int]:
-    cands, seen = [], set()
-    skipped_sys = skipped_blank = skipped_dup = 0
-    for name, uid in apps:
-        name = name.strip()
-        uid = uid.strip().lower()
-        if not name: skipped_blank += 1; continue
-        if uid in seen: skipped_dup += 1; continue
-        if is_sys(name): seen.add(uid); skipped_sys += 1; continue
-        seen.add(uid); cands.append((name, uid))
-    return cands, skipped_sys, skipped_blank, skipped_dup
-
-def write_uid(apps: List[Tuple[str, str]], out_dir: str, dev_name: str = "") -> List[Tuple[str, str, str]]:
-    created = []
-    os.makedirs(out_dir, exist_ok=True)
-    for name, uid in apps:
-        sn = sanitize(name)
-        target = os.path.join(out_dir, f"{sn}.uid")
-        # BUGFIX: Check both possible filenames to avoid overwriting
-        if os.path.exists(target):
-            target = os.path.join(out_dir, f"{sn}_{uid}.uid")
-            if os.path.exists(target):
-                log(f"UID exists, skipping: {target}")
-                continue
-        try:
-            with open(target, 'w', encoding='utf-8') as f:
-                f.write(uid + '\n')
-                if dev_name: f.write(dev_name.lower() + '\n')
-            log(f"UID: {target} -> {uid}")
-            created.append((name, uid, os.path.basename(target)))
-        except Exception as ex: log(f"UID err: {ex}")
-    return created
-
-def create_uids():
-    if not pick_dev("UID creation"): return
-
-    try:
-        od = browse("UID: Output Dir", "/storage/roms")
-    except GoBack: return
-
-    cls(); print("Loading apps...", flush=True)
-    ret, out = run_cap(["--listapp"])
-    apps = parse_apps(out)
-
-    if ret != 0 and not apps:
-        ok("Error", f"Could not get app list.\n\nLog: {EKA_LOG}")
-        return
-    if not apps:
-        ok("Error", "No installed apps.")
-        return
-
-    cands, ss, sb, sd = build_cands(apps)
-    cands = sorted(cands, key=lambda x: (x[0].lower(), x[1]))
-
-    if not cands:
-        ok("Error", "No launchable apps found.")
-        return
-
-    opts = [f"{n} ({u})" for n, u in cands]
-    try:
-        select("Available Apps", opts, f"Launchable apps: {len(cands)}\n\nA: Continue, B: Back", 14)
-    except GoBack: return
-
-    try:
-        mode = select("UID Mode", ["Create all", "Select individually"],
-                     f"Output: {od}\nApps: {len(cands)}")
-    except GoBack: return
-    if mode is None: return
-
-    selected = []
-    if mode == 0:
-        if not confirm("Create All", f"Create {len(cands)} UID files in:\n\n{od}"): return
-        selected = cands
+        selected_apps = candidates
     else:
-        opts = [f"{n} ({u})" for n, u in cands]
+        app_options = [f'{name} ({uid})' for name, uid in candidates]
         try:
-            sel = multi_select("Select Apps", opts, f"Output: {od}\n\nA: Toggle, Y: Create", 14)
-        except GoBack: return
-        if not sel: ok("UID", "None selected."); return
-        selected = [cands[i] for i in sel]
-        if not confirm("Create", f"Create {len(selected)} UID files in:\n\n{od}"): return
+            selected_indexes = select_multiple_from_list(
+                'Select Apps For UID',
+                app_options,
+                f'Output: {out_dir}\n\nToggle apps with A, then press Y to create.'
+            )
+        except GoBack:
+            return
 
-    dev = get_dev_name() or ""
-    created = write_uid(selected, od, dev)
+        if not selected_indexes:
+            ok_dialog('UID Creator', 'No apps selected.')
+            return
 
-    ok("Done", f"UID creation done.\n\nOutput: {od}\nRequested: {len(selected)}\nCreated: {len(created)}\nSkip sys: {ss}\nSkip blank: {sb}\nSkip dup: {sd}")
+        selected_apps = [candidates[i] for i in selected_indexes]
 
-# === UNINSTALL ===
-def uninstall_apps():
-    if not pick_dev("app uninstall"): return
+        if not confirm_dialog(
+            'Create Selected UID Files',
+            f'Create {len(selected_apps)} selected UID launcher files in:\n\n{out_dir}'
+        ):
+            return
 
-    cls(); print("Loading apps...", flush=True)
-    ret, out = run_cap(["--listapp"])
-    apps = parse_apps(out)
+    created_entries = write_uid_files(selected_apps, out_dir)
 
-    if ret != 0 and not apps:
-        ok("Error", f"Could not get app list.\n\nLog: {EKA_LOG}")
-        return
-    if not apps:
-        ok("Error", "No installed apps.")
-        return
+    ok_dialog(
+        'Done',
+        f'UID launcher creation finished.\n\n'
+        f'Output: {out_dir}\n\n'
+        f'Requested: {len(selected_apps)}\n'
+        f'Created: {len(created_entries)}\n'
+        f'Skipped system apps: {skipped_system}\n'
+        f'Skipped blank names: {skipped_blank}\n'
+        f'Skipped duplicate UIDs: {skipped_dup}'
+    )
 
-    cands, _, _, _ = build_cands(apps)
-    if not cands:
-        ok("Error", "No removable apps found.")
-        return
+    show_generated_uid_list(created_entries, out_dir)
 
-    opts = [f"{n}  ({u})" for n, u in cands]
-    try:
-        sel = multi_select("Uninstall Apps", opts, f"Toggle with A, Y to uninstall.\n\nApps: {len(cands)}", 14)
-    except GoBack: return
-    if not sel: ok("Uninstall", "None selected."); return
-
-    selected = [cands[i] for i in sel]
-    if not confirm("Confirm", f"Uninstall {len(selected)} app(s)?\n\n" + "\n".join(f"  {n} ({u})" for n, u in selected[:8]) + ("\n  ..." if len(selected) > 8 else "") + "\n\nAlso removes .uid files."): return
-
-    success = fail = uid_rm = 0
-    for name, uid in selected:
-        cls(); print(f"Uninstalling: {name} ({uid})", flush=True)
-        ret = run_eka(["--remove", uid])
-        if ok_ret(ret):
-            success += 1
-            log(f"Uninstalled: {name} ({uid})")
-            sn = sanitize(name)
-            # BUGFIX: Search all .uid files recursively, not just in EKA_ROMS
-            for root, _, files in os.walk(EKA_ROMS):
-                for cand in (f"{sn}.uid", f"{sn}_{uid}.uid"):
-                    up = os.path.join(root, cand)
-                    if os.path.exists(up):
-                        try:
-                            os.remove(up)
-                            uid_rm += 1
-                            log(f"Removed UID: {up}")
-                        except Exception as ex: log(f"UID rm err: {ex}")
-        else:
-            fail += 1
-            log(f"Fail uninstall: {name} ({uid}) - {ret}")
-
-    ok("Done", f"Uninstalled: {success}\nFailed: {fail}\nUIDs removed: {uid_rm}" + (f"\n\nLog: {EKA_LOG}" if fail else ""))
-
-def uninstall_dev():
-    cls(); print("Loading devices...", flush=True)
-    devs = get_valid_devs()
-    if not devs:
-        ok("Uninstall", "No devices found.")
-        return
-
-    cur = get_dev_idx()
-    opts = [f"{n} : {name}{'  [CURRENT]' if cur == n else ''}" for n, name in devs]
-    try:
-        idx = select("Uninstall Device", opts, "Select device to remove.", 16)
-    except GoBack: return
-    if idx is None: return
-
-    n, name = devs[idx]
-    if not confirm("Confirm", f"Remove {n} : {name}?\n\nDeletes:\n  - Z-drive\n  - C-drive (saves)\n  - ROMs\n  - devices.yml entry\n\nCannot be undone!"): return
-
-    cls(); print(f"Removing: {name} ...", flush=True)
-    log(f"Uninstall dev: {n} : {name}")
-
-    removed, errors = [], []
-    dk = name.lower()
-
-    for base, label in [
-        (os.path.join(EKA_CONFIG, "data", "drives", "z"), "Z"),
-        (os.path.join(EKA_CONFIG, "data", "drives", "c"), "C"),
-        (os.path.join(EKA_CONFIG, "data", "roms"), "ROM"),
-    ]:
-        if not os.path.isdir(base): continue
-        for entry in os.listdir(base):
-            if entry.lower() == dk:
-                fp = os.path.join(base, entry)
-                try:
-                    shutil.rmtree(fp) if os.path.isdir(fp) else os.remove(fp)
-                    removed.append(f"{label}: {fp}")
-                    log(f"Removed {label}: {fp}")
-                except Exception as ex:
-                    errors.append(f"{label}: {fp}\n{ex}")
-                    log(f"ERR rm {label} {fp}: {ex}")
-
-    dy = os.path.join(EKA_CONFIG, "data", "devices.yml")
-    if os.path.isfile(dy):
-        try:
-            with open(dy) as f: lines = f.readlines()
-            new_lines, skip, found = [], False, False
-            for line in lines:
-                s = line.rstrip()
-                if s and not s[0].isspace() and s.endswith(":"):
-                    if s[:-1].strip().lower() == dk:
-                        skip = True; found = True
-                        log(f"Rm dev.yml: {s[:-1]}")
-                        continue
-                    else: skip = False
-                if not skip: new_lines.append(line)
-            if found:
-                with open(dy, "w") as f: f.writelines(new_lines)
-                removed.append("devices.yml entry")
-            else: log(f"dev.yml: {name} not found")
-        except Exception as ex: errors.append(f"devices.yml: {ex}"); log(f"dev.yml err: {ex}")
-
-    _autoset_dev()
-
-    if errors:
-        ok("Result", f"Removed with errors.\n\nRemoved: {len(removed)}\nErrors: {len(errors)}\n\n" + "\n".join(errors[:3]) + f"\n\nLog: {EKA_LOG}")
-    else:
-        ok("Done", f"Device removed.\n\n{n} : {name}\n\nRemoved {len(removed)} item(s).\nDevice index auto-updated.")
-
-def show_apps():
-    if not pick_dev("show apps"): return
-    cls(); print("Loading apps...", flush=True)
-    ret, out = run_cap(["--listapp"])
-    apps = parse_apps(out)
-    if not apps:
-        ok("Apps", "No installed apps.")
-        return
-    opts = [f"{n}  ({u})" for n, u in sorted(apps, key=lambda x: x[0].lower())]
-    try: select("Installed Apps", opts, f"Total: {len(apps)}", 16)
-    except GoBack: return
-
-# === SETUP / RESET ===
-DEFAULT_CFG = """bkg-path: ""
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+DEFAULT_CONFIG_YML = """bkg-path: ""
 font: ""
 log-read: false
 log-write: false
@@ -1236,188 +1528,273 @@ internet-bluetooth-friends:
   []
 """
 
-def _mk_default_cfg():
-    cp = os.path.join(EKA_CONFIG, "config.yml")
-    if not os.path.exists(cp):
+
+def _create_default_config():
+    cfg_path = os.path.join(EKA_CONFIG, "config.yml")
+    if not os.path.exists(cfg_path):
         try:
-            with open(cp, "w") as f: f.write(DEFAULT_CFG)
+            with open(cfg_path, "w") as f:
+                f.write(DEFAULT_CONFIG_YML)
             log("Created default config.yml")
             return True
-        except Exception as ex: log(f"cfg err: {ex}")
+        except Exception as ex:
+            log(f"Failed to create config.yml: {ex}")
     return False
 
-def _seed():
-    inst = "/usr/bin/eka2l1"
-    if not os.path.isdir(inst):
-        ok("Error", f"eka2l1 not found:\n{inst}")
+
+def _seed_bundled_files():
+    install_dir = "/usr/bin/eka2l1"
+    if not os.path.isdir(install_dir):
+        ok_dialog("Error", f"eka2l1 install directory not found:\n{install_dir}")
         return
-    cls(); print("Seeding...", flush=True)
+
+    progress_screen("Setup", "Seeding bundled data...")
     seeded = []
-    for item in os.listdir(inst):
-        src, dst = os.path.join(inst, item), os.path.join(EKA_CONFIG, item)
+
+    for item in os.listdir(install_dir):
+        src = os.path.join(install_dir, item)
+        dst = os.path.join(EKA_CONFIG, item)
         if not os.path.exists(dst):
             try:
-                shutil.copytree(src, dst) if os.path.isdir(src) else shutil.copy2(src, dst)
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst)
+                else:
+                    shutil.copy2(src, dst)
                 seeded.append(item)
                 log(f"Seeded: {item}")
-                print(f"  {item}", flush=True)
-            except Exception as ex: log(f"Seed err {item}: {ex}")
-    if _mk_default_cfg():
-        seeded.append("config.yml")
-        print("  config.yml", flush=True)
+                log(f"Seeded: {item}")
+            except Exception as ex:
+                log(f"Seed failed for {item}: {ex}")
+
+    cfg_created = _create_default_config()
+    if cfg_created:
+        seeded.append("config.yml (default)")
+        log("Seeded: config.yml (default)")
+
     if seeded:
-        ok("Done", f"Seeded {len(seeded)} item(s) to:\n{EKA_CONFIG}")
+        ok_dialog("Seed Bundled Files", f"Done!\n\nCopied {len(seeded)} item(s) into:\n{EKA_CONFIG}\n\nYou can now install firmware and games.")
     else:
-        ok("Done", "All files already present.")
+        ok_dialog("Seed Bundled Files", "Nothing to seed - all files already present.")
 
-def _autoset_dev():
-    dy = os.path.join(EKA_CONFIG, "data", "devices.yml")
-    zd = os.path.join(EKA_CONFIG, "data", "drives", "z")
-    cp = os.path.join(EKA_CONFIG, "config.yml")
-    if not os.path.isfile(dy) or not os.path.isdir(zd): return
-    keys = []
+
+def _autoset_device_from_zdrive():
+    devices_yml = os.path.join(EKA_CONFIG, "data", "devices.yml")
+    z_drives_dir = os.path.join(EKA_CONFIG, "data", "drives", "z")
+    cfg_path = os.path.join(EKA_CONFIG, "config.yml")
+
+    if not os.path.isfile(devices_yml) or not os.path.isdir(z_drives_dir):
+        return
+
+    device_keys = []
     try:
-        with open(dy) as f:
+        with open(devices_yml, "r") as f:
             for line in f:
-                s = line.rstrip()
-                if s and not s.startswith(" ") and s.endswith(":"):
-                    keys.append(s[:-1])
-    except Exception as ex: log(f"autoset read err: {ex}"); return
-    avail = {d.lower(): d for d in os.listdir(zd) if os.path.isdir(os.path.join(zd, d))}
-    mi = None
-    for i, k in enumerate(keys):
-        if k.lower() in avail:
-            mi = i
-            log(f"Autoset: {k} @ {i}")
-            break
-    if mi is None:
-        log("Autoset: no match")
-        return
-    if not os.path.isfile(cp): _mk_default_cfg()
-    try:
-        with open(cp) as f: lines = f.readlines()
-        nl = []
-        for line in lines:
-            nl.append(f"device: {mi}\n" if line.startswith("device:") else line)
-        with open(cp, "w") as f: f.writelines(nl)
-        log(f"Autoset: device {mi}")
-    except Exception as ex: log(f"autoset write err: {ex}")
-
-def _import_pre():
-    try:
-        src = browse("Import: Select Dir (needs 'data' folder)", EKA_BIOS)
-    except GoBack: return
-    ds = os.path.join(src, "data")
-    if not os.path.isdir(ds):
-        ok("Error", f"No 'data' folder in:\n{src}")
-        return
-    dd = os.path.join(EKA_CONFIG, "data")
-    os.makedirs(dd, exist_ok=True)
-    total = sum(len(fs) for _, _, fs in os.walk(ds))
-    cls()
-    print(f"Importing from:\n  {src}\nOnly adding new files.\n\nTotal: {total}\n", flush=True)
-    log(f"Import: {src} ({total} files)")
-    added = skipped = proc = 0
-    last = time.time()
-    for root, _, files in os.walk(ds):
-        rel = os.path.relpath(root, ds)
-        dr = os.path.join(dd, rel) if rel != "." else dd
-        os.makedirs(dr, exist_ok=True)
-        for fn in files:
-            sf, df = os.path.join(root, fn), os.path.join(dr, fn)
-            proc += 1
-            if time.time() - last >= 2.0:
-                unblank(); last = time.time()
-                pct = int(proc * 100 / total) if total else 100
-                bar = "#" * (pct // 5) + "-" * (20 - pct // 5)
-                print(f"\r[{bar}] {pct:3d}%  {proc}/{total}  (+{added} added, ={skipped} skipped)    ", end='', flush=True)
-            if fn == "devices.yml" and os.path.exists(df):
-                try:
-                    shutil.copy2(df, df + ".bak")
-                    shutil.copy2(sf, df)
-                    added += 1
-                except Exception as ex: log(f"dev.yml err: {ex}"); skipped += 1
-                continue
-            if not os.path.exists(df):
-                try: shutil.copy2(sf, df); added += 1
-                except Exception as ex: log(f"copy err: {ex}"); skipped += 1
-            else: skipped += 1
-    print(f"\r[####################] 100%  {proc}/{total}  (+{added}, ={skipped})    ", flush=True)
-    print("", flush=True)
-    _autoset_dev()
-    ok("Done", f"Import complete.\n\nAdded: {added}\nSkipped: {skipped}\n\ndevices.yml backed up & overwritten.\nDevice auto-set.")
-
-def reset():
-    if not confirm("Reset", f"DELETE all eka2l1 data?\n\n{EKA_CONFIG}\n\nIncludes firmware, games, saves, config."): return
-    if not confirm("Confirm", "LAST WARNING!\n\nAll data will be PERMANENTLY deleted.\n\nContinue?"): return
-    cls(); print(f"Deleting {EKA_CONFIG} ...", flush=True)
-    log(f"Reset: delete {EKA_CONFIG}")
-    try:
-        if os.path.isdir(EKA_CONFIG):
-            shutil.rmtree(EKA_CONFIG)
-            log("Reset done")
-            ok("Done", f"Deleted:\n{EKA_CONFIG}\n\nRun 'Setup' to reinitialize.")
-        else:
-            ok("Reset", f"Nothing to delete:\n{EKA_CONFIG}")
+                stripped = line.rstrip()
+                if stripped and not stripped.startswith(" ") and stripped.endswith(":"):
+                    device_keys.append(stripped[:-1])
     except Exception as ex:
-        log(f"Reset err: {ex}")
-        ok("Error", f"Reset failed:\n{ex}\n\nLog: {EKA_LOG}")
+        log(f"_autoset_device_from_zdrive: could not read devices.yml: {ex}")
+        return
 
-# === MAIN ===
+    available_z = {
+        d.lower(): d for d in os.listdir(z_drives_dir)
+        if os.path.isdir(os.path.join(z_drives_dir, d))
+    }
+
+    match_index = None
+    for i, key in enumerate(device_keys):
+        if key.lower() in available_z:
+            match_index = i
+            log(f"_autoset_device_from_zdrive: matched device {key} at index {i}")
+            break
+
+    if match_index is None:
+        log("_autoset_device_from_zdrive: no matching Z-drive found")
+        return
+
+    if not os.path.isfile(cfg_path):
+        _create_default_config()
+
+    try:
+        with open(cfg_path, "r") as f:
+            lines = f.readlines()
+
+        new_lines = []
+        for line in lines:
+            if line.startswith("device:"):
+                new_lines.append(f"device: {match_index}\n")
+            else:
+                new_lines.append(line)
+
+        with open(cfg_path, "w") as f:
+            f.writelines(new_lines)
+
+        log(f"_autoset_device_from_zdrive: set device: {match_index}")
+    except Exception as ex:
+        log(f"_autoset_device_from_zdrive: failed to update config.yml: {ex}")
+
+
+def _import_preconfigured():
+    try:
+        src_dir = choose_directory_interactive(
+            "Select source directory (must contain a 'data' folder)",
+            "/storage/roms/bios/eka2l1"
+        )
+    except GoBack:
+        return
+
+    data_src = os.path.join(src_dir, "data")
+    if not os.path.isdir(data_src):
+        ok_dialog("Error", f"No 'data' folder found in:\n{src_dir}\n\nPlease select a directory that contains a pre-configured eka2l1 'data' folder.")
+        return
+
+    data_dst = os.path.join(EKA_CONFIG, "data")
+    os.makedirs(data_dst, exist_ok=True)
+
+    progress_screen("Importing Data", f"From: {data_src}\n\nOnly adding new files.")
+    log(f"Importing pre-configured data from: {data_src}")
+
+    added = 0
+    skipped = 0
+
+    for root, dirs, files in os.walk(data_src):
+        rel = os.path.relpath(root, data_src)
+        dst_root = os.path.join(data_dst, rel) if rel != "." else data_dst
+        os.makedirs(dst_root, exist_ok=True)
+
+        for fname in files:
+            src_file = os.path.join(root, fname)
+            dst_file = os.path.join(dst_root, fname)
+
+            if fname == "devices.yml" and os.path.exists(dst_file):
+                backup = dst_file + ".bak"
+                try:
+                    shutil.copy2(dst_file, backup)
+                    shutil.copy2(src_file, dst_file)
+                    log(f"Overwritten with backup: {dst_file}")
+                    added += 1
+                except Exception as ex:
+                    log(f"Failed to overwrite devices.yml: {ex}")
+                    skipped += 1
+                continue
+
+            if not os.path.exists(dst_file):
+                try:
+                    shutil.copy2(src_file, dst_file)
+                    log(f"Added: {dst_file}")
+                    added += 1
+                except Exception as ex:
+                    log(f"Failed to copy {src_file}: {ex}")
+                    skipped += 1
+            else:
+                skipped += 1
+
+    _autoset_device_from_zdrive()
+
+    ok_dialog("Import Complete",
+              f"Import finished!\n\n"
+              f"Added: {added} file(s)\n"
+              f"Skipped (already exist): {skipped} file(s)\n\n"
+              f"devices.yml overwritten (backup: devices.yml.bak)\n"
+              f"Device index auto-set to match available firmware.")
+
+
+def first_run_setup():
+    _seed_bundled_files()
+
+
 def main():
     preferred = sys.argv[1] if len(sys.argv) > 1 else None
     init_controller(preferred)
-    os.makedirs(EKA_CONFIG, exist_ok=True)
-    try:
-        with open(EKA_LOG, "w") as f: f.write("EmuELEC eka2l1 Commander Log\n")
-    except: pass
-    cls(); print("Starting eka2l1 Commander...", flush=True)
-    time.sleep(0.5)
 
-    items = [
-        "Install / set up eka2l1 (on FIRST RUN or AFTER COMPLETE RESET",
-        "Import pre-configured devices",
-        "Install firmware (.rpkg + .rom)",
-        "Scan folders for .sis / .sisx files",
-        "Install .sis / .sisx files",
-        "Create .uid launcher files",
-        "Create gamelist.xml from .uid files",
-        "Show device list / change active device",
-        "Convert paths and files to lowercase",
-        "Show installed apps",
-        "Uninstall apps / games",
-        "Uninstall device",
-        "Complete Reset",
-        "Exit",
-    ]
+    os.makedirs(EKA_CONFIG, exist_ok=True)
+
+    try:
+        with open(EKA_LOG, "w") as f:
+            f.write("EmuELEC eka2l1 Commander Log\n")
+    except Exception:
+        pass
+
+    fb_open()
+    unblank_framebuffer()
+    fb_fill(COL_BG)
+    fb_flip()
 
     try:
         while True:
             try:
-                idx = select("Main Menu", items, "What would you like to do?")
-                if idx is None or idx == 13: break
-                try:
-                    if idx == 0: _seed()
-                    elif idx == 1: _import_pre()
-                    elif idx == 2: install_fw()
-                    elif idx == 3: scan_sis()
-                    elif idx == 4: install_sis()
-                    elif idx == 5: create_uids()
-                    elif idx == 6: create_gamelist()
-                    elif idx == 7: change_dev()
-                    elif idx == 8: conv_lower()
-                    elif idx == 9: show_apps()
-                    elif idx == 10: uninstall_apps()
-                    elif idx == 11: uninstall_dev()
-                    elif idx == 12: reset()
-                except GoBack: continue
-            except GoBack: continue
-    except UserQuit: pass
-    except KeyboardInterrupt: pass
+                idx = select_from_list(
+                    "Main Menu",
+                    [
+                        "[ RUN THIS FIRST ! ] : Setup eka2l1 (copy needed files to EmuELEC)",
+                        "Import pre-configured devices-collection",
+                        "Install firmware (.rpkg + .rom)",
+                        "Install games and apps (.sis/.sisx)",
+                        "Create UID launcher-files from installed games and apps (.uid)",
+                        "Create gamelist.xml from .uid launcher-files",
+                        "Show / change current device",
+                        "Convert uppercase device paths and files to lowercase",
+                        "Exit",
+                    ],
+                    "What would you like to do?"
+                )
+
+                if idx is None or idx == 8:
+                    break
+                if idx == 0:
+                    try:
+                        first_run_setup()
+                    except GoBack:
+                        continue
+                elif idx == 1:
+                    try:
+                        _import_preconfigured()
+                    except GoBack:
+                        continue
+                elif idx == 2:
+                    try:
+                        install_firmware()
+                    except GoBack:
+                        continue
+                elif idx == 3:
+                    try:
+                        install_sis()
+                    except GoBack:
+                        continue
+                elif idx == 4:
+                    try:
+                        create_uid_launchers()
+                    except GoBack:
+                        continue
+                elif idx == 5:
+                    try:
+                        create_uid_gamelist()
+                    except GoBack:
+                        continue
+                elif idx == 6:
+                    try:
+                        change_device()
+                    except GoBack:
+                        continue
+                elif idx == 7:
+                    try:
+                        convert_device_paths_to_lowercase()
+                    except GoBack:
+                        continue
+            except GoBack:
+                continue
+
+    except UserQuit:
+        pass
+    except KeyboardInterrupt:
+        pass
     finally:
-        cls(); print("Exiting...", flush=True)
-        time.sleep(0.5)
-        if controller: controller.close()
+        fb_fill(COL_BG)
+        fb_flip()
+        fb_close()
+        if controller:
+            controller.close()
+
 
 if __name__ == "__main__":
     main()
