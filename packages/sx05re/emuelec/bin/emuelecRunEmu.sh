@@ -155,7 +155,12 @@ emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
 
-if [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
+# .bighard files always go to BigInstinct, regardless of platform/emu choice
+if [[ "${ROMNAME,,}" == *.bighard ]]; then
+    set_kill_keys "biginstinct"
+    RUNTHIS='${TBASH} biginstinctstart.sh "${ROMNAME}"'
+
+elif [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
 GPTOKEYB=$(get_ee_setting "gptokeyb" "${PLATFORM}" "${BASEROMNAME}")
 VIRTUAL_KB=
@@ -314,6 +319,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} ppsspp.sh "${ROMNAME}"'
                 fi
                 ;;
+		"ngage")
+		if [ "$EMU" = "eka2l1" ]; then
+            set_kill_keys "eka2l1"
+            RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
+        fi
+               ;;
         "neocd")
                 if [ "${EMU}" = "fbneo" ]; then
             RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
@@ -373,6 +384,12 @@ case ${PLATFORM} in
         if [ "${EMU}" = "oricutron" ]; then
             set_kill_keys "oricutron"
             RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
+        fi
+		;;	
+		"mtx512")
+        if [ "${EMU}" = "memu" ]; then
+            set_kill_keys "memu"
+            RUNTHIS='${TBASH} memustart.sh "${ROMNAME}"'
         fi
 		;;	
         "dragon32"|"dragon64")
