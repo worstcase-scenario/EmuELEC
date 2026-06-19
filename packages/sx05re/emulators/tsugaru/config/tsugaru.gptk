@@ -1,0 +1,49 @@
+# gptokeyb configuration for Tsugaru (FM Towns / Marty)
+# Install to: /emuelec/configs/gptokeyb/tsugaru.gptk
+#
+# FM Towns originally used keyboard + mouse + joystick.
+# This mapping translates a standard gamepad to keyboard input.
+#
+# Relevant Tsugaru CUI keyboard shortcuts:
+#   ESC            = quit emulator
+#   F11            = toggle fullscreen
+#   F12            = reset
+#   cursor keys    = joystick D-Pad (most games)
+#   Z / X          = fire button 1 / 2
+#   Space          = fire button (alternate)
+#   F1-F8          = FM Towns function keys
+#   Enter          = confirm / return
+
+[hotkey]
+# Start + Select = quit emulator
+start = esc
+
+[config]
+# D-Pad -> cursor keys (joystick emulation)
+up = up
+down = down
+left = left
+right = right
+
+# A / B -> fire buttons
+a = z
+b = x
+
+# X / Y -> alternate fire / confirm
+x = space
+y = return
+
+# Shoulder buttons -> function keys
+l1 = f1
+r1 = f2
+l2 = f3
+r2 = f4
+
+# Left analog stick -> cursor (analog as digital)
+left_analog_left = left
+left_analog_right = right
+left_analog_up = up
+left_analog_down = down
+
+# Select alone = F12 (reset)
+select = f12
