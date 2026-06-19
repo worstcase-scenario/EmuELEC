@@ -1,0 +1,11 @@
+diff --git a/libretro/Makefile.libretro b/libretro/Makefile.libretro
+--- a/libretro/Makefile.libretro
++++ b/libretro/Makefile.libretro
+@@ -1,5 +1,6 @@
+ BASE_CXXFLAGS ?= -O3 -DNDEBUG -std=c++20 -Wall -Wextra
+ 
+-PORTABLE_CPUFLAGS ?= -msse2 -mfpmath=sse
++# EmuELEC ARM/aarch64: remove x86 SIMD flags
++PORTABLE_CPUFLAGS ?=
+ 
+ WRAPPER_CXXFLAGS := $(BASE_CXXFLAGS) $(PORTABLE_CPUFLAGS) $(COMMON_INCLUDES) $(FPIC) -MMD -MP
