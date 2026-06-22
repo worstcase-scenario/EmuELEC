@@ -2,7 +2,7 @@
 
 PKG_NAME="xroar"
 PKG_VERSION="1.11"
-PKG_SHA256=""
+PKG_SHA256="70270805ebd52c0b62237cc2f28b32b5c7df9764d10a7c7190de584cfc6e95af"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://www.6809.org.uk/xroar/"
@@ -15,9 +15,7 @@ PKG_TOOLCHAIN="autotools"
 configure_target() {
   cd ${PKG_BUILD}
   ./configure \
-    --target=${TARGET_NAME} \
     --host=${TARGET_NAME} \
-    --build=${BUILD} \
     --prefix=/usr \
     --enable-dragon \
     --enable-coco3 \
@@ -41,15 +39,10 @@ makeinstall_target() {
   cd ${PKG_BUILD}
   make DESTDIR=${INSTALL} install
 
-  mkdir -p ${INSTALL}/usr/bin
-  cp ${INSTALL}/usr/bin/xroar ${INSTALL}/usr/bin/xroar
-  chmod +x ${INSTALL}/usr/bin/xroar
-
-  cp ${PKG_DIR}/scripts/xroar.sh ${INSTALL}/usr/bin/xroar.sh
-  chmod +x ${INSTALL}/usr/bin/xroar.sh
+  cp ${PKG_DIR}/scripts/xroarstart.sh ${INSTALL}/usr/bin/xroarstart.sh
+  chmod +x ${INSTALL}/usr/bin/xroarstart.sh
 
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/xroar
-  cp -r ${PKG_BUILD}/docs ${INSTALL}/usr/config/emuelec/configs/xroar/ 2>/dev/null || true
 
   if [ -f "${PKG_DIR}/config/xroar.gptk" ]; then
     mkdir -p ${INSTALL}/usr/config/emuelec/configs/xroar/gptk

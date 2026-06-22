@@ -5329,7 +5329,7 @@
       "platform": "dragon64",
       "theme": "dragon64",
       "command": "default",
-      extensions": [
+      "extensions": [
         ".cas",
         ".c10",
         ".bas",
@@ -5378,7 +5378,7 @@
       "platform": "coco",
       "theme": "coco",
       "command": "default",
-      extensions": [
+      "extensions": [
         ".cas",
         ".c10",
         ".bas",
