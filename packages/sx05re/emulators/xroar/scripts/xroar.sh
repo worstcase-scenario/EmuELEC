@@ -23,6 +23,31 @@ case "$ROM" in
   *)            MACHINE="dragon64" ;;
 esac
 
+# Handle compressed files (ZIP and 7Z)
+case "${ROM##*.}" in
+  zip|ZIP|7z|7Z)
+    TMPDIR="/tmp/xroar_rom_$$"
+    mkdir -p "$TMPDIR"
+    
+    if [ "${ROM##*.}" = "7z" ] || [ "${ROM##*.}" = "7Z" ]; then
+      7z x -q "$ROM" -o"$TMPDIR"
+    else
+      unzip -q "$ROM" -d "$TMPDIR"
+    fi
+    
+    # Find first valid XRoar file
+    ROM=$(find "$TMPDIR" -type f \( \
+      -iname "*.cas" -o -iname "*.c10" -o -iname "*.wav" -o -iname "*.k7" -o \
+      -iname "*.bas" -o -iname "*.asc" -o \
+      -iname "*.rom" -o -iname "*.ccc" -o \
+      -iname "*.vdk" -o -iname "*.dsk" -o -iname "*.jvc" -o -iname "*.os9" -o -iname "*.dmk" -o \
+      -iname "*.bin" \
+    \) | head -1)
+    
+    CLEANUP_TMPDIR=1
+    ;;
+esac
+
 # Kill old instances
 killall -9 gptokeyb 2>/dev/null
 
@@ -49,3 +74,7 @@ sleep 1
 
 # Cleanup
 killall -9 gptokeyb 2>/dev/null
+
+if [ "$CLEANUP_TMPDIR" = "1" ]; then
+  rm -rf "$TMPDIR"
+fi
