@@ -104,7 +104,7 @@ EOF
   # HIGHFIDELITY handles 0xD0 but gets stuck at FFFE2397 (different bug).
   # Fix: use a default of 4 clocks instead of aborting, so DEFAULT_FIDELITY
   # can boot the FreeTOWNS BIOS without hitting the HIGHFIDELITY deadlock.
-  python3 /tmp/tsugaru_patch_i486.py "${PKG_BUILD}/src/cpu/i486runinstruction.h"
+  python3 /tmp/tsugaru_patch_i486.py "${PKG_BUILD}"
   # The shell then interprets the semicolon as a command separator, causing
   # "no input files" errors. Patch the top-level CMakeLists.txt to collapse
   # semicolons to spaces before any targets are defined.

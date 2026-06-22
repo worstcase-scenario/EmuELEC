@@ -89,8 +89,16 @@ SDL2Connection::SDL2Connection()  { BuildKeyMap(); }
 SDL2Connection::~SDL2Connection() {}
 
 std::string SDL2Connection::GetProgramResourceDirectory() const { return ""; }
-void SDL2Connection::Start()  {}
-void SDL2Connection::Stop()   {}
+void SDL2Connection::Start()
+{
+    // Initialize ALL SDL subsystems from the main thread BEFORE the render
+    // and sound threads start. SDL_Init is not thread-safe.
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
+}
+void SDL2Connection::Stop()
+{
+    SDL_Quit();
+}
 
 void SDL2Connection::DevicePolling(FMTownsCommon &towns)
 {
@@ -130,7 +138,7 @@ void SDL2Connection::WindowConnection::Start()
     // is thread-local on Mali). Start the render thread and do SDL_Init there.
     running = true;
     renderThread = std::thread([this]() {
-        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+        // SDL already initialized by SDL2Connection::Start() on the main thread.
         SDL_JoystickEventState(SDL_ENABLE);
         for (int i = 0; i < SDL_NumJoysticks(); i++)
             SDL_JoystickOpen(i);
@@ -148,14 +156,14 @@ void SDL2Connection::WindowConnection::Start()
                 SDL_GetCurrentVideoDriver());
 
         while (running) {
-            Interval();
+            // TownsThread calls window.Interval() directly (via CheckRenderingTimer).
+            // The render thread only handles SDL events and rendering.
             Communicate(parent);
             Render(true);
             SDL_Delay(16);
         }
 
         SDL_DestroyWindow(win); win = nullptr;
-        SDL_Quit();
     });
 }
 
@@ -197,18 +205,18 @@ void SDL2Connection::WindowConnection::Render(bool swapBuffers)
     if (dirty && local.wid > 0 && local.hei > 0 && !local.rgba.empty()) {
         static bool pixelLogged = false;
         if (!pixelLogged) {
-            pixelLogged = true; // only log once
+            pixelLogged = true;
             bool hasColor = false;
             for (size_t i = 0; i + 3 < local.rgba.size(); i += 4) {
                 if (local.rgba[i] || local.rgba[i+1] || local.rgba[i+2]) {
-                    fprintf(stderr, "First non-black pixel at byte %zu: R=%d G=%d B=%d A=%d\n",
-                            i, local.rgba[i], local.rgba[i+1], local.rgba[i+2], local.rgba[i+3]);
+                    fprintf(stderr, "First non-black pixel at %zu: R=%u G=%u B=%u\n",
+                            i/4, local.rgba[i], local.rgba[i+1], local.rgba[i+2]);
                     hasColor = true;
                     break;
                 }
             }
             if (!hasColor)
-                fprintf(stderr, "First frame: all pixels black. Will check CRTC via CUI.\n");
+                fprintf(stderr, "First frame: all pixels black.\n");
         }
 
         SDL_Surface *ws = SDL_GetWindowSurface(win);
@@ -219,35 +227,32 @@ void SDL2Connection::WindowConnection::Render(bool swapBuffers)
                 32, (int)local.wid * 4,
                 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
             if (src) {
-                // Disable alpha blending so alpha=0 pixels are not treated as transparent
                 SDL_SetSurfaceBlendMode(src, SDL_BLENDMODE_NONE);
                 SDL_BlitScaled(src, nullptr, ws, nullptr);
                 SDL_FreeSurface(src);
+                SDL_UpdateWindowSurface(win);
             }
         }
+        return;
     }
 
     if (swapBuffers && win) {
-        // DEBUG: draw a red 100x100 square in the corner to verify display output works
-        SDL_Surface *ws2 = SDL_GetWindowSurface(win);
-        if (ws2) {
-            static int testFrame = 0;
-            if (testFrame++ < 300) { // show for 5 seconds
+        SDL_Surface *ws = SDL_GetWindowSurface(win);
+        if (ws && ws->format) {
+            static int frame = 0;
+            if (frame++ < 300) {
                 SDL_Rect r = {0, 0, 100, 100};
-                SDL_FillRect(ws2, &r, SDL_MapRGB(ws2->format, 255, 0, 0));
+                SDL_FillRect(ws, &r, SDL_MapRGB(ws->format, 255, 0, 0));
+                SDL_UpdateWindowSurface(win);
             }
         }
-        SDL_UpdateWindowSurface(win);
     }
 }
 
+
 void SDL2Connection::WindowConnection::Interval()
 {
-    // BaseInterval() processes the VRAM copy set by SendNewImage() from the VM thread,
-    // renders it via TownsRender, and stores the result in winThr.mostRecentImage.
     BaseInterval();
-
-    // If a new frame was rendered, upload it to the SDL2 texture
     if (winThr.newImageRendered) {
         winThr.newImageRendered = false;
         UpdateImage(winThr.mostRecentImage);
@@ -410,7 +415,7 @@ void SDL2Connection::SoundConnection::AudioCallback(void *userdata, uint8_t *str
 
 void SDL2Connection::SoundConnection::Start()
 {
-    SDL_Init(SDL_INIT_AUDIO);
+    // SDL already initialized by SDL2Connection::Start() on the main thread.
     SDL_AudioSpec want{}, have{};
     want.freq     = 44100;
     want.format   = AUDIO_S16SYS;
