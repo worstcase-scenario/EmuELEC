@@ -8,6 +8,9 @@ ROM="$1"
 ROMNAME="${ROM##*/}"
 ROMBASE="${ROMNAME%.*}"
 
+# Store original ROM path for .xr sidecar lookup
+ORIGINAL_ROM="$ROM"
+
 # Determine machine type based on ROM path
 case "$ROM" in
   */dragon32/*) MACHINE="dragon32" ;;
@@ -30,7 +33,7 @@ case "${ROM##*.}" in
       unzip -q "$ROM" -d "$TMPDIR"
     fi
 
-    for EXT in cas c10 k7 bas asc rom ccc bin vdk dsk jvc os9 dmk wav; do
+    for EXT in cas c10 k7 bas asc rom ccc bin wav vdk dsk jvc os9 dmk; do
       FOUND=$(find "$TMPDIR" -type f -iname "*.${EXT}" | head -1)
       if [ -n "$FOUND" ]; then
         ROM="$FOUND"
@@ -42,8 +45,8 @@ case "${ROM##*.}" in
     ;;
 esac
 
-# Check for .xr sidecar file for custom load commands
-XR_FILE="${ROM%.*}.xr"
+# Check for .xr sidecar file based on original ROM path
+XR_FILE="${ORIGINAL_ROM%.*}.xr"
 if [ -f "$XR_FILE" ]; then
   TYPE_CMD=$(cat "$XR_FILE")
   LOAD_FLAG="-load"
@@ -51,7 +54,7 @@ if [ -f "$XR_FILE" ]; then
 else
   case "${ROM##*.}" in
     vdk|VDK|dsk|DSK|jvc|JVC|os9|OS9|dmk|DMK)
-      LOAD_FLAG="-load"
+      LOAD_FLAG="-run"
       TYPE_PARAM=""
       ;;
     *)
@@ -84,7 +87,7 @@ sleep 1
 
 # Launch XRoar
 LIBGL_NOTEST=1 /usr/bin/xroar -fs \
-  -rompath /storage/roms/bios \
+  -rompath /storage/roms/bios:/storage/roms/bios/xroar \
   -default-machine "$MACHINE" \
   ${LOAD_FLAG} "$ROM" \
   ${TYPE_PARAM}
