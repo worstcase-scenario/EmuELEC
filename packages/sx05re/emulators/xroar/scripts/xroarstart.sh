@@ -30,7 +30,6 @@ case "${ROM##*.}" in
       unzip -q "$ROM" -d "$TMPDIR"
     fi
 
-    # Priorität: cas > c10 > k7 > bas > asc > rom > ccc > bin > vdk > dsk > jvc > os9 > dmk > wav
     for EXT in cas c10 k7 bas asc rom ccc bin vdk dsk jvc os9 dmk wav; do
       FOUND=$(find "$TMPDIR" -type f -iname "*.${EXT}" | head -1)
       if [ -n "$FOUND" ]; then
@@ -43,21 +42,24 @@ case "${ROM##*.}" in
     ;;
 esac
 
-# Determine load flag based on file type
-case "${ROM##*.}" in
-  vdk|VDK|dsk|DSK|jvc|JVC|os9|OS9|dmk|DMK)
-    LOAD_FLAG="-load"
-    ;;
-  rom|ROM|ccc|CCC|bin|BIN)
-    LOAD_FLAG="-run"
-    ;;
-  cas|CAS|wav|WAV|k7|K7|c10|C10|bas|BAS|asc|ASC)
-    LOAD_FLAG="-run"
-    ;;
-  *)
-    LOAD_FLAG="-run"
-    ;;
-esac
+# Check for .xr sidecar file for custom load commands
+XR_FILE="${ROM%.*}.xr"
+if [ -f "$XR_FILE" ]; then
+  TYPE_CMD=$(cat "$XR_FILE")
+  LOAD_FLAG="-load"
+  TYPE_PARAM="-type ${TYPE_CMD}\r"
+else
+  case "${ROM##*.}" in
+    vdk|VDK|dsk|DSK|jvc|JVC|os9|OS9|dmk|DMK)
+      LOAD_FLAG="-load"
+      TYPE_PARAM=""
+      ;;
+    *)
+      LOAD_FLAG="-run"
+      TYPE_PARAM=""
+      ;;
+  esac
+fi
 
 # Kill old instances
 killall -9 gptokeyb 2>/dev/null
@@ -72,16 +74,23 @@ else
     GPTK_CONFIG="$GPTK_DEFAULT"
 fi
 
-# Start gptokeyb with selected config
+# Pause EmulationStation
+kill -SIGSTOP $(pgrep emulationstation) 2>/dev/null
+
+# Start gptokeyb
 gptokeyb 1 xroar -c "$GPTK_CONFIG" &
 
-# Wait for gptokeyb to initialize
 sleep 1
 
 # Launch XRoar
-/usr/bin/xroar -fs -rompath /storage/roms/bios \
+LIBGL_NOTEST=1 /usr/bin/xroar -fs \
+  -rompath /storage/roms/bios \
   -default-machine "$MACHINE" \
-  ${LOAD_FLAG} "$ROM"
+  ${LOAD_FLAG} "$ROM" \
+  ${TYPE_PARAM}
+
+# Resume EmulationStation
+kill -SIGCONT $(pgrep emulationstation) 2>/dev/null
 
 # Cleanup
 killall -9 gptokeyb 2>/dev/null
