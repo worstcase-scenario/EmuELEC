@@ -206,9 +206,13 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
+              "name": "fmtowns",
               "default": true
+            },
+			{
+              "name": "mame"
             }
+          	
           ]
         }
       ]
