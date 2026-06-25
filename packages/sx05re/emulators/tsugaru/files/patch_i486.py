@@ -125,9 +125,11 @@ patch(run,
     '\t\t\t\tIncrementByte(i); // undefined: i486 treats REG=6 as INC\n'
     '\t\t\t\tbreak;\n'
     '\t\t\tcase 7:\n'
-    '\t\t\t\tDecrementByte(i); // undefined: i486 treats REG=7 as DEC\n'
+    '\t\t\t\tRaiseException(EXCEPTION_UD,0); // #UD for real i486 / FreeTOWNS dispatch\n'
+    '\t\t\t\tEIPIncrement=0;\n'
+    '\t\t\t\tclocksPassed=ClocksForHandlingException();\n'
     '\t\t\t\tbreak;',
-    '0xFE undefined REG=2..7 → NOP/INC/DEC')
+    '0xFE undefined REG=2..7 → NOP/INC/RaiseExceptionUD')
 
 # ── Patch 5: discimg binaryCache off-by-16 ───────────────────────────────────
 # MODE1/2352 raw sectors have a 16-byte header. The binaryCache pointer
@@ -158,12 +160,14 @@ patch(run,
     '\t\t\t\tstd_unreachable;\n'
     '\t\t\t}',
     '\t\t\tcase 7:\n'
-    '\t\t\t\tclocksPassed=1; // undefined: NOP\n'
+    '\t\t\t\tRaiseException(EXCEPTION_UD,0); // #UD for real i486\n'
+    '\t\t\t\tEIPIncrement=0;\n'
+    '\t\t\t\tclocksPassed=ClocksForHandlingException();\n'
     '\t\t\t\tbreak;\n'
     '\t\t\tdefault:\n'
     '\t\t\t\tstd_unreachable;\n'
     '\t\t\t}',
-    '0xFF REG=7 undefined → NOP')
+    '0xFF REG=7 → RaiseException #UD')
 
 # ── Patch 7: fpuState.FNINIT() in CPU Reset ──────────────────────────────────
 # ROOT FIX for the Fujitsu BIOS crash at T≈1.57s:
