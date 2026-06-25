@@ -125,11 +125,9 @@ patch(run,
     '\t\t\t\tIncrementByte(i); // undefined: i486 treats REG=6 as INC\n'
     '\t\t\t\tbreak;\n'
     '\t\t\tcase 7:\n'
-    '\t\t\t\tRaiseException(EXCEPTION_UD,0); // #UD for real i486 / FreeTOWNS dispatch\n'
-    '\t\t\t\tEIPIncrement=0;\n'
-    '\t\t\t\tclocksPassed=ClocksForHandlingException();\n'
+    '\t\t\t\tclocksPassed=2; // undefined: NOP, advance past instruction\n'
     '\t\t\t\tbreak;',
-    '0xFE undefined REG=2..7 → NOP/INC/RaiseExceptionUD')
+    '0xFE undefined REG=2..7 → NOP/INC/NOP')
 
 # ── Patch 5: discimg binaryCache off-by-16 ───────────────────────────────────
 # MODE1/2352 raw sectors have a 16-byte header. The binaryCache pointer
@@ -160,14 +158,12 @@ patch(run,
     '\t\t\t\tstd_unreachable;\n'
     '\t\t\t}',
     '\t\t\tcase 7:\n'
-    '\t\t\t\tRaiseException(EXCEPTION_UD,0); // #UD for real i486\n'
-    '\t\t\t\tEIPIncrement=0;\n'
-    '\t\t\t\tclocksPassed=ClocksForHandlingException();\n'
+    '\t\t\t\tclocksPassed=1; // undefined: NOP, advance past instruction\n'
     '\t\t\t\tbreak;\n'
     '\t\t\tdefault:\n'
     '\t\t\t\tstd_unreachable;\n'
     '\t\t\t}',
-    '0xFF REG=7 → RaiseException #UD')
+    '0xFF REG=7 → NOP advance')
 
 # ── Patch 7: fpuState.FNINIT() in CPU Reset ──────────────────────────────────
 # ROOT FIX for the Fujitsu BIOS crash at T≈1.57s:
@@ -191,3 +187,48 @@ patch(i486,
     '\tstate.fpuState.FNINIT(); // clear STATUS_ES; prevents spurious IRQ13→INT75H\n'
     '}',
     'fpuState.FNINIT() in CPU Reset')
+
+
+# ── Patch 8: one-shot INT 75H stub via RunFastDevicePollingInternal ───────────
+# BIOS clears all RAM in physMem.State::Reset() → anything we write in Reset()
+# is wiped. The BIOS never initializes IVT[75H] (INT 0x75 = FPU error via IRQ13).
+# At T≈1.54s the BIOS hits FLD at 0050:8CBF, FERR# fires → INT 75H → IVT[75H]=0:0
+# → CPU slides through IVT bytes.
+# Fix: in RunFastDevicePollingInternal(), once townsTime crosses 1.2s, write a
+# FNINIT(DB E3)+IRET(CF) stub into low RAM and point IVT[75H] there.
+# By 1.2s the BIOS has already finished clearing RAM, so the entry survives.
+towns_cpp = f'{build}/src/towns/towns.cpp'
+patch(towns_cpp,
+    'void FMTownsCommon::RunFastDevicePollingInternal(void)\n'
+    '{\n'
+    '\ttimer.TimerPolling(state.townsTime);\n'
+    '\tmidi.TimerPolling(state.townsTime);\n'
+    '\tsound.SoundPolling(state.townsTime);\n'
+    '\tcrtc.ProcessVSYNCIRQ(state.townsTime);\n'
+    '\tstate.nextFastDevicePollingTime=state.townsTime+FAST_DEVICE_POLLING_INTERVAL;\n'
+    '}',
+    'void FMTownsCommon::RunFastDevicePollingInternal(void)\n'
+    '{\n'
+    '\ttimer.TimerPolling(state.townsTime);\n'
+    '\tmidi.TimerPolling(state.townsTime);\n'
+    '\tsound.SoundPolling(state.townsTime);\n'
+    '\tcrtc.ProcessVSYNCIRQ(state.townsTime);\n'
+    '\tstate.nextFastDevicePollingTime=state.townsTime+FAST_DEVICE_POLLING_INTERVAL;\n'
+    '\t// Patch 8: one-shot INT 75H (FPU error) stub — installed after BIOS RAM-clear\n'
+    '\tif(state.townsTime>=1200000000ULL &&\n'
+    '\t   physMem.state.RAM.size()>0x9200 &&\n'
+    '\t   physMem.state.RAM[0x01D5]==0x00 &&\n'
+    '\t   physMem.state.RAM[0x01D7]==0x00 &&\n'
+    '\t   physMem.state.RAM[0x01D4]==0x00 &&\n'
+    '\t   physMem.state.RAM[0x9100]==0x00)\n'
+    '\t{\n'
+    '\t\tphysMem.state.RAM[0x9100]=0xDB; // FNINIT\n'
+    '\t\tphysMem.state.RAM[0x9101]=0xE3;\n'
+    '\t\tphysMem.state.RAM[0x9102]=0xCF; // IRET\n'
+    '\t\tphysMem.state.RAM[0x01D4]=0x00; // INT 75H: IP low = 0x00\n'
+    '\t\tphysMem.state.RAM[0x01D5]=0x91; // IP high = 0x91 → 0x9100\n'
+    '\t\tphysMem.state.RAM[0x01D6]=0x00; // CS low = 0x00\n'
+    '\t\tphysMem.state.RAM[0x01D7]=0x00; // CS high = 0x00\n'
+    '\t}\n'
+    '}',
+    'INT 75H one-shot stub at T=1.2s')
