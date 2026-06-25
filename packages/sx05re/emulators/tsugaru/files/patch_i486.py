@@ -158,7 +158,7 @@ patch(run,
     '\t\t\t\tstd_unreachable;\n'
     '\t\t\t}',
     '\t\t\tcase 7:\n'
-    '\t\t\t\tclocksPassed=1; // undefined: treat as NOP\n'
+    '\t\t\t\tclocksPassed=1; // undefined: NOP\n'
     '\t\t\t\tbreak;\n'
     '\t\t\tdefault:\n'
     '\t\t\t\tstd_unreachable;\n'
