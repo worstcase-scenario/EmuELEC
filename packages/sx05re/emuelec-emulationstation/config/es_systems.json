@@ -5021,6 +5021,32 @@
       ]
     },
 	{
+      "name": "ti83",
+      "fullname": "Texas Instruments TI-83",
+      "manufacturer": "Texas Instruments",
+      "release": "1996",
+      "hardware": "computer",
+      "path": "/storage/roms/ti83",
+      "platform": "ti83",
+      "theme": "ti83",
+      "command": "default",
+      "extensions": [
+        ".8xp",
+		".8xk"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "numero",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
 		"name": "ti99",
 		"fullname": "Texas Instruments TI-99/4A",
 		"manufacturer": "Texas Instruments",
