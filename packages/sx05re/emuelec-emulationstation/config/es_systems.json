@@ -5623,6 +5623,38 @@
 		}
 	]
 	},
+		{
+	"name": "gp32",
+	"fullname": "GP 32",
+	"manufacturer": "Game Park",
+	"release": "2005",
+	"hardware": "portable",
+	"path": "/storage/roms/gp32",
+	"platform": "gp32",
+	"theme": "gp32",
+	"command": "default",
+	"extensions": [
+    ".smc",
+	".cmd",
+	".fxe",
+	".fpk",
+	".zip"
+	],
+	"emulators": [
+    {
+      "name": "libretro",
+      "cores": [
+			{
+          "name": "lowresnx",
+          "default": true
+			},
+			{
+          "name": "mame"
+            }
+		]
+		}
+	]
+	},
     {
       "name": "bk",
       "fullname": "Electronika",
