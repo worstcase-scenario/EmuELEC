@@ -220,15 +220,63 @@ patch(towns_cpp,
     '\t   physMem.state.RAM[0x01D5]==0x00 &&\n'
     '\t   physMem.state.RAM[0x01D7]==0x00 &&\n'
     '\t   physMem.state.RAM[0x01D4]==0x00 &&\n'
-    '\t   physMem.state.RAM[0x9100]==0x00)\n'
+    '\t   physMem.state.RAM[0x6000]==0x00)\n'
     '\t{\n'
-    '\t\tphysMem.state.RAM[0x9100]=0xDB; // FNINIT\n'
-    '\t\tphysMem.state.RAM[0x9101]=0xE3;\n'
-    '\t\tphysMem.state.RAM[0x9102]=0xCF; // IRET\n'
+    '\t\tphysMem.state.RAM[0x6000]=0xDB; // FNINIT\n'
+    '\t\tphysMem.state.RAM[0x6001]=0xE3;\n'
+    '\t\tphysMem.state.RAM[0x6002]=0xCF; // IRET\n'
     '\t\tphysMem.state.RAM[0x01D4]=0x00; // INT 75H: IP low = 0x00\n'
-    '\t\tphysMem.state.RAM[0x01D5]=0x91; // IP high = 0x91 → 0x9100\n'
+    '\t\tphysMem.state.RAM[0x01D5]=0x60; // IP high = 0x60 → 0x6000\n'
     '\t\tphysMem.state.RAM[0x01D6]=0x00; // CS low = 0x00\n'
     '\t\tphysMem.state.RAM[0x01D7]=0x00; // CS high = 0x00\n'
+    '\t\t// Also write IRET at 0:0002 so INT6 dispatch (INC[BX+SI]+IRET) works\n'
+    '\t\t// without sliding through IVT bytes that contain PUSH-like opcodes.\n'
+    '\t\t// IVT[6]=0:0000; at 0:0: FE 00=INC[BX+SI]; at 0:0002: CF=IRET.\n'
+    '\t\tphysMem.state.RAM[0x0002]=0xCF; // IRET — stops NOP sled stack leak\n'
     '\t}\n'
     '}',
-    'INT 75H one-shot stub at T=1.2s')
+    'INT 75H stub at 0x6000 + INT6 IRET at 0:0002 at T=1.2s')
+
+
+# ── Patch 9: enable FPU by default ───────────────────────────────────────────
+# useFPU=false means every FPU instruction fires INT 7 (Device Not Available)
+# → INT 7 handler at 0:0 (uninitialized dispatch trampoline) → BIOS loops.
+# The FM Towns i486DX has an integrated FPU. Enable it by default.
+townsparam = f'{build}/src/towns/townsparam/townsparam.h'
+patch(townsparam,
+    '\tbool useFPU=false;',
+    '\tbool useFPU=true; // Patch 9: FM Towns i486DX has integrated FPU',
+    'useFPU=true by default')
+
+
+# ── Patch 10: implement SETALC (0xD6) ────────────────────────────────────────
+# 0xD6 = SETALC (undocumented i486 instruction: Set AL from Carry flag).
+# The FreeTOWNS free BIOS uses 0xD6 in its dispatch stubs.
+# Currently handled as I486_RENUMBER_REALLY_UNDEFINED → prints error, fires INT6.
+# With SETALC: AL = 0xFF if CF=1, else AL = 0x00. No flags changed. 1-byte, ~3 clocks.
+run_h = f'{build}/src/cpu/i486runinstruction.h'
+patch(run_h,
+    '\tcase I486_RENUMBER_REALLY_UNDEFINED:\n'
+    '\t\tstd::cout << "Undefined instruction (" << cpputil::Ustox(inst.RealOpCode()) << ") at " << cpputil::Ustox(state.CS().value) << ":" << cpputil::Uitox(state.EIP) << "\\n";\n'
+    '\t\tInterrupt(INT_INVALID_OPCODE,mem,0,0,false);\n'
+    '\t\tEIPIncrement=0;\n'
+    '\t\tclocksPassed=ClocksForHandlingException();\n'
+    '\t\t// clocksPassed=0; // Uncomment this line to abort on undefined instruction.\n'
+    '\t\tbreak;',
+    '\tcase I486_RENUMBER_REALLY_UNDEFINED:\n'
+    '\t\tif(0xD6==inst.RealOpCode())\n'
+    '\t\t{\n'
+    '\t\t\t// SETALC: AL = CF ? 0xFF : 0x00 (undocumented on i486, used by FreeTOWNS BIOS)\n'
+    '\t\t\tstate.EAX()=(state.EAX()&0xFFFFFF00)|(GetCF() ? 0xFF : 0x00);\n'
+    '\t\t\tclocksPassed=3;\n'
+    '\t\t}\n'
+    '\t\telse\n'
+    '\t\t{\n'
+    '\t\t\tstd::cout << "Undefined instruction (" << cpputil::Ustox(inst.RealOpCode()) << ") at " << cpputil::Ustox(state.CS().value) << ":" << cpputil::Uitox(state.EIP) << "\\n";\n'
+    '\t\t\tInterrupt(INT_INVALID_OPCODE,mem,0,0,false);\n'
+    '\t\t\tEIPIncrement=0;\n'
+    '\t\t\tclocksPassed=ClocksForHandlingException();\n'
+    '\t\t\t// clocksPassed=0; // Uncomment this line to abort on undefined instruction.\n'
+    '\t\t}\n'
+    '\t\tbreak;',
+    '0xD6 SETALC (AL=CF?0xFF:0x00)')
