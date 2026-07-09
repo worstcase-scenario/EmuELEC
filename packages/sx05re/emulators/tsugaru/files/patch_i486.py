@@ -1,112 +1,140 @@
 #!/usr/bin/env python3
-# patch_i486.py — Tsugaru source patches for EmuELEC aarch64
-# Called from package.mk pre_configure_target() with ${PKG_BUILD} as argument.
+# patch_i486.py - Tsugaru aarch64/EmuELEC source patches
+# Target commit: 0e31cb4065fd5b7888cb6c13d19f358925f9366e
 #
-# Patches (all verified against commit 0e31cb4065fd5b7888cb6c13d19f358925f9366e):
+# Patch set (verified against the exact source tree):
+#   2. SAL alias (REG=6)      - shift-group opcodes C0/C1/D0-D3: REG=6 is the
+#                               undocumented SAL alias of SHL on real i486.
+#   5. fssimplenowindow noGL  - build without OpenGL headers on the host.
+#   6. quoted flag append     - top CMakeLists: keep toolchain CXXFLAGS a string.
+#   7. 0xFE REG=2..7 -> #UD   - Fujitsu BIOS uses invalid opcodes as API traps;
+#   8. 0xFF REG=7   -> #UD      raise #UD via the IDT instead of aborting.
+#   9. GetSignedByte int8_t   - 'char' is unsigned on aarch64; rel8/simm8 sign
+#                               extension must not depend on char signedness.
 #
-# 1. i486runinstruction.h : clocksPassed=4 instead of Abort() for unknown timing
-# 2. i486fidelity.h       : HIGHFIDELITY OnLock → no-op (prevents #UD loop FFFE:2397)
-# 3. i486runinstruction.h : SAL (shift REG=6) → SHL — real i486 behaviour
-# 4. i486runinstruction.h : 0xFE REG=2..5 → NOP, REG=6 → INC, REG=7 → DEC
-# 5. discimg.cpp          : fix off-by-16 binaryCache pointer for MODE1/2352 sectors
-# 6. i486runinstruction.h : 0xFF REG=7 → NOP (runs AFTER Patch 4 clears 0xFE match)
-# 7. i486.cpp             : fpuState.FNINIT() in CPU Reset — clears STATUS_ES=0x80
-#                           which prevents spurious FPU exception → IRQ13 → INT 75H
-#                           → uninitialized IVT vector 0000:0000 at T≈1.57s into boot
-
 import sys
+import os
 
-build = sys.argv[1]
+if len(sys.argv) < 2:
+    print("usage: patch_i486.py <PKG_BUILD>")
+    sys.exit(1)
 
-def patch(fname, old, new, desc, cnt=1):
-    with open(fname, 'r') as f:
+ROOT = sys.argv[1]
+FAILED = 0
+
+
+def patch(relpath, old, new, expect, label):
+    global FAILED
+    path = os.path.join(ROOT, relpath)
+    with open(path, "r", encoding="utf-8") as f:
         s = f.read()
     n = s.count(old)
-    if n == 0:
-        print(f'SKIP (0 matches): {desc}')
+    if n != expect:
+        print("FAIL (%d/%d): %s" % (n, expect, label))
+        FAILED += 1
         return
-    s2 = s.replace(old, new) if cnt < 0 else s.replace(old, new, cnt)
-    with open(fname, 'w') as f:
-        f.write(s2)
-    replaced = n if cnt < 0 else min(n, cnt)
-    print(f'OK ({replaced}/{n}): {desc}')
+    s = s.replace(old, new)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(s)
+    print("OK (%d/%d): %s" % (n, expect, label))
 
-run = f'{build}/src/cpu/i486runinstruction.h'
-fid = f'{build}/src/cpu/i486fidelity.h'
-i486 = f'{build}/src/cpu/i486.cpp'
-disc = f'{build}/src/discimg/discimg.cpp'
 
-# ── Patch 1: clocksPassed default ────────────────────────────────────────────
-patch(run,
-    '\tif(0==clocksPassed)\n'
-    '\t{\n'
-    '\t\tstd::string msg="Clocks-Passed is not set.  Opcode=";\n'
-    '\t\tmsg+=cpputil::Ustox(inst.RealOpCode());\n'
-    '\t\tmsg+="H";\n'
-    '\t\tAbort(msg);\n'
-    '\t\tEIPIncrement=0;\n'
-    '\t}',
-    '\tif(0==clocksPassed)\n'
-    '\t{\n'
-    '\t\tclocksPassed=4; // default for unimplemented opcode timing\n'
-    '\t}',
-    'clocksPassed default')
+# --------------------------------------------------------------------------
+# Patch 2: SAL alias REG=6 -> SHL (byte / word / dword).
+# The Sar<Width> line that follows anchors each pattern to its operand width.
+# --------------------------------------------------------------------------
+patch(
+    "src/cpu/i486runinstruction.h",
+    '\t\t\t\tcase 6: \\\n'
+    '\t\t\t\t\tAbort("Undefined REG for "+cpputil::Ustox(inst.RealOpCode())); \\\n'
+    '\t\t\t\t\tclocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
+    '\t\t\t\t\treturn 0; \\\n'
+    '\t\t\t\tcase 7: \\\n'
+    '\t\t\t\t\tSarByte(i,ctr); \\\n',
+    '\t\t\t\tcase 6: /* SAL: undocumented alias of SHL on real i486 */ \\\n'
+    '\t\t\t\t\tShlByte(i,ctr); \\\n'
+    '\t\t\t\t\tclocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
+    '\t\t\t\t\tbreak; \\\n'
+    '\t\t\t\tcase 7: \\\n'
+    '\t\t\t\t\tSarByte(i,ctr); \\\n',
+    2,
+    "SAL alias REG=6 -> ShlByte",
+)
 
-# ── Patch 2: HIGHFIDELITY OnLock no-op ───────────────────────────────────────
-patch(fid,
-    '\tinline static void OnLock(i486DXCommon &cpu)\n'
-    '\t{\n'
-    '\t\tcpu.RaiseException(i486DXCommon::EXCEPTION_LOCK_MAYBE,0);\n'
-    '\t}',
-    '\tinline static void OnLock(i486DXCommon &cpu)\n'
-    '\t{\n'
-    '\t\t(void)cpu; // PATCHED: LOCK prefix no-op like DEFAULT_FIDELITY\n'
-    '\t}',
-    'HIGHFIDELITY OnLock no-op')
+patch(
+    "src/cpu/i486runinstruction.h",
+    '\t\t\t\t\tcase 6: \\\n'
+    '\t\t\t\t\t\tAbort("Undefined REG for "+cpputil::Ustox(inst.RealOpCode())); \\\n'
+    '\t\t\t\t\t\tclocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
+    '\t\t\t\t\t\treturn 0; \\\n'
+    '\t\t\t\t\tcase 7: \\\n'
+    '\t\t\t\t\t\tSarWord(i,ctr); \\\n',
+    '\t\t\t\t\tcase 6: /* SAL: undocumented alias of SHL on real i486 */ \\\n'
+    '\t\t\t\t\t\tShlWord(i,ctr); \\\n'
+    '\t\t\t\t\t\tclocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
+    '\t\t\t\t\t\tbreak; \\\n'
+    '\t\t\t\t\tcase 7: \\\n'
+    '\t\t\t\t\t\tSarWord(i,ctr); \\\n',
+    2,
+    "SAL alias REG=6 -> ShlWord",
+)
 
-# ── Patch 3: SAL (REG=6) = SHL (REG=4) ───────────────────────────────────────
-# All 6 occurrences: 2 Byte (4-tab case), 2 Word + 2 Dword (5-tab case).
-# Byte and Word/Dword differ only in indentation; word_old serves both.
-BODY = 'Abort("Undefined REG for "+cpputil::Ustox(inst.RealOpCode())); \\\n'
-CLK  = 'clocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
-RET  = 'return 0; \\'
+patch(
+    "src/cpu/i486runinstruction.h",
+    '\t\t\t\t\tcase 6: \\\n'
+    '\t\t\t\t\t\tAbort("Undefined REG for "+cpputil::Ustox(inst.RealOpCode())); \\\n'
+    '\t\t\t\t\t\tclocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
+    '\t\t\t\t\t\treturn 0; \\\n'
+    '\t\t\t\t\tcase 7: \\\n'
+    '\t\t\t\t\t\tSarDword(i,ctr); \\\n',
+    '\t\t\t\t\tcase 6: /* SAL: undocumented alias of SHL on real i486 */ \\\n'
+    '\t\t\t\t\t\tShlDword(i,ctr); \\\n'
+    '\t\t\t\t\t\tclocksPassed=(OPER_ADDR==op1.operandType ? 4 : 2); \\\n'
+    '\t\t\t\t\t\tbreak; \\\n'
+    '\t\t\t\t\tcase 7: \\\n'
+    '\t\t\t\t\t\tSarDword(i,ctr); \\\n',
+    2,
+    "SAL alias REG=6 -> ShlDword",
+)
 
-byte_old  = ('\t\t\t\tcase 6: \\\n'
-             '\t\t\t\t\t' + BODY +
-             '\t\t\t\t\t' + CLK +
-             '\t\t\t\t\t' + RET)
-byte_new  = ('\t\t\t\tcase 6: \\\n'
-             '\t\t\t\t\tShlByte(i,ctr); \\\n'
-             '\t\t\t\t\t' + CLK +
-             '\t\t\t\t\tbreak; \\')
+# --------------------------------------------------------------------------
+# Patch 5: fssimplenowindow must build without OpenGL headers on the host.
+# fssimplewindowcommon.cpp includes fssimplewindow.h, which pulls GL/glu.h
+# unless FSSIMPLEWINDOW_DONT_INCLUDE_OPENGL_HEADERS is defined.
+# --------------------------------------------------------------------------
+patch(
+    "src/externals/fssimplewindow/src/CMakeLists.txt",
+    'add_library(fssimplenowindow fssimplewindowcommon.cpp nownd/fssimplenowindow.cpp)\n',
+    'add_library(fssimplenowindow fssimplewindowcommon.cpp nownd/fssimplenowindow.cpp)\n'
+    'target_compile_definitions(fssimplenowindow PUBLIC FSSIMPLEWINDOW_DONT_INCLUDE_OPENGL_HEADERS)\n',
+    1,
+    "fssimplenowindow: no-GL compile definition",
+)
 
-word_old  = ('\t\t\t\t\tcase 6: \\\n'
-             '\t\t\t\t\t\t' + BODY +
-             '\t\t\t\t\t\t' + CLK +
-             '\t\t\t\t\t\t' + RET)
-word_new  = ('\t\t\t\t\tcase 6: \\\n'
-             '\t\t\t\t\t\tShlWord(i,ctr); \\\n'
-             '\t\t\t\t\t\t' + CLK +
-             '\t\t\t\t\t\tbreak; \\')
-dword_new = ('\t\t\t\t\tcase 6: \\\n'
-             '\t\t\t\t\t\tShlDword(i,ctr); \\\n'
-             '\t\t\t\t\t\t' + CLK +
-             '\t\t\t\t\t\tbreak; \\')
+# --------------------------------------------------------------------------
+# Patch 6: upstream appends -Wno-unused-variable with an unquoted list-style
+# set(), which turns pre-populated toolchain CXXFLAGS into a semicolon list.
+# The semicolon ends up on the compiler command line and breaks every compile
+# ("no input files"). Quote the append so flags stay a single string.
+# --------------------------------------------------------------------------
+patch(
+    "src/CMakeLists.txt",
+    '\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -Wno-unused-variable)\n'
+    '\tset(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wno-unused-variable)\n',
+    '\tset(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable")\n'
+    '\tset(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")\n',
+    1,
+    "top CMakeLists: quoted flag append (no semicolon lists)",
+)
 
-with open(run, 'r') as f: s = f.read()
-nb = s.count(byte_old)
-nw = s.count(word_old)
-s = s.replace(byte_old, byte_new)       # 2 Byte replacements
-s = s.replace(word_old, word_new, 2)    # first 2 = Word
-s = s.replace(word_old, dword_new)      # remaining 2 = Dword
-with open(run, 'w') as f: f.write(s)
-print(f'OK SAL→SHL: Byte={nb} Word+Dword={nw}')
-
-# ── Patch 4: 0xFE REG=2..7 ───────────────────────────────────────────────────
-# Real i486: REG=6 → INC, REG=7 → DEC, 2-5 → undocumented no-ops.
-# NOTE: This MUST run before Patch 6 — it clears the 0xFE match that would
-# otherwise confuse Patch 6's pattern search.
-patch(run,
+# --------------------------------------------------------------------------
+# Patch 7: opcode 0xFE with REG=2..7 must raise #UD via the IDT instead of
+# aborting the VM. The Fujitsu FM Towns BIOS uses invalid opcodes as an API
+# dispatch mechanism (the #UD handler decodes the faulting bytes and patches
+# the saved register frame). Real i486 behavior is #UD, not a machine halt.
+# --------------------------------------------------------------------------
+patch(
+    "src/cpu/i486runinstruction.h",
     '\t\t\tcase 2:\n'
     '\t\t\tcase 3:\n'
     '\t\t\tcase 4:\n'
@@ -114,189 +142,66 @@ patch(run,
     '\t\t\tcase 6:\n'
     '\t\t\tcase 7:\n'
     '\t\t\t\tAbort("Undefined REG for "+cpputil::Ustox(inst.RealOpCode()));\n'
-    '\t\t\t\treturn 0;',
+    '\t\t\t\treturn 0;\n',
     '\t\t\tcase 2:\n'
     '\t\t\tcase 3:\n'
     '\t\t\tcase 4:\n'
     '\t\t\tcase 5:\n'
-    '\t\t\t\tclocksPassed=2; // undefined: treat as NOP\n'
-    '\t\t\t\tbreak;\n'
     '\t\t\tcase 6:\n'
-    '\t\t\t\tIncrementByte(i); // undefined: i486 treats REG=6 as INC\n'
-    '\t\t\t\tbreak;\n'
     '\t\t\tcase 7:\n'
-    '\t\t\t\tclocksPassed=2; // undefined: NOP, advance past instruction\n'
-    '\t\t\t\tbreak;',
-    '0xFE undefined REG=2..7 → NOP/INC/NOP')
+    '\t\t\t\t// aarch64/EmuELEC port: real i486 raises #UD here; FM Towns BIOS relies on it.\n'
+    '\t\t\t\tRaiseException(EXCEPTION_UD,0);\n'
+    '\t\t\t\tHandleException(true,mem,inst.numBytes);\n'
+    '\t\t\t\tclocksPassed+=ClocksForHandlingException();\n'
+    '\t\t\t\tEIPIncrement=0;\n'
+    '\t\t\t\tbreak;\n',
+    1,
+    "0xFE REG=2..7 -> #UD via IDT",
+)
 
-# ── Patch 5: discimg binaryCache off-by-16 ───────────────────────────────────
-# MODE1/2352 raw sectors have a 16-byte header. The binaryCache pointer
-# advanced by sectorLength (2352) after skipping the header, so each
-# subsequent sector read was off by 16 bytes. Fix: subtract the 16 bytes
-# already consumed from the sectorLength advance.
-patch(disc,
-    '\t\t\t\t\t\t\tfilePtr+=16;\n'
-    '\t\t\t\t\t\t\tmemcpy(data.data()+dataPointer,binaryCache.data()+filePtr,MODE1_BYTES_PER_SECTOR);\n'
-    '\t\t\t\t\t\t\tfilePtr+=tracks[0].sectorLength;\n'
-    '\t\t\t\t\t\t\tdataPointer+=MODE1_BYTES_PER_SECTOR;',
-    '\t\t\t\t\t\t\tfilePtr+=16;\n'
-    '\t\t\t\t\t\t\tmemcpy(data.data()+dataPointer,binaryCache.data()+filePtr,MODE1_BYTES_PER_SECTOR);\n'
-    '\t\t\t\t\t\t\tfilePtr+=(tracks[0].sectorLength-16); // fix: -16 already advanced above\n'
-    '\t\t\t\t\t\t\tdataPointer+=MODE1_BYTES_PER_SECTOR;',
-    'discimg binaryCache 2352-sector off-by-16')
-
-# ── Patch 6: 0xFF REG=7 → NOP ────────────────────────────────────────────────
-# After Patch 4 removes the 0xFE match, this pattern appears exactly once
-# (in the 0xFF = I486_RENUMBER_INC_DEC_CALL_CALLF_JMP_JMPF_PUSH handler).
-# Defensive: if FPU exception still escapes Patch 7, CPU reaches 0000:0002
-# (bytes FF FF) and this prevents an Abort() there.
-patch(run,
+# --------------------------------------------------------------------------
+# Patch 8: opcode 0xFF with REG=7 (e.g. the FF FF byte pair the Towns BIOS
+# executes as an API trap) must raise #UD via the IDT instead of aborting.
+# --------------------------------------------------------------------------
+patch(
+    "src/cpu/i486runinstruction.h",
+    '\t\t\t\t\tHANDLE_EXCEPTION_PUSH_POP;\n'
+    '\t\t\t\t}\n'
+    '\t\t\t\tbreak;\n'
     '\t\t\tcase 7:\n'
     '\t\t\t\tAbort("Undefined REG for "+cpputil::Ustox(inst.RealOpCode()));\n'
-    '\t\t\t\treturn 0;\n'
-    '\t\t\tdefault:\n'
-    '\t\t\t\tstd_unreachable;\n'
-    '\t\t\t}',
-    '\t\t\tcase 7:\n'
-    '\t\t\t\tclocksPassed=1; // undefined: NOP, advance past instruction\n'
+    '\t\t\t\treturn 0;\n',
+    '\t\t\t\t\tHANDLE_EXCEPTION_PUSH_POP;\n'
+    '\t\t\t\t}\n'
     '\t\t\t\tbreak;\n'
-    '\t\t\tdefault:\n'
-    '\t\t\t\tstd_unreachable;\n'
-    '\t\t\t}',
-    '0xFF REG=7 → NOP advance')
+    '\t\t\tcase 7:\n'
+    '\t\t\t\t// aarch64/EmuELEC port: real i486 raises #UD here; FM Towns BIOS relies on it.\n'
+    '\t\t\t\tRaiseException(EXCEPTION_UD,0);\n'
+    '\t\t\t\tHandleException(true,mem,inst.numBytes);\n'
+    '\t\t\t\tclocksPassed=ClocksForHandlingException();\n'
+    '\t\t\t\tEIPIncrement=0;\n'
+    '\t\t\t\tbreak;\n',
+    1,
+    "0xFF REG=7 -> #UD via IDT",
+)
 
-# ── Patch 7: fpuState.FNINIT() in CPU Reset ──────────────────────────────────
-# ROOT FIX for the Fujitsu BIOS crash at T≈1.57s:
-# The FPUState class initialises statusWord=0xFFFF (all bits set, including
-# STATUS_ES=0x80 = Error Summary). i486DXCommon::Reset() never calls
-# fpuState.Reset() or fpuState.FNINIT(), so STATUS_ES stays set.
-# This makes ExceptionPending() return true from boot onwards.
-# When the BIOS eventually executes its first FPU instruction (FLD at 0050:8CBF),
-# the pending error fires FERR# → IRQ13 → INT 75H. INT 75H's vector is
-# 0000:0000 (IVT not yet initialised) → CPU jumps to IVT start → crash.
-# FNINIT resets statusWord=0 and controlWord=0x037F (all exceptions masked),
-# matching real i486 FPU-after-reset behaviour.
-patch(i486,
-    '\tstate.halt=false;\n'
-    '\tstate.holdIRQ=false;\n'
-    '\tstate.exception=false;\n'
-    '}',
-    '\tstate.halt=false;\n'
-    '\tstate.holdIRQ=false;\n'
-    '\tstate.exception=false;\n'
-    '\tstate.fpuState.FNINIT(); // clear STATUS_ES; prevents spurious IRQ13→INT75H\n'
-    '}',
-    'fpuState.FNINIT() in CPU Reset')
+# --------------------------------------------------------------------------
+# Patch 9: cpputil::GetSignedByte uses a bare 'char*' for sign extension.
+# 'char' is unsigned on aarch64, so every rel8 branch displacement and every
+# signed imm8 in the CPU core gets zero-extended instead of sign-extended,
+# derailing the Fujitsu BIOS within microseconds of reset. Use int8_t.
+# --------------------------------------------------------------------------
+patch(
+    "src/cpputil/cpputil.h",
+    '\tchar *signedPtr=(char *)&byteData;\n'
+    '\treturn *signedPtr;\n',
+    '\tconst int8_t *signedPtr=(const int8_t *)&byteData; // aarch64: char is unsigned\n'
+    '\treturn *signedPtr;\n',
+    1,
+    "GetSignedByte: int8_t instead of char (aarch64 sign extension)",
+)
 
-
-# ── Patch 8: one-shot INT 75H stub via RunFastDevicePollingInternal ───────────
-# BIOS clears all RAM in physMem.State::Reset() → anything we write in Reset()
-# is wiped. The BIOS never initializes IVT[75H] (INT 0x75 = FPU error via IRQ13).
-# At T≈1.54s the BIOS hits FLD at 0050:8CBF, FERR# fires → INT 75H → IVT[75H]=0:0
-# → CPU slides through IVT bytes.
-# Fix: in RunFastDevicePollingInternal(), once townsTime crosses 1.2s, write a
-# FNINIT(DB E3)+IRET(CF) stub into low RAM and point IVT[75H] there.
-# By 1.2s the BIOS has already finished clearing RAM, so the entry survives.
-towns_cpp = f'{build}/src/towns/towns.cpp'
-patch(towns_cpp,
-    'void FMTownsCommon::RunFastDevicePollingInternal(void)\n'
-    '{\n'
-    '\ttimer.TimerPolling(state.townsTime);\n'
-    '\tmidi.TimerPolling(state.townsTime);\n'
-    '\tsound.SoundPolling(state.townsTime);\n'
-    '\tcrtc.ProcessVSYNCIRQ(state.townsTime);\n'
-    '\tstate.nextFastDevicePollingTime=state.townsTime+FAST_DEVICE_POLLING_INTERVAL;\n'
-    '}',
-    'void FMTownsCommon::RunFastDevicePollingInternal(void)\n'
-    '{\n'
-    '\ttimer.TimerPolling(state.townsTime);\n'
-    '\tmidi.TimerPolling(state.townsTime);\n'
-    '\tsound.SoundPolling(state.townsTime);\n'
-    '\tcrtc.ProcessVSYNCIRQ(state.townsTime);\n'
-    '\tstate.nextFastDevicePollingTime=state.townsTime+FAST_DEVICE_POLLING_INTERVAL;\n'
-    '\t// Patch 8: one-shot INT 75H (FPU error) stub — installed after BIOS RAM-clear\n'
-    '\tif(state.townsTime>=1200000000ULL &&\n'
-    '\t   physMem.state.RAM.size()>0x9200 &&\n'
-    '\t   physMem.state.RAM[0x01D5]==0x00 &&\n'
-    '\t   physMem.state.RAM[0x01D7]==0x00 &&\n'
-    '\t   physMem.state.RAM[0x01D4]==0x00 &&\n'
-    '\t   physMem.state.RAM[0x6000]==0x00)\n'
-    '\t{\n'
-    '\t\tphysMem.state.RAM[0x6000]=0xDB; // FNINIT\n'
-    '\t\tphysMem.state.RAM[0x6001]=0xE3;\n'
-    '\t\tphysMem.state.RAM[0x6002]=0xCF; // IRET\n'
-    '\t\tphysMem.state.RAM[0x01D4]=0x00; // INT 75H: IP low = 0x00\n'
-    '\t\tphysMem.state.RAM[0x01D5]=0x60; // IP high = 0x60 → 0x6000\n'
-    '\t\tphysMem.state.RAM[0x01D6]=0x00; // CS low = 0x00\n'
-    '\t\tphysMem.state.RAM[0x01D7]=0x00; // CS high = 0x00\n'
-    '\t\t// Also write IRET at 0:0002 so INT6 dispatch (INC[BX+SI]+IRET) works\n'
-    '\t\t// without sliding through IVT bytes that contain PUSH-like opcodes.\n'
-    '\t\t// IVT[6]=0:0000; at 0:0: FE 00=INC[BX+SI]; at 0:0002: CF=IRET.\n'
-    '\t\tphysMem.state.RAM[0x0002]=0xCF; // IRET — stops NOP sled stack leak\n'
-    '\t\t// Patch 8c: 0:0000=0xFF makes FE 00→FF 00 = INC WORD [BX+SI] instead of INC BYTE\n'
-    '\t\t// BOUND (INT5) with AX=0xFF01=-255 only terminates when lower bound\n'
-    '\t\t// reaches 0xFF01=-255 (after 65281 INC WORD iterations ≈ 228ms @ 20MHz)\n'
-    '\t\tphysMem.state.RAM[0x0000]=0xFF; // INC WORD (was 0xFE=INC BYTE, never terminates)\n'
-    '\t\t// Patch 8b: set FBIOS-compatible timing (like TOWNS_APPSPECIFIC_LEMMINGS2)\n'
-    '\t\t// "Lower frequency causes CD-ROM BIOS to fail." (Tsugaru source comment)\n'
-    '\t\tstate.currentFreq=20;\n'
-    '\t\tvar.slowModeFreq=20;\n'
-    '\t\tstate.fastModeFreq=20;\n'
-    '\t\tcdrom.state.readSectorTime=13300000; // TOWNS_CD_READ_SECTOR_TIME_1X\n'
-    '\t}\n'
-    '\t// Patch 8d: keep 0x89 at 0:0000 persistently — MOV [BX+SI],AX\n'
-    '\t// BOUND(AX=0xFF01=-255) passes immediately because lower=[BX+SI]=AX=-255.\n'
-    '\t// Much faster than INC WORD (which needed 65281 iterations = ~40 min).\n'
-    '\t// 89 00 = MOV WORD PTR [BX+SI], AX; CF = IRET\n'
-    '\tif(state.townsTime>=1200000000ULL &&\n'
-    '\t   physMem.state.RAM.size()>0x0004 &&\n'
-    '\t   physMem.state.RAM[0x0000]!=0x89)\n'
-    '\t{\n'
-    '\t\tphysMem.state.RAM[0x0000]=0x89; // MOV [BX+SI], AX\n'
-    '\t}\n'
-    '}',
-    'INT 75H stub at 0x6000 + INT6 IRET at 0:0002 at T=1.2s')
-
-
-# ── Patch 9: enable FPU by default ───────────────────────────────────────────
-# useFPU=false means every FPU instruction fires INT 7 (Device Not Available)
-# → INT 7 handler at 0:0 (uninitialized dispatch trampoline) → BIOS loops.
-# The FM Towns i486DX has an integrated FPU. Enable it by default.
-townsparam = f'{build}/src/towns/townsparam/townsparam.h'
-patch(townsparam,
-    '\tbool useFPU=false;',
-    '\tbool useFPU=true; // Patch 9: FM Towns i486DX has integrated FPU',
-    'useFPU=true by default')
-
-
-# ── Patch 10: implement SETALC (0xD6) ────────────────────────────────────────
-# 0xD6 = SETALC (undocumented i486 instruction: Set AL from Carry flag).
-# The FreeTOWNS free BIOS uses 0xD6 in its dispatch stubs.
-# Currently handled as I486_RENUMBER_REALLY_UNDEFINED → prints error, fires INT6.
-# With SETALC: AL = 0xFF if CF=1, else AL = 0x00. No flags changed. 1-byte, ~3 clocks.
-run_h = f'{build}/src/cpu/i486runinstruction.h'
-patch(run_h,
-    '\tcase I486_RENUMBER_REALLY_UNDEFINED:\n'
-    '\t\tstd::cout << "Undefined instruction (" << cpputil::Ustox(inst.RealOpCode()) << ") at " << cpputil::Ustox(state.CS().value) << ":" << cpputil::Uitox(state.EIP) << "\\n";\n'
-    '\t\tInterrupt(INT_INVALID_OPCODE,mem,0,0,false);\n'
-    '\t\tEIPIncrement=0;\n'
-    '\t\tclocksPassed=ClocksForHandlingException();\n'
-    '\t\t// clocksPassed=0; // Uncomment this line to abort on undefined instruction.\n'
-    '\t\tbreak;',
-    '\tcase I486_RENUMBER_REALLY_UNDEFINED:\n'
-    '\t\tif(0xD6==inst.RealOpCode())\n'
-    '\t\t{\n'
-    '\t\t\t// SETALC: AL = CF ? 0xFF : 0x00 (undocumented on i486, used by FreeTOWNS BIOS)\n'
-    '\t\t\tstate.EAX()=(state.EAX()&0xFFFFFF00)|(GetCF() ? 0xFF : 0x00);\n'
-    '\t\t\tclocksPassed=3;\n'
-    '\t\t}\n'
-    '\t\telse\n'
-    '\t\t{\n'
-    '\t\t\t// All other undefined opcodes: advance past (NOP).\n'
-    '\t\t\t// FreeTOWNS BIOS uses 0xF1 and others as dispatchers;\n'
-    '\t\t\t// firing INT6 with EIPIncrement=0 causes infinite loops.\n'
-    '\t\t\tclocksPassed=3;\n'
-    '\t\t\t// EIPIncrement stays = inst.numBytes (advances normally)\n'
-    '\t\t}\n'
-    '\t\tbreak;',
-    '0xD6 SETALC (AL=CF?0xFF:0x00)')
+if 0 != FAILED:
+    print("%d patch(es) FAILED - source layout changed, do not build." % FAILED)
+    sys.exit(1)
+print("All patches applied.")

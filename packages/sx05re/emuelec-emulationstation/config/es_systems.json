@@ -199,15 +199,32 @@
       "theme": "fmtowns",
       "command": "default",
       "extensions": [
-        ".cmd"
+        ".cmd",
+		".chd",
+		".cue",
+		".iso",
+		".mds",
+		".ccd",
+		".d77",
+		".d88",
+		".hdm",
+		".m3u"
       ],
       "emulators": [
         {
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
-              "default": true
+              "name": "mame"            
+            }
+					]
+		},
+		{
+          "name": "tsugaru",
+          "cores": [
+            {
+              "name": "tsugaru",
+			  "default": true
             }
           ]
         }
