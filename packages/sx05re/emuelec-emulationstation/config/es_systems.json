@@ -3834,6 +3834,7 @@
         ".ngage",
 		".symbian",
 		".zip",
+		".uid",
         ".sis"
       ],
       "emulators": [
