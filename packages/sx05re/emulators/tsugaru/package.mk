@@ -40,4 +40,6 @@ makeinstall_target() {
   cp main_cui/Tsugaru_CUI ${INSTALL}/usr/bin/tsugaru
   cp ${PKG_DIR}/scripts/tsugarustart.sh ${INSTALL}/usr/bin/tsugarustart.sh
   chmod +x ${INSTALL}/usr/bin/tsugarustart.sh
+  mkdir -p ${INSTALL}/usr/config/tsugaru
+  cp ${PKG_DIR}/config/tsugaru.gptk ${INSTALL}/usr/config/tsugaru/tsugaru.gptk
 }
