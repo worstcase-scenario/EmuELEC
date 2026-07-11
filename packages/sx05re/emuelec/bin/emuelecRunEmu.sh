@@ -392,30 +392,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} memustart.sh "${ROMNAME}"'
         fi
 		;;	
-        "dragon32"|"dragon64")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar"
-			RUNTHIS='${TBASH} /usr/bin/xroarstart.sh "${ROMNAME}"'
-		fi
-		;;
-		"coco")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar"
+		"dragon32"|"dragon64"|"mc10"|"coco"|"coco3")
+        if [ "${EMU}" = "xroar" ]; then
+            set_kill_keys "xroar"
             RUNTHIS='${TBASH} /usr/bin/xroarstart.sh "${ROMNAME}"'
-		fi
-		;;
-		"coco3")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar"
-		    RUNTHIS='${TBASH} /usr/bin/xroarstart.sh "${ROMNAME}"'
-		fi
-		;;
-		"mc10")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar"
-            RUNTHIS='${TBASH} /usr/bin/xroarstart.sh "${ROMNAME}"'
-		fi
-		;;
+        fi
+     	;;
 		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"
