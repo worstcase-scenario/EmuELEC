@@ -1,0 +1,331 @@
+--- a/src/DebugDevice.cc	2026-07-11 12:16:15.183746686 +0000
++++ b/src/DebugDevice.cc	2026-07-11 12:17:19.618252843 +0000
+@@ -160,7 +160,7 @@
+ 	}
+ }
+ 
+-static constexpr std::initializer_list<enum_string<DebugDevice::Mode>> debugModeInfo = {
++static const std::initializer_list<enum_string<DebugDevice::Mode>> debugModeInfo = {
+ 	{ "OFF",        DebugDevice::Mode::OFF },
+ 	{ "SINGLEBYTE", DebugDevice::Mode::SINGLEBYTE },
+ 	{ "MULTIBYTE",  DebugDevice::Mode::MULTIBYTE },
+--- a/src/cassette/CassettePlayer.cc	2026-07-11 12:16:15.196815865 +0000
++++ b/src/cassette/CassettePlayer.cc	2026-07-11 12:17:19.617937826 +0000
+@@ -672,7 +672,7 @@
+ 	syncScheduled = false;
+ }
+ 
+-static constexpr std::initializer_list<enum_string<CassettePlayer::State>> stateInfo = {
++static const std::initializer_list<enum_string<CassettePlayer::State>> stateInfo = {
+ 	{ "PLAY",   CassettePlayer::State::PLAY   },
+ 	{ "RECORD", CassettePlayer::State::RECORD },
+ 	{ "STOP",   CassettePlayer::State::STOP   }
+--- a/src/config/HardwareConfig.cc	2026-07-11 12:16:15.201362519 +0000
++++ b/src/config/HardwareConfig.cc	2026-07-11 12:17:19.617747493 +0000
+@@ -457,7 +457,7 @@
+ 	}
+ }
+ 
+-static constexpr std::initializer_list<enum_string<HardwareConfig::Type>> configTypeInfo = {
++static const std::initializer_list<enum_string<HardwareConfig::Type>> configTypeInfo = {
+ 	{ "MACHINE",   HardwareConfig::Type::MACHINE   },
+ 	{ "EXTENSION", HardwareConfig::Type::EXTENSION },
+ 	{ "ROM",       HardwareConfig::Type::ROM       },
+--- a/src/fdc/DriveMultiplexer.cc	2026-07-11 12:16:15.217194164 +0000
++++ b/src/fdc/DriveMultiplexer.cc	2026-07-11 12:17:19.619712513 +0000
+@@ -145,7 +145,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<DriveMultiplexer::Drive>> driveNumInfo = {
++static const std::initializer_list<enum_string<DriveMultiplexer::Drive>> driveNumInfo = {
+ 	{ "A",    DriveMultiplexer::Drive::A },
+ 	{ "B",    DriveMultiplexer::Drive::B },
+ 	{ "C",    DriveMultiplexer::Drive::C },
+--- a/src/fdc/NowindHost.cc	2026-07-11 12:16:15.218389988 +0000
++++ b/src/fdc/NowindHost.cc	2026-07-11 12:17:19.619501427 +0000
+@@ -772,7 +772,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<NowindHost::State>> stateInfo = {
++static const std::initializer_list<enum_string<NowindHost::State>> stateInfo = {
+ 	{ "SYNC1",     NowindHost::State::SYNC1     },
+ 	{ "SYNC2",     NowindHost::State::SYNC2     },
+ 	{ "COMMAND",   NowindHost::State::COMMAND   },
+--- a/src/fdc/TC8566AF.cc	2026-07-11 12:16:15.220308538 +0000
++++ b/src/fdc/TC8566AF.cc	2026-07-11 12:17:19.619825801 +0000
+@@ -915,7 +915,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<TC8566AF::Command>> commandInfo = {
++static const std::initializer_list<enum_string<TC8566AF::Command>> commandInfo = {
+ 	{ "UNKNOWN",                TC8566AF::Command::UNKNOWN                },
+ 	{ "READ_DATA",              TC8566AF::Command::READ_DATA              },
+ 	{ "WRITE_DATA",             TC8566AF::Command::WRITE_DATA             },
+@@ -935,7 +935,7 @@
+ };
+ SERIALIZE_ENUM(TC8566AF::Command, commandInfo);
+ 
+-static constexpr std::initializer_list<enum_string<TC8566AF::Phase>> phaseInfo = {
++static const std::initializer_list<enum_string<TC8566AF::Phase>> phaseInfo = {
+ 	{ "IDLE",         TC8566AF::Phase::IDLE         },
+ 	{ "COMMAND",      TC8566AF::Phase::COMMAND      },
+ 	{ "DATATRANSFER", TC8566AF::Phase::DATA_TRANSFER },
+@@ -943,7 +943,7 @@
+ };
+ SERIALIZE_ENUM(TC8566AF::Phase, phaseInfo);
+ 
+-static constexpr std::initializer_list<enum_string<TC8566AF::Seek>> seekInfo = {
++static const std::initializer_list<enum_string<TC8566AF::Seek>> seekInfo = {
+ 	{ "IDLE",        TC8566AF::Seek::IDLE },
+ 	{ "SEEK",        TC8566AF::Seek::SEEK },
+ 	{ "RECALIBRATE", TC8566AF::Seek::RECALIBRATE }
+--- a/src/fdc/WD2793.cc	2026-07-11 12:16:15.221109015 +0000
++++ b/src/fdc/WD2793.cc	2026-07-11 12:17:19.619225267 +0000
+@@ -1073,7 +1073,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<WD2793::FSM>> fsmStateInfo = {
++static const std::initializer_list<enum_string<WD2793::FSM>> fsmStateInfo = {
+ 	{ "NONE",              WD2793::FSM::NONE },
+ 	{ "SEEK",              WD2793::FSM::SEEK },
+ 	{ "TYPE2_LOADED",      WD2793::FSM::TYPE2_LOADED },
+--- a/src/ide/MB89352.cc	2026-07-11 12:16:15.226343704 +0000
++++ b/src/ide/MB89352.cc	2026-07-11 12:17:19.618578421 +0000
+@@ -731,7 +731,7 @@
+ 
+ 
+ // TODO duplicated in WD33C93.cc
+-static constexpr std::initializer_list<enum_string<SCSI::Phase>> phaseInfo = {
++static const std::initializer_list<enum_string<SCSI::Phase>> phaseInfo = {
+ 	{ "UNDEFINED",   SCSI::Phase::UNDEFINED   },
+ 	{ "BUS_FREE",    SCSI::Phase::BUS_FREE    },
+ 	{ "ARBITRATION", SCSI::Phase::ARBITRATION },
+--- a/src/ide/WD33C93.cc	2026-07-11 12:16:15.227720292 +0000
++++ b/src/ide/WD33C93.cc	2026-07-11 12:17:19.618385018 +0000
+@@ -440,7 +440,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<SCSI::Phase>> phaseInfo = {
++static const std::initializer_list<enum_string<SCSI::Phase>> phaseInfo = {
+ 	{ "UNDEFINED",   SCSI::Phase::UNDEFINED   },
+ 	{ "BUS_FREE",    SCSI::Phase::BUS_FREE    },
+ 	{ "ARBITRATION", SCSI::Phase::ARBITRATION },
+--- a/src/laserdisc/LaserdiscPlayer.cc	2026-07-11 12:16:15.242084468 +0000
++++ b/src/laserdisc/LaserdiscPlayer.cc	2026-07-11 12:17:19.618864428 +0000
+@@ -1040,7 +1040,7 @@
+ 	renderer = RendererFactory::createLDRenderer(*this, display);
+ }
+ 
+-static constexpr std::initializer_list<enum_string<LaserdiscPlayer::RemoteState>> RemoteStateInfo = {
++static const std::initializer_list<enum_string<LaserdiscPlayer::RemoteState>> RemoteStateInfo = {
+ 	{ "IDLE",             LaserdiscPlayer::RemoteState::IDLE             },
+ 	{ "HEADER_PULSE",     LaserdiscPlayer::RemoteState::HEADER_PULSE     },
+ 	{ "NEC_HEADER_SPACE", LaserdiscPlayer::RemoteState::NEC_HEADER_SPACE },
+@@ -1049,7 +1049,7 @@
+ };
+ SERIALIZE_ENUM(LaserdiscPlayer::RemoteState, RemoteStateInfo);
+ 
+-static constexpr std::initializer_list<enum_string<LaserdiscPlayer::PlayerState>> PlayerStateInfo = {
++static const std::initializer_list<enum_string<LaserdiscPlayer::PlayerState>> PlayerStateInfo = {
+ 	{ "STOPPED",    LaserdiscPlayer::PlayerState::STOPPED     },
+ 	{ "PLAYING",    LaserdiscPlayer::PlayerState::PLAYING     },
+ 	{ "MULTISPEED", LaserdiscPlayer::PlayerState::MULTI_SPEED },
+@@ -1058,7 +1058,7 @@
+ };
+ SERIALIZE_ENUM(LaserdiscPlayer::PlayerState, PlayerStateInfo);
+ 
+-static constexpr std::initializer_list<enum_string<LaserdiscPlayer::SeekState>> SeekStateInfo = {
++static const std::initializer_list<enum_string<LaserdiscPlayer::SeekState>> SeekStateInfo = {
+ 	{ "NONE",    LaserdiscPlayer::SeekState::NONE    },
+ 	{ "CHAPTER", LaserdiscPlayer::SeekState::CHAPTER },
+ 	{ "FRAME",   LaserdiscPlayer::SeekState::FRAME   },
+@@ -1066,14 +1066,14 @@
+ };
+ SERIALIZE_ENUM(LaserdiscPlayer::SeekState, SeekStateInfo);
+ 
+-static constexpr std::initializer_list<enum_string<LaserdiscPlayer::StereoMode>> StereoModeInfo = {
++static const std::initializer_list<enum_string<LaserdiscPlayer::StereoMode>> StereoModeInfo = {
+ 	{ "LEFT",   LaserdiscPlayer::StereoMode::LEFT   },
+ 	{ "RIGHT",  LaserdiscPlayer::StereoMode::RIGHT  },
+ 	{ "STEREO", LaserdiscPlayer::StereoMode::STEREO }
+ };
+ SERIALIZE_ENUM(LaserdiscPlayer::StereoMode, StereoModeInfo);
+ 
+-static constexpr std::initializer_list<enum_string<LaserdiscPlayer::RemoteProtocol>> RemoteProtocolInfo = {
++static const std::initializer_list<enum_string<LaserdiscPlayer::RemoteProtocol>> RemoteProtocolInfo = {
+ 	{ "NONE", LaserdiscPlayer::RemoteProtocol::NONE },
+ 	{ "NEC",  LaserdiscPlayer::RemoteProtocol::NEC  },
+ };
+--- a/src/memory/AmdFlash.cc	2026-07-11 12:16:15.244103664 +0000
++++ b/src/memory/AmdFlash.cc	2026-07-11 12:17:19.620979132 +0000
+@@ -1040,7 +1040,7 @@
+ 	}
+ }
+ 
+-static constexpr std::initializer_list<enum_string<AmdFlash::State>> stateInfo = {
++static const std::initializer_list<enum_string<AmdFlash::State>> stateInfo = {
+ 	{ "IDLE",         AmdFlash::State::READ },       // back compat with v3
+ 	{ "IDENT",        AmdFlash::State::AUTOSELECT }, // back compat with v3
+ 	{ "PRGERR",       AmdFlash::State::ERROR },      // back compat with v3
+--- a/src/memory/EEPROM_93C46.cc	2026-07-11 12:16:15.245250749 +0000
++++ b/src/memory/EEPROM_93C46.cc	2026-07-11 12:17:19.620846647 +0000
+@@ -227,7 +227,7 @@
+ 	}
+ }
+ 
+-static constexpr std::initializer_list<enum_string<EEPROM_93C46::State>> stateInfo = {
++static const std::initializer_list<enum_string<EEPROM_93C46::State>> stateInfo = {
+ 	{ "IN_RESET",           EEPROM_93C46::State::IN_RESET           },
+ 	{ "WAIT_FOR_START_BIT", EEPROM_93C46::State::WAIT_FOR_START_BIT },
+ 	{ "WAIT_FOR_COMMAND",   EEPROM_93C46::State::WAIT_FOR_COMMAND   },
+--- a/src/memory/SdCard.cc	2026-07-11 12:16:15.256442184 +0000
++++ b/src/memory/SdCard.cc	2026-07-11 12:17:19.621398841 +0000
+@@ -322,7 +322,7 @@
+ 	}
+ }
+ 
+-static constexpr std::initializer_list<enum_string<SdCard::Mode>> modeInfo = {
++static const std::initializer_list<enum_string<SdCard::Mode>> modeInfo = {
+ 	{ "COMMAND",     SdCard::Mode::COMMAND  },
+ 	{ "READ",        SdCard::Mode::READ },
+ 	{ "MULTI_READ",  SdCard::Mode::MULTI_READ },
+--- a/src/serial/I8251.cc	2026-07-11 12:16:15.260689279 +0000
++++ b/src/serial/I8251.cc	2026-07-11 12:17:19.620682853 +0000
+@@ -315,7 +315,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<SerialDataInterface::DataBits>> dataBitsInfo = {
++static const std::initializer_list<enum_string<SerialDataInterface::DataBits>> dataBitsInfo = {
+ 		{ "5", SerialDataInterface::DataBits::D5 },
+ 		{ "6", SerialDataInterface::DataBits::D6 },
+ 		{ "7", SerialDataInterface::DataBits::D7 },
+@@ -323,7 +323,7 @@
+ };
+ SERIALIZE_ENUM(SerialDataInterface::DataBits, dataBitsInfo);
+ 
+-static constexpr std::initializer_list<enum_string<SerialDataInterface::StopBits>> stopBitsInfo = {
++static const std::initializer_list<enum_string<SerialDataInterface::StopBits>> stopBitsInfo = {
+ 	{ "INVALID", SerialDataInterface::StopBits::INV },
+ 	{ "1",       SerialDataInterface::StopBits::S1   },
+ 	{ "1.5",     SerialDataInterface::StopBits::S1_5  },
+@@ -331,13 +331,13 @@
+ };
+ SERIALIZE_ENUM(SerialDataInterface::StopBits, stopBitsInfo);
+ 
+-static constexpr std::initializer_list<enum_string<SerialDataInterface::Parity>> parityBitInfo = {
++static const std::initializer_list<enum_string<SerialDataInterface::Parity>> parityBitInfo = {
+ 	{ "EVEN", SerialDataInterface::Parity::EVEN },
+ 	{ "ODD",  SerialDataInterface::Parity::ODD  }
+ };
+ SERIALIZE_ENUM(SerialDataInterface::Parity, parityBitInfo);
+ 
+-static constexpr std::initializer_list<enum_string<I8251::CmdPhase>> cmdFazeInfo = {
++static const std::initializer_list<enum_string<I8251::CmdPhase>> cmdFazeInfo = {
+ 	{ "MODE",  I8251::CmdPhase::MODE  },
+ 	{ "SYNC1", I8251::CmdPhase::SYNC1 },
+ 	{ "SYNC2", I8251::CmdPhase::SYNC2 },
+--- a/src/serial/I8254.cc	2026-07-11 12:16:15.260845700 +0000
++++ b/src/serial/I8254.cc	2026-07-11 12:17:19.620463721 +0000
+@@ -461,7 +461,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<Counter::ByteOrder>> byteOrderInfo = {
++static const std::initializer_list<enum_string<Counter::ByteOrder>> byteOrderInfo = {
+ 	{ "LOW",  Counter::ByteOrder::LOW  },
+ 	{ "HIGH", Counter::ByteOrder::HIGH }
+ };
+--- a/src/sound/SCC.cc	2026-07-11 12:16:15.272549504 +0000
++++ b/src/sound/SCC.cc	2026-07-11 12:17:19.612713146 +0000
+@@ -543,7 +543,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<SCC::Mode>> chipModeInfo = {
++static const std::initializer_list<enum_string<SCC::Mode>> chipModeInfo = {
+ 	{ "Real",       SCC::Mode::Real       },
+ 	{ "Compatible", SCC::Mode::Compatible },
+ 	{ "Plus",       SCC::Mode::Plus   },
+--- a/src/sound/VLM5030.cc	2026-07-11 12:16:15.273799773 +0000
++++ b/src/sound/VLM5030.cc	2026-07-11 12:17:19.617051175 +0000
+@@ -537,7 +537,7 @@
+ 	unregisterSound();
+ }
+ 
+-static constexpr std::initializer_list<enum_string<VLM5030::Phase>> phaseInfo = {
++static const std::initializer_list<enum_string<VLM5030::Phase>> phaseInfo = {
+ 	{ "RESET", VLM5030::Phase::RESET },
+ 	{ "IDLE",  VLM5030::Phase::IDLE  },
+ 	{ "SETUP", VLM5030::Phase::SETUP },
+--- a/src/sound/Y8950.cc	2026-07-11 12:16:15.274192605 +0000
++++ b/src/sound/Y8950.cc	2026-07-11 12:17:19.614266018 +0000
+@@ -1248,7 +1248,7 @@
+ 	             "RR", RR);
+ }
+ 
+-static constexpr std::initializer_list<enum_string<Y8950::EnvelopeState>> envelopeStateInfo = {
++static const std::initializer_list<enum_string<Y8950::EnvelopeState>> envelopeStateInfo = {
+ 	{ "ATTACK",  Y8950::EnvelopeState::ATTACK  },
+ 	{ "DECAY",   Y8950::EnvelopeState::DECAY   },
+ 	{ "SUSTAIN", Y8950::EnvelopeState::SUSTAIN },
+--- a/src/sound/YM2413Burczynski.cc	2026-07-11 12:16:15.275765438 +0000
++++ b/src/sound/YM2413Burczynski.cc	2026-07-11 12:17:19.617333068 +0000
+@@ -1277,7 +1277,7 @@
+ 
+ } // namespace YM2413Burczynski
+ 
+-static constexpr std::initializer_list<enum_string<YM2413Burczynski::Slot::EnvelopeState>> envelopeStateInfo = {
++static const std::initializer_list<enum_string<YM2413Burczynski::Slot::EnvelopeState>> envelopeStateInfo = {
+ 	{ "DUMP",    YM2413Burczynski::Slot::EnvelopeState::DUMP    },
+ 	{ "ATTACK",  YM2413Burczynski::Slot::EnvelopeState::ATTACK  },
+ 	{ "DECAY",   YM2413Burczynski::Slot::EnvelopeState::DECAY   },
+--- a/src/sound/YM2413NukeYKT.cc	2026-07-11 12:16:15.276186048 +0000
++++ b/src/sound/YM2413NukeYKT.cc	2026-07-11 12:17:19.603602658 +0000
+@@ -924,7 +924,7 @@
+ } // namespace YM2413NukeYKT
+ 
+ 
+-static constexpr std::initializer_list<enum_string<YM2413NukeYKT::YM2413::EgState>> egStateInfo = {
++static const std::initializer_list<enum_string<YM2413NukeYKT::YM2413::EgState>> egStateInfo = {
+ 	{ "attack",  YM2413NukeYKT::YM2413::EgState::attack },
+ 	{ "decay",   YM2413NukeYKT::YM2413::EgState::decay },
+ 	{ "sustain", YM2413NukeYKT::YM2413::EgState::sustain },
+--- a/src/sound/YM2413Okazaki.cc	2026-07-11 12:16:15.276823191 +0000
++++ b/src/sound/YM2413Okazaki.cc	2026-07-11 12:17:19.615895553 +0000
+@@ -1592,7 +1592,7 @@
+ 
+ } // namespace YM2413Okazaki
+ 
+-static constexpr std::initializer_list<enum_string<YM2413Okazaki::Slot::EnvelopeState>> envelopeStateInfo = {
++static const std::initializer_list<enum_string<YM2413Okazaki::Slot::EnvelopeState>> envelopeStateInfo = {
+ 	{ "ATTACK",  YM2413Okazaki::Slot::EnvelopeState::ATTACK  },
+ 	{ "DECAY",   YM2413Okazaki::Slot::EnvelopeState::DECAY   },
+ 	{ "SUSHOLD", YM2413Okazaki::Slot::EnvelopeState::SUSHOLD },
+--- a/src/sound/YMF262.cc	2026-07-11 12:16:15.277363523 +0000
++++ b/src/sound/YMF262.cc	2026-07-11 12:17:19.616487012 +0000
+@@ -1593,7 +1593,7 @@
+ }
+ 
+ 
+-static constexpr std::initializer_list<enum_string<YMF262::EnvelopeState>> envelopeStateInfo = {
++static const std::initializer_list<enum_string<YMF262::EnvelopeState>> envelopeStateInfo = {
+ 	{ "ATTACK",  YMF262::EnvelopeState::ATTACK  },
+ 	{ "DECAY",   YMF262::EnvelopeState::DECAY   },
+ 	{ "SUSTAIN", YMF262::EnvelopeState::SUSTAIN },
+--- a/src/video/v9990/V9990.cc	2026-07-11 12:16:15.301541947 +0000
++++ b/src/video/v9990/V9990.cc	2026-07-11 12:17:19.620128281 +0000
+@@ -894,7 +894,7 @@
+ 	syncHScan.setSyncPoint(hScanSyncTime);
+ }
+ 
+-static constexpr std::initializer_list<enum_string<V9990DisplayMode>> displayModeInfo = {
++static const std::initializer_list<enum_string<V9990DisplayMode>> displayModeInfo = {
+ 	{ "P1", V9990DisplayMode::P1 }, { "P2", V9990DisplayMode::P2 },
+ 	{ "B0", V9990DisplayMode::B0 }, { "B1", V9990DisplayMode::B1 },
+ 	{ "B2", V9990DisplayMode::B2 }, { "B3", V9990DisplayMode::B3 },

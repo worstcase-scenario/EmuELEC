@@ -12,33 +12,13 @@ PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf libpng zlib tcl alsa-lib glew"
 PKG_SHORTDESC="openMSX Laserdisc: Pioneer PX-7 emulation for Palcom LaserDisc games"
 PKG_TOOLCHAIN="manual"
 
-_openmsx_patch() {
-  local b="$1"
-
-  grep -rl 'static constexpr std::initializer_list' "${b}/src/" | \
-    xargs sed -i 's/static constexpr std::initializer_list/static const std::initializer_list/g'
-
-  # Patch 2: suppress SUPERIMPOSE header prepend (needed for laserdisc video)
-  sed -i "s/tmpStrCat(\"#define SUPERIMPOSE \", char('0' + i), '\\\\n')/std::string()/g" \
-    "${b}/src/video/scalers/GLScaler.cc"
-
-  sed -i 's/^#define OPENGL_VERSION OPENGL_2_1$/#define OPENGL_VERSION OPENGL_ES_2_0/' \
-    "${b}/src/video/GLUtil.hh"
-
-  local g="${b}/src/video/GLUtil.cc"
-  sed -i 's/source += "#ifdef GL_FRAGMENT_PRECISION_HIGH.*//g' "${g}"
-  sed -i '/"  precision highp float;/d' "${g}"
-  sed -i '/"#else/d' "${g}"
-  sed -i '/"  precision mediump float;/d' "${g}"
-  sed -i 's/"#endif.*/source += "precision highp float;\\n";/' "${g}"
-
-  sed -i \
-    's/"#ifdef GL_ES\\n"[[:space:]]*$//;s/"    precision mediump float;\\n"[[:space:]]*$//;s/"#endif\\n"[[:space:]]*$//' \
-    "${b}/src/3rdparty/imgui/imgui_impl_opengl3.cc"
-
-  sed -i 's/systemFileContext().resolve(tmpStrCat("shaders/preferSystemFileContext().resolve(tmpStrCat("shaders/g' \
-    "${b}/src/video/GLUtil.cc"
-}
+# All source modifications live in patches/ and are applied automatically
+# by the build system after unpack:
+#   openmsx-ld-0001-initializer-list-non-constexpr.patch
+#   openmsx-ld-0002-gles2-mali.patch
+#   openmsx-ld-0003-suppress-superimpose-define.patch
+# Host-side build helpers live in buildtools/; scripts/ and config/ keep
+# their existing meaning (device launcher scripts and gptk configs).
 
 make_target() {
   local sysroot="${SYSROOT_PREFIX}"
@@ -47,91 +27,24 @@ make_target() {
   local cxx_dir="${PKG_BUILD}/.cxx"
   local cfg_dir="${PKG_BUILD}/derived/aarch64-linux-opt/config"
 
+  # GLU stub header (openMSX probes for it, Mali sysroot has none)
   mkdir -p "${sysroot}/usr/include/GL"
   [ -f "${sysroot}/usr/include/GL/glu.h" ] || \
-    printf '#ifndef __glu_h__\n#define __glu_h__\n/* GLU stub */\n#endif\n' \
-      > "${sysroot}/usr/include/GL/glu.h"
+    cp "${PKG_DIR}/buildtools/glu.h" "${sysroot}/usr/include/GL/glu.h"
 
+  # CXX wrapper: rewrites -I/usr/ and -L/usr/ into the sysroot,
+  # configured via environment (see scripts/cxx-wrapper.py)
   mkdir -p "${cxx_dir}"
-  cat > "${cxx_dir}/${wname}" << PYWRAP
-#!/usr/bin/env python3
-import sys, os
-sysroot = "${sysroot}"
-real    = "${real_cxx}"
-args = []
-for a in sys.argv[1:]:
-    if   a.startswith('-I/usr/'): a = '-I' + sysroot + a[2:]
-    elif a.startswith('-L/usr/'): a = '-L' + sysroot + a[2:]
-    args.append(a)
-os.execv(real, [real] + args)
-PYWRAP
-  chmod +x "${cxx_dir}/${wname}"
+  install -m 0755 "${PKG_DIR}/buildtools/cxx-wrapper.py" "${cxx_dir}/${wname}"
+  export OPENMSX_SYSROOT="${sysroot}"
+  export OPENMSX_REAL_CXX="${real_cxx}"
 
-  cat > "${PKG_BUILD}/build/probe.py" << 'NOOP'
-import sys
-sys.exit(0)
-NOOP
-
-  mkdir -p "${cfg_dir}"
-  cat > "${cfg_dir}/systemfuncs.hh" << SYSFUNCS
-#define HAVE_FTRUNCATE 1
-#define HAVE_MMAP 1
-SYSFUNCS
-
-  cat > "${cfg_dir}/probed_defs.mk" << PROBEDEFS
-HAVE_ALSA_H:=true
-HAVE_ALSA_LIB:=true
-ALSA_CFLAGS:=
-ALSA_LDFLAGS:=-lasound
-HAVE_FREETYPE_H:=true
-HAVE_FREETYPE_LIB:=true
-FREETYPE_CFLAGS:=-I${sysroot}/usr/include/freetype2 -I${sysroot}/usr/include
-FREETYPE_LDFLAGS:=-L${sysroot}/usr/lib -lfreetype
-HAVE_GL_H:=true
-HAVE_GL_LIB:=true
-GL_CFLAGS:=
-GL_LDFLAGS:=-lGL
-HAVE_GLEW_H:=true
-HAVE_GLEW_LIB:=true
-GLEW_CFLAGS:=
-GLEW_LDFLAGS:=-lGLEW -lGL
-HAVE_OGG_H:=true
-HAVE_OGG_LIB:=true
-OGG_CFLAGS:=
-OGG_LDFLAGS:=-logg
-HAVE_PNG_H:=true
-HAVE_PNG_LIB:=true
-PNG_CFLAGS:=-I${sysroot}/usr/include/libpng16
-PNG_LDFLAGS:=-lpng16
-HAVE_SDL2_H:=true
-HAVE_SDL2_LIB:=true
-SDL2_CFLAGS:=-I${sysroot}/usr/include/SDL2 -D_REENTRANT
-SDL2_LDFLAGS:=-lSDL2
-HAVE_SDL2_TTF_H:=true
-HAVE_SDL2_TTF_LIB:=true
-SDL2_TTF_CFLAGS:=-I${sysroot}/usr/include/SDL2
-SDL2_TTF_LDFLAGS:=-lSDL2_ttf
-HAVE_TCL_H:=true
-HAVE_TCL_LIB:=true
-TCL_CFLAGS:=
-TCL_LDFLAGS:=-ltcl8.6
-HAVE_THEORA_H:=true
-HAVE_THEORA_LIB:=true
-THEORA_CFLAGS:=
-THEORA_LDFLAGS:=-ltheoradec
-HAVE_VORBIS_H:=true
-HAVE_VORBIS_LIB:=true
-VORBIS_CFLAGS:=
-VORBIS_LDFLAGS:=-lvorbis
-HAVE_ZLIB_H:=true
-HAVE_ZLIB_LIB:=true
-ZLIB_CFLAGS:=
-ZLIB_LDFLAGS:=-lz
-HAVE_FTRUNCATE:=true
-HAVE_MMAP:=true
-PROBEDEFS
-
-  _openmsx_patch "${PKG_BUILD}"
+  # Disable openMSX's host-probing, provide pre-probed results instead
+  mkdir -p "${PKG_BUILD}/build" "${cfg_dir}"
+  cp "${PKG_DIR}/buildtools/probe-noop.py" "${PKG_BUILD}/build/probe.py"
+  cp "${PKG_DIR}/buildtools/systemfuncs.hh" "${cfg_dir}/systemfuncs.hh"
+  sed "s|@SYSROOT@|${sysroot}|g" "${PKG_DIR}/buildtools/probed_defs.mk.in" \
+    > "${cfg_dir}/probed_defs.mk"
 
   make -C ${PKG_BUILD} \
     OPENMSX_TARGET_CPU=${TARGET_ARCH} \
@@ -147,6 +60,9 @@ makeinstall_target() {
   local real_cxx="${CXX%% *}"
   local wname="$(basename "${real_cxx}")"
   local cxx_dir="${PKG_BUILD}/.cxx"
+
+  export OPENMSX_SYSROOT="${sysroot}"
+  export OPENMSX_REAL_CXX="${real_cxx}"
 
   # Install data files via make install, then replace binary with openmsx-ld
   make -C ${PKG_BUILD} \
@@ -164,20 +80,8 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/shaders_laserdisc
   cp ${INSTALL}/usr/share/shaders/*.frag ${INSTALL}/usr/share/shaders_laserdisc/ 2>/dev/null || true
   cp ${INSTALL}/usr/share/shaders/*.vert ${INSTALL}/usr/share/shaders_laserdisc/ 2>/dev/null || true
-  python3 - "${INSTALL}/usr/share/shaders_laserdisc" << 'PYSHADER_LD'
-import sys, os, re
-sdir = sys.argv[1]
-for fn in os.listdir(sdir):
-    if not (fn.endswith('.frag') or fn.endswith('.vert')): continue
-    fpath = os.path.join(sdir, fn)
-    src = open(fpath).read()
-    if '#if' not in src: continue
-    src = re.sub(r'#if SUPERIMPOSE[^\n]*\n(.*?)(?:#else[^\n]*\n(.*?))?#endif[^\n]*\n',
-        lambda m: (m.group(1) or '').strip()+'\n', src, flags=re.DOTALL)
-    src = re.sub(r'#define SUPERIMPOSE [01]\n', '', src)
-    open(fpath, 'w').write(src)
-    print('Resolved LD:', fn)
-PYSHADER_LD
+  python3 "${PKG_DIR}/buildtools/resolve_superimpose.py" \
+    "${INSTALL}/usr/share/shaders_laserdisc" 1
 
   # Remove regular shaders - not needed, only shaders_laserdisc matters
   rm -rf ${INSTALL}/usr/share/shaders
@@ -198,4 +102,3 @@ PYSHADER_LD
     fi
   done
 }
-
