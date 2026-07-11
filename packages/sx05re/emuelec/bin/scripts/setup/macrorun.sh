@@ -36,7 +36,7 @@ rm -f /tmp/display 2>/dev/null
 
 if [[ $result == 0 ]]; then
     text_viewer -w -t "MACRO ENABLER" -f 24 \
-        -m "Macro mode is now active in the background!\n\nATTENTION: DO NOT press the trigger button while in EmulationStation, otherwise the setup screen will pop up.\n\nPress the hotkey button to exit that routine.\n\nTo DISABLE the macro, hold the macro button for 3-5 seconds."
+        -m "If you have activated macro mode, DO NOT press the press the trigger button while in EmulationStation, otherwise the setup screen will pop up.\n\nPress the hotkey button to exit that routine.\n\nTo DISABLE the macro, hold the macro button for 3-5 seconds."
 else
     text_viewer -e -w -t "MACRO ENABLER" -f 24 \
         -m "Cancelled or error.\n\nSee: $LOG"
