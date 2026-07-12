@@ -5607,7 +5607,7 @@
 	"theme": "lowresnx",
 	"command": "default",
 	"extensions": [
-    ".nx",
+  ".nx",
 	".zip",
 	".7z."
 	],
@@ -5634,10 +5634,11 @@
 	"theme": "gp32",
 	"command": "default",
 	"extensions": [
-    ".smc",
+  ".smc",
 	".cmd",
 	".fxe",
 	".fpk",
+  ".7z",
 	".zip"
 	],
 	"emulators": [
@@ -5645,7 +5646,7 @@
       "name": "libretro",
       "cores": [
 			{
-          "name": "lowresnx",
+          "name": "gp32emu",
           "default": true
 			},
 			{
