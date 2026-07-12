@@ -1,0 +1,42 @@
+--- a/src/platforms/engineutils.h	2026-07-06 18:27:04.000000000 +0000
++++ b/src/platforms/engineutils.h	2026-07-11 15:18:50.330992336 +0000
+@@ -116,7 +116,7 @@
+ 	uint32_t origwidth;
+ 	uint32_t origheight;
+ 	bool needrenderthread;
+-	bool supportPackedDepthStencil;
++	static bool supportPackedDepthStencil;
+ 	bool hasExternalFontRenderer;
+ 	bool startInFullScreenMode;
+ 	double startscalefactor;
+--- a/src/platforms/engineutils.cpp	2026-07-06 18:27:04.000000000 +0000
++++ b/src/platforms/engineutils.cpp	2026-07-11 15:19:30.896305613 +0000
+@@ -83,6 +83,7 @@
+ SDL_Thread* EngineData::mainLoopThread = nullptr;
+ bool EngineData::mainthread_running = false;
+ bool EngineData::needinit = true;
++bool EngineData::supportPackedDepthStencil = false;
+ bool EngineData::enablerendering = true;
+ SDL_Cursor* EngineData::handCursor = nullptr;
+ SDL_Cursor* EngineData::arrowCursor = nullptr;
+@@ -100,7 +101,7 @@
+ 
+ EngineData::EngineData() : sdleventtickjob(nullptr),incontextmenu(false),incontextmenupreparing(false),widget(nullptr),
+ 	nvgcontext(nullptr),
+-	width(0), height(0),needrenderthread(true),supportPackedDepthStencil(false),hasExternalFontRenderer(false),
++	width(0), height(0),needrenderthread(true),hasExternalFontRenderer(false),
+ 	startInFullScreenMode(false),startscalefactor(1.0)
+ {
+ #if   defined(_WIN32)
+@@ -1309,7 +1310,11 @@
+ {
+ 	mSDLContext = createSDLGLContext(widget);
+ 	SDL_GL_MakeCurrent(widget, mSDLContext);
++#if !defined(ENABLE_GLES2) && !defined(ENABLE_GLES3)
++	// GLES variants are already handled in createSDLGLContext
++	// (GL_OES_packed_depth_stencil); the EXT name is desktop-GL only
+ 	supportPackedDepthStencil = SDL_GL_ExtensionSupported("GL_EXT_packed_depth_stencil");
++#endif
+ 	initNanoVG();
+ }
+ 

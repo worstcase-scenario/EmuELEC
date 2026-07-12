@@ -5556,9 +5556,13 @@
               "default": true
             }
           ]
-	  "name": "mtx512",
+        }
+      ]
+    },
+    {
+      "name": "mtx512",
       "fullname": "Memotech MTX 512",
-      "manufacturer": "Memotech",
+	  "manufacturer": "Memotech",
       "release": "1984",
       "hardware": "computer",
       "path": "/storage/roms/mtx512",
