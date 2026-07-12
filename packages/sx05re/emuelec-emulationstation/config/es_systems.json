@@ -5678,7 +5678,7 @@
 	"theme": "gp32",
 	"command": "default",
 	"extensions": [
-    ".smc",
+  ".smc",
 	".cmd",
 	".fxe",
 	".fpk",
@@ -5689,7 +5689,7 @@
       "name": "libretro",
       "cores": [
 			{
-          "name": "lowresnx",
+          "name": "gp32emu",
           "default": true
 			},
 			{
