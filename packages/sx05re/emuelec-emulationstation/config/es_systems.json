@@ -249,7 +249,8 @@
       "theme": "iphone",
       "command": "default",
       "extensions": [
-        ".ipa"
+        ".ipa",
+		".app"
       ],
       "emulators": [
         {
