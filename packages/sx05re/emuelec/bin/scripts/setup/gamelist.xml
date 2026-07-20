@@ -94,6 +94,12 @@
 		<image>./setup_images/drastic.png</image>
 	</game>
 	<game>
+		<path>./install_ruffle.sh</path>
+		<name>Install Flash (Ruffle)</name>
+		<desc>Installs the Ruffle-based standalone Flash player inside Qt Web Browser. Based on the Qt Web Browser port by Snowram (kiosk-patched Qt WebEngine) and Ruffle 0.3.0. Requires an internet connection (approx. 170 MB download).</desc>
+		<image>./setup_images/qtruffle.png</image>
+	</game>
+	<game>
 		<path>./install_pixelcade.sh</path>
 		<name>Install Pixelcade</name>
 		<desc>Download and install software for Pixelcade - LED Marquee for Arcade Machines!</desc>
