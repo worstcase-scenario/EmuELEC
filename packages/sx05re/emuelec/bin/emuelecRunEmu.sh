@@ -416,6 +416,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
 		fi
 		;;
+		"flash")
+            if [ "${EMU}" = "ruffle" ]; then
+			set_kill_keys "qtwebbrowser.aarch64"
+			RUNTHIS='${TBASH} /storage/roms/ports_scripts/Flash-Ruffle.sh "${ROMNAME}"'
+		fi
+		;;
 		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"
