@@ -16,10 +16,10 @@ LOG="/emuelec/logs/ruffle-install.log"
 fail() { echo "$1" | tee -a "$LOG"; return 1; }
 
 ruffle_confirm() {
-    text_viewer -y -w -t "Install Flash (Ruffle)" -f 24 -m "This will install the Ruffle Flash player (approx. 150 MB download) and enable it on Emulationstation.\n\nPlays .swf games fullscreen with gamepad controls. Place your games in /storage/roms/flash - per-game controls can be set with a <game>.gptk file next to the .swf.\n\nBased on the Qt Web Browser port by Snowram and Ruffle 0.3.0. Exit games with Select+Start.\n\nNOTE: You need an active internet connection and you will need to restart ES after this script ends, continue?"
+    text_viewer -y -w -t "Install Flash (Ruffle)" -f 24 -m "This will install the Ruffle Flash player (approx. 150 MB download) and enable it on Emulationstation.\n\nPlays .swf games fullscreen with gamepad controls. Place your games in /storage/roms/flash - per-game controls can be set with a <game>.gptk file next to the .swf.\n\nBased on the Qt Web Browser port by Snowram and Ruffle 0.3.0.\n\nNOTE: You need an active internet connection and you will need to restart ES after this script ends, continue?"
     if [[ $? == 21 ]]; then
         if ruffle_install; then
-            text_viewer -w -t "Install Flash (Ruffle) Complete!" -f 24 -m "Installation is done!\n\nDon't forget to put .swf games into /storage/roms/flash and restart Emulationstation!"
+            text_viewer -w -t "Install Flash (Ruffle) Complete!" -f 24 -m "Installation is done!\n\nDon't forget to put .swf games into /storage/roms/flash and restart Emulationstation\n\n\NOTE: IF YOU START A FLASH FILE FOR THE FIRST TIME, BE PATIENT - LOADING CAN TAKE SOME TIME!"
             ruffle_browser_option
         else
             text_viewer -e -w -t "Install Flash (Ruffle) FAILED!" -f 24 -m "Installation was not completed!\n\nAre you sure you are connected to the internet?\n\nCheck ${LOG} for details."
