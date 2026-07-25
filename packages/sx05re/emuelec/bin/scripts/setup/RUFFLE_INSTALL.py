@@ -510,10 +510,90 @@ def write_es_entry() -> None:
     os.replace(ESCFG + ".tmp", ESCFG)
 
 
+
+# Size of the download and of the extracted port, with a little headroom.
+DOWNLOAD_MB = 200
+EXTRACTED_MB = 450
+
+
+def _existing_dir(path: str) -> str:
+    """Walk up until a directory that actually exists (for statvfs)."""
+    while path and not os.path.isdir(path):
+        parent = os.path.dirname(path)
+        if parent == path:
+            break
+        path = parent
+    return path or "/"
+
+
+def free_mb(path: str) -> int:
+    st = os.statvfs(_existing_dir(path))
+    return int(st.f_bavail * st.f_frsize / 1048576)
+
+
+def same_filesystem(a: str, b: str) -> bool:
+    try:
+        return os.stat(_existing_dir(a)).st_dev == os.stat(_existing_dir(b)).st_dev
+    except OSError:
+        return False
+
+
+def check_free_space() -> bool:
+    """Check the target partitions before downloading.
+
+    Returns False if the user cancels. A hard error is only raised when the
+    port itself would not fit; a nearly full /storage is a warning, since the
+    port may well live on a separate, roomy partition.
+    """
+    dl_dir = os.path.dirname(CACHE)
+    ex_dir = os.path.dirname(PORTDIR)
+
+    if os.path.isfile(CACHE):
+        need_dl = 0            # archive already downloaded
+    else:
+        need_dl = DOWNLOAD_MB
+
+    if same_filesystem(dl_dir, ex_dir):
+        need = need_dl + EXTRACTED_MB
+        have = free_mb(ex_dir)
+        if have < need:
+            raise InstallError(
+                f"Not enough free space on {_existing_dir(ex_dir)}:\n"
+                f"{have} MB free, about {need} MB needed.\n\n"
+                f"Free up some space and try again.")
+    else:
+        have_dl = free_mb(dl_dir)
+        if have_dl < need_dl:
+            raise InstallError(
+                f"Not enough free space for the download on\n"
+                f"{_existing_dir(dl_dir)}: {have_dl} MB free, "
+                f"{need_dl} MB needed.")
+        have_ex = free_mb(ex_dir)
+        if have_ex < EXTRACTED_MB:
+            raise InstallError(
+                f"Not enough free space on {_existing_dir(ex_dir)}:\n"
+                f"{have_ex} MB free, about {EXTRACTED_MB} MB needed.")
+
+    # ES writes its config and gamelists to /storage. This is only a warning:
+    # the port may sit on a different partition with plenty of room.
+    have_sys = free_mb("/storage/.emulationstation")
+    if have_sys < 100 and not same_filesystem("/storage/.emulationstation", ex_dir):
+        return confirm_dialog(
+            "Low space on /storage",
+            f"Only {have_sys} MB free on /storage, where\n"
+            f"EmulationStation keeps its settings and gamelists.\n\n"
+            f"The player itself has enough room, but a nearly full\n"
+            f"/storage can slow things down and cause problems.\n\n"
+            f"Install anyway?")
+    return True
+
+
 def install_ruffle() -> None:
     if os.path.isfile(os.path.join(PORTDIR, "qtwebbrowser.aarch64")):
         log("Port already installed")
     else:
+        if not check_free_space():
+            return
         download_port()
         extract_port()
     finalize_port()
