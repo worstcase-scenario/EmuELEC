@@ -5650,7 +5650,7 @@
 		}
 	]
 	},
-		{
+	{
 	"name": "gp32",
 	"fullname": "GP 32",
 	"manufacturer": "Game Park",
@@ -5680,6 +5680,32 @@
             }
 		]
 		}
+	]
+	},
+	{
+	"name": "cassettevision",
+	"fullname": "Cassette Vision",
+	"manufacturer": "Epoch",
+	"release": "1981",
+	"hardware": "console",
+	"path": "/storage/roms/cassettevision",
+	"platform": "cassettevision",
+	"theme": "cassettevision",
+	"command": "default",
+	"extensions": [
+    ".bin",
+	".zip"
+	],
+	"emulators": [
+    {
+      "name": "libretro",
+      "cores": [
+			{
+          "name": "pd777",
+          "default": true
+			}
+			   ]
+	}
 	]
 	},
     {
