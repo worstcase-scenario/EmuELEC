@@ -1,2 +1,0 @@
-#define HAVE_FTRUNCATE 1
-#define HAVE_MMAP 1
