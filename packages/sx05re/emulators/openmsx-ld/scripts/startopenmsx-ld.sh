@@ -42,8 +42,6 @@ sync
 sleep 0.3
 # ----------------------------
 
-# Activate SUPERIMPOSE=1 shaders for laserdisc video
-mount --bind /usr/share/shaders_laserdisc /usr/share/shaders 2>/dev/null
 
 # Settings
 [ ! -f "${OPENMSX_HOME}/share/settings.xml" ] && \
@@ -56,6 +54,5 @@ mount --bind /usr/share/shaders_laserdisc /usr/share/shaders 2>/dev/null
   -laserdisc "${ROM}"
 
 killall -9 gptokeyb 2>/dev/null
-umount /usr/share/shaders 2>/dev/null
 killall -CONT emulationstation 2>/dev/null
 fbfix $(emuelec-utils getmainfb) 2>/dev/null
