@@ -11,7 +11,6 @@ PKG_SITE="https://github.com/worstcase-scenario/openMSX"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf libpng zlib tcl alsa-lib glew libogg libvorbis libtheora"
 PKG_SHORTDESC="openMSX Laserdisc: Pioneer PX-7 emulation for Palcom LaserDisc games"
-PKG_LONGDESC="openMSX build with Pioneer PX-7 laserdisc support for Palcom LaserDisc games"
 PKG_TOOLCHAIN="manual"
 
 PKG_MAKE_OPTS_TARGET="OPENMSX_TARGET_CPU=${TARGET_ARCH} \
@@ -21,22 +20,16 @@ PKG_MAKE_OPTS_TARGET="OPENMSX_TARGET_CPU=${TARGET_ARCH} \
                       INSTALL_SHARE_DIR=/usr/share/openmsx-ld \
                       INSTALL_DOC_DIR=/usr/share/doc/openmsx-ld"
 
-setup_build_env() {
-  export LIBTOOL_SYSROOT_PATH="${SYSROOT_PREFIX}"
-}
-
 make_target() {
-  setup_build_env
-  make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET}
+  LIBTOOL_SYSROOT_PATH="${SYSROOT_PREFIX}" \
+    make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET}
 }
 
 makeinstall_target() {
-  setup_build_env
-  make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET} DESTDIR=${INSTALL} install
+  LIBTOOL_SYSROOT_PATH="${SYSROOT_PREFIX}" \
+    make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET} DESTDIR=${INSTALL} install
 
   mv ${INSTALL}/usr/bin/openmsx ${INSTALL}/usr/bin/openmsx-ld
-
-  mkdir -p ${INSTALL}/usr/bin
   install -m 0755 ${PKG_DIR}/scripts/startopenmsx-ld.sh ${INSTALL}/usr/bin/
 
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk

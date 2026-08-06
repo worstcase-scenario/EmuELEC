@@ -11,7 +11,6 @@ PKG_SITE="https://github.com/worstcase-scenario/openMSX"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf libpng zlib tcl alsa-lib glew"
 PKG_SHORTDESC="openMSX: MSX, MSX2, MSX2+ and MSX turbo R emulator"
-PKG_LONGDESC="openMSX emulator for MSX home computers, built for GLES2/Mali with software mouse cursor"
 PKG_TOOLCHAIN="manual"
 
 PKG_MAKE_OPTS_TARGET="OPENMSX_TARGET_CPU=${TARGET_ARCH} \
@@ -21,20 +20,15 @@ PKG_MAKE_OPTS_TARGET="OPENMSX_TARGET_CPU=${TARGET_ARCH} \
                       INSTALL_SHARE_DIR=/usr/share/openmsx \
                       INSTALL_DOC_DIR=/usr/share/doc/openmsx"
 
-setup_build_env() {
-  export LIBTOOL_SYSROOT_PATH="${SYSROOT_PREFIX}"
-}
-
 make_target() {
-  setup_build_env
-  make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET}
+  LIBTOOL_SYSROOT_PATH="${SYSROOT_PREFIX}" \
+    make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET}
 }
 
 makeinstall_target() {
-  setup_build_env
-  make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET} DESTDIR=${INSTALL} install
+  LIBTOOL_SYSROOT_PATH="${SYSROOT_PREFIX}" \
+    make -C ${PKG_BUILD} ${PKG_MAKE_OPTS_TARGET} DESTDIR=${INSTALL} install
 
-  mkdir -p ${INSTALL}/usr/bin
   install -m 0755 ${PKG_DIR}/scripts/startopenmsx.sh ${INSTALL}/usr/bin/
 
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk
