@@ -1,0 +1,34 @@
+--- a/Src/Graphics/Legacy3D/Legacy3D.cpp
++++ b/Src/Graphics/Legacy3D/Legacy3D.cpp
+@@ -857,7 +857,14 @@
+     viewportY      = yOffs + (GLint) ((float)(384-(vpY+vpHeight))*yRatio);
+     viewportWidth  = totalXRes;
+     viewportHeight = (GLint) ((float)vpHeight*yRatio);
+-    gluPerspective(fovYDegrees,(GLfloat)viewportWidth/(GLfloat)viewportHeight,0.1f,1e5);  // use actual full screen ratio to get proper X FOV
++    {
++      // gluPerspective() replacement: no GLU when building against gl4es/GLES.
++      // use actual full screen ratio to get proper X FOV
++      const GLdouble zNear = 0.1, zFar = 1e5;
++      GLdouble fH = tan(fovYDegrees * (3.14159265358979323846/360.0)) * zNear;
++      GLdouble fW = fH * ((GLdouble)viewportWidth/(GLdouble)viewportHeight);
++      glFrustum(-fW, fW, -fH, fH, zNear, zFar);
++    }
+     //printf("viewportX=%d, viewportY=%d, viewportWidth=%d, viewportHeight=%d\tvpY=%d vpHeight=%d\n", viewportX, viewportY, viewportWidth, viewportHeight, vpY,vpHeight);
+   }
+   else
+@@ -866,7 +873,14 @@
+     viewportY      = yOffs + (GLint) ((float)(384-(vpY+vpHeight))*yRatio);
+     viewportWidth  = (GLint) ((float)vpWidth*xRatio);
+     viewportHeight = (GLint) ((float)vpHeight*yRatio);
+-    gluPerspective(fovYDegrees,(GLdouble)vpWidth/(GLdouble)vpHeight,0.1,1e5);        // use Model 3 viewport ratio
++    {
++      // gluPerspective() replacement: no GLU when building against gl4es/GLES.
++      // use Model 3 viewport ratio
++      const GLdouble zNear = 0.1, zFar = 1e5;
++      GLdouble fH = tan(fovYDegrees * (3.14159265358979323846/360.0)) * zNear;
++      GLdouble fW = fH * ((GLdouble)vpWidth/(GLdouble)vpHeight);
++      glFrustum(-fW, fW, -fH, fH, zNear, zFar);
++    }
+   }
+   
+   // Lighting (note that sun vector points toward sun -- away from vertex)
