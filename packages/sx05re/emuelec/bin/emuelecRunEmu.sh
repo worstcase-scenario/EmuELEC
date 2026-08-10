@@ -416,6 +416,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
 		fi
 		;;
+		"model3")
+		if [ "${EMU}" = "supermodel" ]; then
+        set_kill_keys "supermodel"
+        RUNTHIS='${TBASH} /usr/bin/supermodelstart.sh "${ROMNAME}"'
+		fi
+		;;
 		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"

@@ -3540,6 +3540,32 @@
         }
       ]
     },
+	{
+	  "name": "model3",
+      "fullname": "Sega Model 3",
+      "manufacturer": "Sega",
+      "release": "1996",
+      "hardware": "arcade",
+      "path": "/storage/roms/model3",
+      "platform": "model3",
+      "theme": "model3",
+      "command": "default",
+      "extensions": [
+        ".zip"
+       
+					],
+      "emulators": [
+        {
+          "name": "supermodel",
+          "cores": [
+            {
+              "name": "supermodel",
+              "default": true
+            }
+          ]
+        }
+	  ]
+	},
     {
       "name": "setup",
       "fullname": "Setup",
