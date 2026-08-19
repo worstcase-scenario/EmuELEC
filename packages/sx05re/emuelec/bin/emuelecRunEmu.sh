@@ -289,6 +289,12 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
                 fi
                 ;;	
+		"dreamm")
+                if [ "${EMU}" = "dreamm" ]; then
+				set_kill_keys "dreamm"
+				RUNTHIS='${TBASH} dreammstart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
