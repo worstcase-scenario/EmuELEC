@@ -3,7 +3,7 @@
 # Copyright (C) 2024-present Harakiri (https://github.com/worstcase-scenario)
 #
 # dreammstart.sh - DREAMM launcher for EmuELEC
-
+#
 . /etc/profile
 
 # Software mouse pointer: EmuELEC's SDL2 only ships the "mali" and "offscreen"
@@ -16,6 +16,7 @@ export DREAMM_MENU_KEY="${DREAMM_MENU_KEY:-67}"             # F10 -> F12
 export LIBGL_NOTEST=1
 export SDL_VIDEODRIVER=mali
 
+# DREAMM ROM directory
 USERPATH="/storage/roms/dreamm"
 LOGFILE="/emuelec/logs/dreamm.log"
 
@@ -63,13 +64,34 @@ fi
     echo "MODE: ${MODE:-frontend}"
     echo "GAME: ${dir:-none}"
     echo "GPTK: ${GPTK_CONFIG}"
+
     if [ -n "$MODE" ]; then
-        dreamm -userpath "$USERPATH" $MODE "$dir" -sdl -fullscreen -nowait
+
+        echo "COMMAND: dreamm -sdl -fullscreen $MODE \"$dir\""
+
+        dreamm \
+            -sdl \
+            -fullscreen \
+            "$MODE" \
+            "$dir"
+
+        DREAMM_EXIT=$?
+        echo "DREAMM EXIT CODE: $DREAMM_EXIT"
+
     else
-        dreamm -userpath "$USERPATH" -sdl -fullscreen
+
+        echo "COMMAND: dreamm -sdl -fullscreen"
+
+        dreamm \
+            -sdl \
+            -fullscreen
+
+        DREAMM_EXIT=$?
+        echo "DREAMM EXIT CODE: $DREAMM_EXIT"
+
     fi
 } >> "$LOGFILE" 2>&1
 
 killall -9 gptokeyb 2>/dev/null
 
-exit 0
+exit "${DREAMM_EXIT:-0}"

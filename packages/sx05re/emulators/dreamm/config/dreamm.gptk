@@ -55,8 +55,8 @@ right_analog_deadzone = 16000
 # Mouse buttons
 r1 = mouse_left
 r2 = mouse_right
-a = mouse_left
-b = mouse_right
+a = enter
+b = space
 
 # DREAMM in-game menu (translated to F12 by dreamm_cursor.so)
 l1 = f10
@@ -66,8 +66,8 @@ l2 = f9
 
 # Game keys
 x = space
-y = esc
-start = f5
+y = .
+start = enter
 back = esc
 
 # D-pad and left stick as cursor keys
