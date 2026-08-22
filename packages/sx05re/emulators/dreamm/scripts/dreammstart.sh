@@ -2,14 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2024-present Harakiri (https://github.com/worstcase-scenario)
 #
-# dreamm.sh - DREAMM launcher for EmuELEC
-#
-# ROMs are directories named <game>.dreamm containing the game files, following
-# the same convention as daphne/hypseus. A .dreamm file produced by DREAMM's
-# own -makedreamm is launched instead when one is passed.
-#
-# Called with no argument, DREAMM's Game Manager is started so games can be
-# installed with -install / -autoinstall from the shell.
+# dreammstart.sh - DREAMM launcher for EmuELEC
 
 . /etc/profile
 
@@ -43,7 +36,8 @@ else
     GPTK_CONFIG="$GPTK_DEFAULT"
 fi
 
-# Per-game overrides, e.g. DREAMM_CURSOR=0 for titles drawing their own pointer
+# Per-game overrides: DREAMM_CURSOR=0 for titles drawing their own pointer,
+# DREAMM_GPTOKEYB=0 for joystick games so DREAMM can grab the pad itself
 if [ -d "$dir" ] && [ -f "${dir}/dreamm.conf" ]; then
     . "${dir}/dreamm.conf"
 fi
@@ -59,8 +53,10 @@ else
     MODE="-launch"
 fi
 
-gptokeyb 1 dreamm -c "$GPTK_CONFIG" &
-sleep 1
+if [ "${DREAMM_GPTOKEYB:-1}" = "1" ]; then
+    gptokeyb 1 dreamm -c "$GPTK_CONFIG" &
+    sleep 1
+fi
 
 {
     echo "=== $(date) ==="
