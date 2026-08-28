@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 PKG_NAME="touchhle"
-#PKG_VERSION="f666045f18d2937c65ba3bcb90047aa77296ec87"
-PKG_VERSION="331903de883405a8597036e4ed5ce8333f1604c9"
-PKG_SITE="https://github.com/touchHLE/touchHLE"
+PKG_VERSION="f8f21296b1bf2e5112db5e2ee36a683b7610d1ff"
+PKG_SITE="https://github.com/worstcase-scenario/EE_touchHLE"
+PKG_GIT_CLONE_BRANCH="emuelec-integration"
 PKG_URL="${PKG_SITE}.git"
 PKG_LICENSE="MPLv2"
 PKG_ARCH="aarch64"
