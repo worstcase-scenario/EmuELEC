@@ -19,10 +19,6 @@ rm -rf "$SESSION"
 mkdir -p "$SESSION/ruffle_data/storage"
 ln -sf "$ROM" "$SESSION/ruffle_data/movie.swf"
 
-# Multi-file games: assets in <game>.files/ next to the .swf
-DATA="${ROM%.swf}.files"
-[ -d "$DATA" ] && cp -a "$DATA"/. "$SESSION/ruffle_data/" 2>/dev/null
-
 # EmuELEC's SDL2 only provides the mali and offscreen video backends, and mali
 # has no hardware cursor - the preloaded shim draws one from the mouse events.
 export SDL_VIDEODRIVER=mali
