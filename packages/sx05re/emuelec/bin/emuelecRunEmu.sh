@@ -8,8 +8,6 @@
 
 # This whole file has become very hacky, I am sure there is a better way to do all of this, but for now, this works.
 
-blank_buffer
-
 if [ -f "/usr/bin/odroidgoa_utils.sh" ]; then
     DEFBRIGHT=$(get_ee_setting brightness.level)
     RACONF=/storage/.config/retroarch/retroarch.cfg
@@ -86,7 +84,7 @@ EMULATOR="${arguments##*--emulator=}"  # read from --emulator= onwards
 EMULATOR="${EMULATOR%% *}"  # until a space is found
 
 ROMNAME="${1}"
-BASEROMNAME=${ROMNAME##*/}
+BASEROMNAME="${ROMNAME##*/}"
 GAMEFOLDER="${ROMNAME//${BASEROMNAME}}"
 
 KILLTHIS="none"
@@ -157,7 +155,12 @@ emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
 
-if [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
+# .bighard files always go to BigInstinct, regardless of platform/emu choice
+if [[ "${ROMNAME,,}" == *.bighard ]]; then
+    set_kill_keys "biginstinct"
+    RUNTHIS='${TBASH} biginstinctstart.sh "${ROMNAME}"'
+
+elif [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
 GPTOKEYB=$(get_ee_setting "gptokeyb" "${PLATFORM}" "${BASEROMNAME}")
 VIRTUAL_KB=
@@ -176,6 +179,18 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} hatari.start "${ROMNAME}"'
                 fi
                 ;;
+		"atarijaguar")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"atarijaguarcd")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "openbor")
                 VIRTUAL_KB=$(emuelec-utils set_gptokeyb "${PLATFORM}" "${GPTOKEYB}")
                 set_kill_keys "${EMU}"
@@ -200,7 +215,7 @@ case ${PLATFORM} in
                 if [ "${EMU}" = "flycastsa" ]; then
             set_kill_keys "flycast"
             RUNTHIS='${TBASH} flycast.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "flycastsa_dojo" ]; then
+                elif [ "${EMU}" = "flycast_dojo" ]; then
             set_kill_keys "flycastdojo"
             RUNTHIS='flycastdojo.sh "${ROMNAME}"'
                 fi
@@ -240,8 +255,8 @@ case ${PLATFORM} in
         fi
                 ;;
         "amiga"|"amigacd32")
-                if [ "${EMU}" = "AMIBERRY" ]; then
-            RUNTHIS='${TBASH} amiberry.start "${ROMNAME}"'
+                if [ "${EMU}" = "AMIBERRY-LITE" ] || [ "${EMU}" = "AMIBERRY" ]; then
+            RUNTHIS='${TBASH} amiberry.start "${ROMNAME}" "${EMU}"'
                 fi
                 ;;
         "scummvm")
@@ -261,7 +276,19 @@ case ${PLATFORM} in
         "solarus")
                 set_kill_keys "solarus-run"
                 RUNTHIS='${TBASH} solarus.sh "${ROMNAME}"'
-                        ;;
+                ;;
+		"ti99")
+                if [ "${EMU}" = "ti99sim" ]; then
+				set_kill_keys "ti99sim-sdl"
+				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"samcoupe")
+                if [ "${EMU}" = "simcoupe" ]; then
+				set_kill_keys "simcoupe"
+				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
@@ -292,6 +319,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} ppsspp.sh "${ROMNAME}"'
                 fi
                 ;;
+		"ngage")
+		if [ "$EMU" = "eka2l1" ]; then
+            set_kill_keys "eka2l1"
+            RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
+        fi
+               ;;
         "neocd")
                 if [ "${EMU}" = "fbneo" ]; then
             RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
@@ -340,8 +373,50 @@ case ${PLATFORM} in
             set_kill_keys "jzintv"
             RUNTHIS='jzintv.sh "${ROMNAME}"'
         fi
-        ;;
-        "saturn")
+		;;
+		"x16")
+        if [ "${EMU}" = "x16emu" ]; then
+            set_kill_keys "x16emu"
+            RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
+        fi
+		;;
+		"oricatmos")
+        if [ "${EMU}" = "oricutron" ]; then
+            set_kill_keys "oricutron"
+            RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
+        fi
+		;;	
+		"mtx512")
+        if [ "${EMU}" = "memu" ]; then
+            set_kill_keys "memu"
+            RUNTHIS='${TBASH} memustart.sh "${ROMNAME}"'
+        fi
+		;;	
+        "dragon32"|"dragon64")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+			RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"coco")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"coco3")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+		    RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"mc10")
+			if [ "${EMU}" = "xroar" ]; then
+			set_kill_keys "xroar.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
+		fi
+		;;
+		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"
             RUNTHIS='yabasanshiro.sh "${ROMNAME}"'
@@ -355,37 +430,16 @@ elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
 
 case ${PLATFORM} in
-"fmtmarty")
-                if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"pgm2")
-            if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"apple2")
-            if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"mame")
-                if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"arcade")
-                if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-                esac
+"arcade"|"mame"|"fmtmarty"|"pgm2"|"apple2")
+	if [ "$EMU" = "mame_libretro" ]; then
+		mame.sh
+    fi
+    ;;
+esac
+
+if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
+		emuelec-utils small-cores enable
+fi
 
 if [[ ${PLATFORM} == "ports" ]]; then
         PORTCORE="${arguments##*-C}"  # read from -C onwards
@@ -396,7 +450,11 @@ else
     ROMNAME_SHADER=${ROMNAME}
 fi
 
-RUNTHIS='${RABIN} ${VERBOSE} $(cat /emuelec/configs/RA_ARGS) -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
+if [ -s "/emuelec/configs/RA_ARGS" ]; then
+	RA_ARGS = $(cat "/emuelec/configs/RA_ARGS")
+fi
+
+RUNTHIS='${RABIN} ${VERBOSE} ${RA_ARGS} -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 
 if [[ "${arguments}" == *"-state_slot"* ]]; then
@@ -517,7 +575,7 @@ if [ "${USELOG}" == "1" ]; then # No need to do all this if log is disabled
     eval echo ${RUNTHIS} >> ${EMUELECLOG}
 fi
 
-gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
+[[ "${KILLTHIS}" != "none" ]] && gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
@@ -532,7 +590,6 @@ else
    ret_error=${?}
 fi
 
-#blank_buffer
 # clear terminal window
         reset > /dev/tty < /dev/null 2>&1
         reset > /dev/tty0 < /dev/null 2>&1
@@ -540,9 +597,8 @@ fi
         reset > /dev/console < /dev/null 2>&1
 
 # END loading
-[[ "${LIBRETRO}" = "yes" ]] && ${TBASH} show_splash.sh "stopplayer"
 
-emuelec-utils end_app_video
+emuelec-utils end_app_video "${PLATFORM}" "${ROMNAME}"
 
 emuelec-utils set_rotation "0" "${EMULATOR}"
 
@@ -594,26 +650,21 @@ if [ "${EE_DEVICE}" == "OdroidGoAdvance" ]; then
         esac
 fi
 
-# Dolphin does not like to be killed?
-[[ "${EMU}" = "dolphin" ]] && ret_error="0"
-
-# Chocolate Doom does not like to be killed?
-[[ "${EMU}" = "Chocolate-Doom" ]] && ret_error="0"
-
-# YabasanshiroSA does not like to be killed?
-[[ "${EMU}" = "yabasanshiroSA" ]] && ret_error="0"
-
-[[ "${EMU}" = "yabasanshiroSA1_5" ]] && ret_error="0"
-
-# Temp fix for retrorun always erroing out on exit
+# These emus do not like to be killed by gptokeyb
+case "${EMU}" in
+    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+        ret_error="0"
+        ;;
+esac
 [[ "${RETRORUN}" == "yes" ]] && ret_error=0
-
-# Temp fix for libretro scummvm always erroing out on exit
-[[ "${EMU}" == *"scummvm_libretro"* ]] && ret_error=0
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
 end_game
+
+if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
+		emuelec-utils small-cores disable
+fi
 
 if [[ "${ret_error}" != "0" ]]; then
     echo "exit ${ret_error}" >> ${EMUELECLOG}
@@ -635,11 +686,11 @@ if [[ "${ret_error}" != "0" ]]; then
 
     # Since the error was not because of missing BIOS but we did get an error, display the log to find out
     [[ "${ret_bios}" == "0" ]] && text_viewer -e -w -t "Error! ${PLATFORM}-${EMULATOR}-${CORE}-${ROMNAME}" -f 24 ${EMUELECLOG}
-    blank_buffer
+    emuelec-utils blank_buffer
     exit 1
 else
     echo "exit 0" >> ${EMUELECLOG}
     echo "return_from_game" > /tmp/es_return_from_game
-    blank_buffer
+    emuelec-utils blank_buffer
     exit 0
 fi

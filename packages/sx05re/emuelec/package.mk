@@ -10,8 +10,8 @@ PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
-PKG_EXPERIMENTAL="nestopiaCV quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 fbneoSA same_cdi ikemen-go flycastsadojo"
-PKG_EMUS="${LIBRETRO_CORES} advancemame PPSSPPSDL amiberry hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed ecwolf potator freej2me duckstation flycastsa fmsx-libretro jzintv mupen64plussa"
+PKG_EXPERIMENTAL="nestopiaCV quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 fbneoSA same_cdi ikemen-go" 
+PKG_EMUS="${LIBRETRO_CORES} desmume melonds advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed ecwolf potator freej2me duckstation flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron eka2l1 bigpemu biginstinct memu"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL}"
 
 
@@ -49,7 +49,7 @@ if [ "${ARCH}" == "aarch64" ]; then
                         lib32-parallel-n64 \
                         lib32-bennugd-monolithic \
                         lib32-droidports \
-                        lib32-box86
+                        lib32-box86 \
                         lib32-libusb"
 
   if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
@@ -64,6 +64,18 @@ if [ "${ARCH}" == "aarch64" ]; then
   fi
 fi
 
+# We make sure MAME is the last package from EE to be built.
+if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
+	PKG_DEPENDS_TARGET+=" mame"
+fi
+
+# These packages do not yet compile for OdroidM1
+if [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
+ for discore in flycast-dojo; do
+		PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore}| |")
+	done
+fi
+
 makeinstall_target() {
 
 	mkdir -p ${INSTALL}/usr/bin
@@ -75,7 +87,7 @@ makeinstall_target() {
 
   # Added for compatibility with portmaster
   ln -sf /storage/roms ${INSTALL}/roms
-  ln -sf /storage/roms/ports/portmaster ${INSTALL}/portmaster
+  ln -sf /storage/roms/ports/PortMaster ${INSTALL}/PortMaster
   mkdir -p ${INSTALL}/usr/bin/ports
   touch ${INSTALL}/usr/bin/ports/.ports_here
 
@@ -114,6 +126,8 @@ post_install() {
   ln -sf emuelec.target ${INSTALL}/usr/lib/systemd/system/default.target
   enable_service emuelec-autostart.service
   enable_service emuelec-disable_small_cores.service
+  enable_service emuelec-reboot.service
+  enable_service emuelec-shutdown.service
 
 
   # Remove scripts from OdroidGoAdvance build
