@@ -2,8 +2,8 @@
 # Copyright (C) 2026-present worstcase_scenario (https://github.com/worstcase-scenario)
 
 PKG_NAME="openmsx-ld"
-PKG_VERSION="e78b9ff6b4fc61c87489a7c1fa65214a37ab24dd"
-PKG_SHA256="8dbd47491cd2a8e92e4125013d12d9e9903df81e5e67bdb01bc2bb5bb06d4b9f"
+PKG_VERSION="f3b2a5915f410687104a6b0b94800634ce550a22"
+PKG_SHA256="360cda04176ab7de0f26ebf83cf1a7d5faec60176e862b30aca390146e544da4"
 PKG_REV="0"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL"
