@@ -9,9 +9,17 @@ PKG_ARCH="aarch64"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/worstcase-scenario/openMSX"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf libpng zlib tcl alsa-lib glew libogg libvorbis libtheora"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf libpng zlib tcl alsa-lib glew gl4es libogg libvorbis libtheora"
 PKG_SHORTDESC="openMSX Laserdisc: Pioneer PX-7 emulation for Palcom LaserDisc games"
 PKG_TOOLCHAIN="manual"
+
+pre_configure_target() {
+  # gl4es installs libGL only into the image, not the sysroot (see its
+  # package.mk). openMSX needs it at build time for the GL renderer.
+  cp -f $(get_build_dir gl4es)/lib/libGL.so.1 ${SYSROOT_PREFIX}/usr/lib/libGL.so
+  ln -sf libGL.so ${SYSROOT_PREFIX}/usr/lib/libGL.so.1
+  cp -rf $(get_build_dir gl4es)/include/* ${SYSROOT_PREFIX}/usr/include/
+}
 
 PKG_MAKE_OPTS_TARGET="OPENMSX_TARGET_CPU=${TARGET_ARCH} \
                       OPENMSX_TARGET_OS=linux \
