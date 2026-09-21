@@ -14,11 +14,10 @@ PKG_SHORTDESC="openMSX Laserdisc: Pioneer PX-7 emulation for Palcom LaserDisc ga
 PKG_TOOLCHAIN="manual"
 
 pre_configure_target() {
-  # gl4es installs libGL only into the image, not the sysroot (see its
-  # package.mk). openMSX needs it at build time for the GL renderer.
+  # gl4es ships libGL only in the image; openMSX's probe only looks at the sysroot.
   cp -f $(get_build_dir gl4es)/lib/libGL.so.1 ${SYSROOT_PREFIX}/usr/lib/libGL.so
   ln -sf libGL.so ${SYSROOT_PREFIX}/usr/lib/libGL.so.1
-  cp -rf $(get_build_dir gl4es)/include/* ${SYSROOT_PREFIX}/usr/include/
+  cp -rf $(get_build_dir gl4es)/include/GL ${SYSROOT_PREFIX}/usr/include/
 }
 
 PKG_MAKE_OPTS_TARGET="OPENMSX_TARGET_CPU=${TARGET_ARCH} \
@@ -43,4 +42,13 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk
   cp ${PKG_DIR}/config/openmsx-ld.gptk \
     ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk/
+}
+
+post_makeinstall_target() {
+  # Remove it again: a libGL in the sysroot makes VLC build glspectrum, which
+  # drags desktop GL into EmulationStation and costs ~85% of its framerate.
+  rm -f ${SYSROOT_PREFIX}/usr/lib/libGL.so*
+  for f in $(ls $(get_build_dir gl4es)/include/GL); do
+    rm -rf ${SYSROOT_PREFIX}/usr/include/GL/$f
+  done
 }

@@ -167,6 +167,7 @@ DISABLED_FEATURES="--disable-dependency-tracking \
             --disable-vsxu \
             --disable-wasapi \
             --disable-x262 \
+		   --disable-glspectrum \
             --disable-zvbi"
 
 	if [ "${DEVICE}" == "Amlogic-old" ]; then 
