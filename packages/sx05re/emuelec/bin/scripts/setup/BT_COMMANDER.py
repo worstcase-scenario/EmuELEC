@@ -561,7 +561,6 @@ ES_ENV     = "/storage/.config/emulationstation/scripts/es_env.sh"
 RA_CONF    = "/storage/.config/retroarch/retroarch.cfg"
 ROUTED     = "/storage/.config/btaudio.routed"
 BT_CACHE   = "/storage/.cache/bluetooth"
-RESTART_ES = "/tmp/bt-commander.restart-es"
 
 # ---------------------------------------------------------------------------
 # Log / run helper
@@ -574,13 +573,16 @@ def log(msg: str):
         pass
 
 
-def run(cmd: List[str], timeout: int = 60) -> Tuple[int, str]:
-    log("Running: " + " ".join(cmd))
+def run(cmd: List[str], timeout: int = 60, quiet: bool = False) -> Tuple[int, str]:
+    """Run a command. quiet keeps its output out of the log: status queries
+    are repeated constantly and would bury everything else."""
+    if not quiet:
+        log("Running: " + " ".join(cmd))
     try:
         r = subprocess.run(cmd, timeout=timeout, stdout=subprocess.PIPE,
                            stderr=subprocess.STDOUT, text=True, errors="replace")
         out = r.stdout or ""
-        if out.strip():
+        if out.strip() and not quiet:
             log(out.rstrip())
         return r.returncode, out
     except subprocess.TimeoutExpired:
@@ -591,8 +593,8 @@ def run(cmd: List[str], timeout: int = 60) -> Tuple[int, str]:
         return 1, ""
 
 
-def btctl(*args: str, timeout: int = 60) -> Tuple[int, str]:
-    return run(["bluetoothctl"] + list(args), timeout)
+def btctl(*args: str, timeout: int = 60, quiet: bool = False) -> Tuple[int, str]:
+    return run(["bluetoothctl"] + list(args), timeout, quiet)
 
 
 def pactl(*args: str) -> Tuple[int, str]:
@@ -617,10 +619,6 @@ def adapter_init():
     btctl("agent", "NoInputNoOutput")
 
 
-def device_info(mac: str) -> str:
-    return btctl("info", mac, timeout=20)[1]
-
-
 def is_audio(info: str) -> bool:
     low = info.lower()
     if "icon: audio-" in low:
@@ -630,6 +628,29 @@ def is_audio(info: str) -> bool:
 
 def is_paired(info: str) -> bool:
     return "Paired: yes" in info
+
+
+def is_known(info: str) -> bool:
+    """False once bluetoothctl remove dropped the device."""
+    return bool(info.strip()) and "not available" not in info
+
+
+_last_info = {}
+
+
+def device_info(mac: str) -> str:
+    """Device state, logged as one line and only when it changed."""
+    info = btctl("info", mac, timeout=20, quiet=True)[1]
+    if not is_known(info):
+        state = "not available"
+    else:
+        state = (f"paired={'yes' if is_paired(info) else 'no'} "
+                 f"connected={'yes' if 'Connected: yes' in info else 'no'} "
+                 f"audio={'yes' if is_audio(info) else 'no'}")
+    if _last_info.get(mac) != state:
+        _last_info[mac] = state
+        log(f"info {mac}: {state}")
+    return info
 
 
 def is_connected(mac: str) -> bool:
@@ -694,7 +715,10 @@ def paired_audio_devices() -> List[Tuple[str, str, bool]]:
     out = []
     for mac, name in sorted(seen.items(), key=lambda kv: kv[1].lower()):
         info = device_info(mac)
-        if is_audio(info):
+        # A removed device can leave its cache directory behind, so what
+        # bluez still knows decides, not the presence of the directory.
+        # Paired is not usable here: devices can be trusted but unbonded.
+        if is_known(info) and is_audio(info):
             out.append((mac, info_name(info, name), "Connected: yes" in info))
     return out
 
@@ -708,6 +732,8 @@ def scan_audio_devices() -> List[Tuple[str, str, bool]]:
 
 
 def pair_and_connect(mac: str) -> bool:
+    """Pair if needed, then connect. Never removes an existing pairing:
+    a device that is switched off must not cost its bonding."""
     if not is_paired(device_info(mac)):
         btctl("pair", mac, timeout=90)
         for _ in range(10):
@@ -716,18 +742,6 @@ def pair_and_connect(mac: str) -> bool:
             time.sleep(1)
     btctl("trust", mac)
 
-    for _ in range(6):
-        btctl("connect", mac, timeout=30)
-        if is_connected(mac):
-            return True
-        time.sleep(2)
-
-    # Fallback: drop the pairing and try once more
-    log("Connect failed, re-pairing")
-    btctl("remove", mac)
-    time.sleep(1)
-    btctl("pair", mac, timeout=90)
-    btctl("trust", mac)
     for _ in range(6):
         btctl("connect", mac, timeout=30)
         if is_connected(mac):
@@ -841,7 +855,6 @@ def routing_enable():
     _set_env_line("pulseaudio")
     _set_retroarch_driver("pulse")
     _write(ROUTED, "")
-    _write(RESTART_ES, "")
     log("System-wide routing enabled")
 
 
@@ -855,7 +868,6 @@ def routing_disable():
         os.remove(ROUTED)
     except OSError:
         pass
-    _write(RESTART_ES, "")
     log("System-wide routing disabled")
 
 # ---------------------------------------------------------------------------
@@ -865,7 +877,9 @@ def activate(mac: str, name: str) -> bool:
     """Pair if needed, connect, and route audio to the device."""
     progress_screen("CONNECTING", f"{name}\n{mac}\n\nPairing and connecting, please wait.")
     if not pair_and_connect(mac):
-        ok_dialog("ERROR", f"Could not connect to {name}.\n\nSee {BT_LOG} for details.")
+        ok_dialog("ERROR", f"Could not connect to {name}.\n\n"
+                           "Make sure the device is switched on and not\n"
+                           f"connected to something else.\n\nSee {BT_LOG} for details.")
         return False
 
     progress_screen("CONNECTING", f"{name}\n{mac}\n\nSetting up A2DP audio.")
@@ -878,9 +892,9 @@ def activate(mac: str, name: str) -> bool:
     save_last(mac)
     routing_enable()
     ok_dialog("CONNECTED", f"{name}\n{mac}\n\nActive sink:\n{sink}\n\n"
-                           "EmulationStation, RetroArch and the standalone\n"
-                           "emulators now play through this device.\n"
-                           "EmulationStation restarts on exit.")
+                           "EmulationStation and RetroArch play through\n"
+                           "this device after the next restart of\n"
+                           "EmulationStation.")
     return True
 
 
@@ -911,15 +925,49 @@ def scan_and_connect():
         return
 
 
+def remove_device(mac: str, name: str) -> bool:
+    """Disconnect, drop the pairing, and forget a stored device."""
+    if not confirm_dialog("REMOVE DEVICE",
+                          f"Remove the pairing for\n{name}\n{mac}?", default_yes=False):
+        return False
+    progress_screen("REMOVING", f"{name}\n{mac}")
+    btctl("disconnect", mac, timeout=30)
+    btctl("remove", mac, timeout=30)
+    if load_last() == mac:
+        routing_disable()
+        try:
+            os.remove(BT_LAST)
+        except OSError:
+            pass
+    ok_dialog("REMOVED", f"{name}\n{mac}\n\nThe pairing has been removed.")
+    return True
+
+
 def connect_paired():
-    progress_screen("PAIRED DEVICES", "Reading the list, please wait.")
-    devices = paired_audio_devices()
-    if not devices:
-        ok_dialog("NO PAIRED DEVICES",
-                  "No paired audio device found.\n\n"
-                  "Use 'Scan for audio devices' to pair one.")
-        return
-    pick_and_connect("PAIRED AUDIO DEVICES", devices)
+    while True:
+        progress_screen("PAIRED DEVICES", "Reading the list, please wait.")
+        devices = paired_audio_devices()
+        if not devices:
+            ok_dialog("NO PAIRED DEVICES",
+                      "No paired audio device found.\n\n"
+                      "Use 'Scan for audio devices' to pair one.")
+            return
+
+        labels = [f"{name}   [{mac}]{'   (connected)' if conn else ''}"
+                  for mac, name, conn in devices]
+        idx = select_from_list("PAIRED AUDIO DEVICES", labels,
+                               "A: options   B: back   Select: exit")
+        if idx is None:
+            return
+        mac, name, _ = devices[idx]
+
+        choice = _simple_dialog(name, f"{mac}\n\nWhat would you like to do?",
+                                ["Connect", "Remove pairing", "Back"], 0)
+        if choice == 0:
+            activate(mac, name)
+            return
+        if choice == 1:
+            remove_device(mac, name)
 
 
 def connect_last():
@@ -941,8 +989,8 @@ def disconnect_current():
     btctl("disconnect", mac, timeout=30)
     routing_disable()
     ok_dialog("DISCONNECTED", f"{name}\n{mac}\n\n"
-                              "Audio is back on the analog/HDMI output.\n"
-                              "EmulationStation restarts on exit.")
+                              "Audio is back on the analog/HDMI output after\n"
+                              "the next restart of EmulationStation.")
 
 
 def forget_device():
@@ -950,18 +998,7 @@ def forget_device():
     if not mac:
         ok_dialog("NO DEVICE", "No device has been connected yet.")
         return
-    name = device_name(mac)
-    if not confirm_dialog("REMOVE DEVICE",
-                          f"Remove the pairing for\n{name}\n{mac}?", default_yes=False):
-        return
-    btctl("disconnect", mac, timeout=30)
-    btctl("remove", mac, timeout=30)
-    routing_disable()
-    try:
-        os.remove(BT_LAST)
-    except OSError:
-        pass
-    ok_dialog("REMOVED", f"{name}\n{mac}\n\nThe pairing has been removed.")
+    remove_device(mac, device_name(mac))
 
 
 def status_text() -> str:
@@ -979,10 +1016,6 @@ def status_text() -> str:
 # ---------------------------------------------------------------------------
 def main():
     log(f"--- EmuELEC BT Commander {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
-    try:
-        os.remove(RESTART_ES)
-    except OSError:
-        pass
     controller = None
     try:
         controller = init_controller()
