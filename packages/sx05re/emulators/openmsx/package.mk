@@ -41,11 +41,9 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk
   cp ${PKG_DIR}/config/openmsx.gptk \
     ${INSTALL}/usr/config/emuelec/configs/openmsx/gptk/
-}
 
-post_makeinstall_target() {
-  # Remove it again: a libGL in the sysroot makes VLC build glspectrum, which
-  # drags desktop GL into EmulationStation and costs ~85% of its framerate.
+  # remove the staged gl4es files again: a libGL in the sysroot makes VLC build
+  # glspectrum, which drags desktop GL into ES and costs ~85% of its framerate
   rm -f ${SYSROOT_PREFIX}/usr/lib/libGL.so*
   for f in $(ls $(get_build_dir gl4es)/include/GL); do
     rm -rf ${SYSROOT_PREFIX}/usr/include/GL/$f

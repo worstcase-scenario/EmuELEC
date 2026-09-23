@@ -167,8 +167,7 @@ DISABLED_FEATURES="--disable-dependency-tracking \
             --disable-vsxu \
             --disable-wasapi \
             --disable-x262 \
-		   --disable-glspectrum \
-            --disable-zvbi"
+		   --disable-zvbi"
 
 	if [ "${DEVICE}" == "Amlogic-old" ]; then 
 		ENABLED_FEATURES+=" --enable-pulse"
@@ -183,6 +182,8 @@ PKG_CONFIGURE_OPTS_TARGET="${ENABLED_FEATURES} ${DISABLED_FEATURES}"
 }
 
 post_makeinstall_target() {
+  # built when desktop GL leaks into the sysroot; drags Mesa libGL into ES
+  rm -f ${INSTALL}/usr/lib/vlc/plugins/visualization/libglspectrum_plugin.so*
   rm -fr ${INSTALL}/usr/share/applications
   rm -fr ${INSTALL}/usr/share/icons
   rm -fr ${INSTALL}/usr/share/kde4
