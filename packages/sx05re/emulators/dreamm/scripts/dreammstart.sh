@@ -94,4 +94,7 @@ fi
 
 killall -9 gptokeyb 2>/dev/null
 
+case "${DREAMM_EXIT:-0}" in
+    137|143) exit 0 ;;
+esac
 exit "${DREAMM_EXIT:-0}"
