@@ -6,7 +6,7 @@ PKG_VERSION="50a900f9e440cdc90a9dedb091a03513d6785366"
 PKG_LICENSE="BSD-3-Clause"
 PKG_SITE="https://github.com/jiangxincode/Native32Emu"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain rust cargo"
+PKG_DEPENDS_TARGET="toolchain cargo:host"
 PKG_LONGDESC="Native32 game emulator (libretro core) for Sunplus DVD-player games"
 PKG_TOOLCHAIN="manual"
 PKG_SECTION="emuelec/libretro"
@@ -21,4 +21,3 @@ makeinstall_target() {
   cp "${PKG_BUILD}/.${TARGET_NAME}/target/${TARGET_NAME}/release/libnative32emu.so" \
      "${INSTALL}/usr/lib/libretro/native32emu_libretro.so"
 }
-
