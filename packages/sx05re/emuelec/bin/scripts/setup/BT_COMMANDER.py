@@ -776,7 +776,8 @@ def route_audio(mac: str) -> Optional[str]:
 
     pactl("set-default-sink", sink)
     pactl("set-sink-mute", sink, "0")
-    pactl("set-sink-volume", sink, "100%")
+    # The sink volume is deliberately left alone: devices supporting AVRCP
+    # absolute volume follow it, which would turn an amplifier up to maximum.
     for line in pactl("list", "short", "sink-inputs")[1].splitlines():
         fields = line.split()
         if fields:
