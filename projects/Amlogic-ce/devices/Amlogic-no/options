@@ -113,7 +113,7 @@
   # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
   ADDITIONAL_DRIVERS="gpu-aml openvfd-driver media_modules-aml wifi_dummy-aml ap6xxx-aml
                       aic8800-sdio RTW88 RTL8189FS RTL8852BE-aml RTL8723DS-aml
-                      RTL8851BU RTL8852BS-aml mt76 mt7668-wifi-bt w1-aml"
+                      RTL8851BU RTL8852BS-aml mt76 mt7668-wifi-bt w1-aml aml_bt"
       
 
   # additional Firmware to use (dvb-firmware, misc-firmware, wlan-firmware)
@@ -156,7 +156,7 @@
     ENTWARE_ARCH="aarch64-k3.10"
 
   # CoreELEC Subdevices #Khadas_VIM4 Khadas_VIM1S Odroid_C4 Odroid_N2 Radxa_Zero Radxa_Zero2 Alta Solitude
-    SUBDEVICES="Khadas_VIM4 Khadas_VIM1S Odroid_C4 Odroid_N2 Radxa_Zero Radxa_Zero2 Alta Solitude"
+    SUBDEVICES="Odroid_N2"
 
   # TEE supported SoC
     TEE_SOC="S928X A311D2 S905W2 S905X4 S905Y4"

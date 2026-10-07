@@ -1,0 +1,196 @@
+From 81b8f0a16630bc62618716c415760aea31544efc Mon Sep 17 00:00:00 2001
+From: Stanislav Vlasic <svlasic@gmail.com>
+Date: Fri, 15 Aug 2025 15:36:01 +0200
+Subject: [PATCH] DT: Add X96 X4
+
+---
+ arch/arm64/boot/dts/amlogic/Makefile          |  4 ++
+ .../boot/dts/amlogic/sc2_s905x4_x96_x4_2g.dts | 53 +++++++++++++++++
+ .../amlogic/sc2_s905x4_x96_x4_2g_1gbit.dts    | 58 +++++++++++++++++++
+ .../boot/dts/amlogic/sc2_s905x4_x96_x4_4g.dts | 13 +++++
+ .../amlogic/sc2_s905x4_x96_x4_4g_1gbit.dts    | 13 +++++
+ 5 files changed, 141 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g.dts
+ create mode 100644 arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g_1gbit.dts
+ create mode 100644 arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g.dts
+ create mode 100644 arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g_1gbit.dts
+
+diff --git a/arch/arm64/boot/dts/amlogic/Makefile b/arch/arm64/boot/dts/amlogic/Makefile
+index d17e68481..6a999c53b 100644
+--- a/arch/arm64/boot/dts/amlogic/Makefile
++++ b/arch/arm64/boot/dts/amlogic/Makefile
+@@ -79,6 +79,10 @@ dtb-y += sc2_s905x4_sei_smb_280_id6.dtb
+ dtb-y += sc2_s905x4_sei_smb_280_id7.dtb
+ dtb-y += sc2_s905x4_ugoos_am7.dtb
+ dtb-y += sc2_s905x4_ugoos_x4.dtb
++dtb-y += sc2_s905x4_x96_x4_2g.dtb
++dtb-y += sc2_s905x4_x96_x4_2g_1gbit.dtb
++dtb-y += sc2_s905x4_x96_x4_4g.dtb
++dtb-y += sc2_s905x4_x96_x4_4g_1gbit.dtb
+ dtb-y += t7_a311d2_beelink_gt_king_ii_4g.dtb
+ dtb-y += t7_a311d2_beelink_gt_king_ii_8g.dtb
+ dtb-y += t7_a311d2_khadas_vim4.dtb
+diff --git a/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g.dts b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g.dts
+new file mode 100644
+index 000000000..f6687d339
+--- /dev/null
++++ b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g.dts
+@@ -0,0 +1,53 @@
++#include "sc2_s905x4_2g.dts"
++
++/ {
++	coreelec-dt-id = "sc2_s905x4_x96_x4_2g";
++
++	auge_sound {
++		/delete-property/ avout_mute-gpios;
++		/delete-property/ spk_mute-gpios;
++	};
++};
++
++&i2c1 {
++	status = "disabled";
++};
++
++&i2c2 {
++	status = "disabled";
++};
++
++&i2c3 {
++	status = "disabled";
++};
++
++&periphs_pinctrl {
++	/delete-node/ spdifin;
++
++	spdifout: spdifout {
++		mux { /* GPIOH_4 */
++			groups = "spdif_out_h";
++			function = "spdif_out";
++		};
++	};
++
++	spdifout_a_mute: spdifout_a_mute {
++		mux { /* GPIOH_4 */
++			groups = "GPIOH_4";
++			function = "gpio_periphs";
++			output-low;
++		}; 
++	};
++};
++
++&sd_emmc_a {
++	max-frequency = <150000000>;
++	brcmf: wifi@1 {
++		compatible = "sprd,unisoc-wifi";
++	};
++};
++
++&aml_bt {
++	bt_en-gpios = <&gpio    GPIOX_17 GPIO_ACTIVE_HIGH>;
++	hostwake-gpios = <&gpio GPIOX_19 GPIO_ACTIVE_HIGH>;
++};
+diff --git a/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g_1gbit.dts b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g_1gbit.dts
+new file mode 100644
+index 000000000..8a739a021
+--- /dev/null
++++ b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_2g_1gbit.dts
+@@ -0,0 +1,58 @@
++#include "sc2_s905x4_x96_x4_2g.dts"
++
++/ {
++	coreelec-dt-id = "sc2_s905x4_x96_x4_2g_1gbit";
++};
++
++&periphs_pinctrl {
++	eth_pins: eth {
++		mux {
++			groups = "eth_mdio",
++				"eth_mdc",
++				"eth_rgmii_rx_clk",
++				"eth_rx_dv",
++				"eth_rxd0",
++				"eth_rxd1",
++				"eth_txen",
++				"eth_txd0",
++				"eth_txd1";
++			function = "eth";
++			drive-strength-microamp = <4000>;
++			bias-disable;
++		};
++	};
++
++	eth_rgmii_pins: eth-rgmii {
++		mux {
++			groups = "eth_rxd2_rgmii",
++				"eth_rxd3_rgmii",
++				"eth_rgmii_tx_clk",
++				"eth_txd2_rgmii",
++				"eth_txd3_rgmii";
++			function = "eth";
++			drive-strength-microamp = <4000>;
++			bias-disable;
++		};
++	};
++};
++
++&ext_mdio {
++	external_phy: ethernet-phy@0 {
++		max-speed = <1000>;
++
++		reset-assert-us = <20000>;
++		reset-deassert-us = <50000>;
++		reset-gpios = <&gpio GPIOZ_15 (GPIO_ACTIVE_LOW |
++					GPIO_OPEN_DRAIN)>;
++	};
++};
++
++&ethmac {
++	status = "okay";
++	pinctrl-0 = <&eth_pins>, <&eth_rgmii_pins>;
++	pinctrl-names = "default";
++	phy-handle = <&external_phy>;
++	phy-mode = "rgmii";
++	amlogic,tx-delay-ns = <2>;
++	/delete-property/ mc_val;
++};
+diff --git a/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g.dts b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g.dts
+new file mode 100644
+index 000000000..3170f5826
+--- /dev/null
++++ b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g.dts
+@@ -0,0 +1,13 @@
++#include "sc2_s905x4_x96_x4_2g.dts"
++
++/ {
++	coreelec-dt-id = "sc2_s905x4_x96_x4_4g";
++
++	memory@00000000 {
++		linux,usable-memory = <0x0 0x000000 0x0 0xf1000000>;
++	};
++};
++
++&drm_vpu {
++	logo_addr = "0xf0800000";
++};
+diff --git a/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g_1gbit.dts b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g_1gbit.dts
+new file mode 100644
+index 000000000..ce3a7fa47
+--- /dev/null
++++ b/arch/arm64/boot/dts/amlogic/sc2_s905x4_x96_x4_4g_1gbit.dts
+@@ -0,0 +1,13 @@
++#include "sc2_s905x4_x96_x4_2g_1gbit.dts"
++
++/ {
++	coreelec-dt-id = "sc2_s905x4_x96_x4_4g_1gbit";
++
++	memory@00000000 {
++		linux,usable-memory = <0x0 0x000000 0x0 0xf1000000>;
++	};
++};
++
++&drm_vpu {
++	logo_addr = "0xf0800000";
++};
+-- 
+2.43.0
+
