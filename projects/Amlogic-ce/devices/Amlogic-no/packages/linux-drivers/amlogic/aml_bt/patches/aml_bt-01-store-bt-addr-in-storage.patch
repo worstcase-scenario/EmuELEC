@@ -1,0 +1,15 @@
+diff --git a/aml_bt/aml_hciattach/aml_comm.h b/aml_bt/aml_hciattach/aml_comm.h
+index 3617d78..9e70d3b 100644
+--- a/aml_bt/aml_hciattach/aml_comm.h
++++ b/aml_bt/aml_hciattach/aml_comm.h
+@@ -43,8 +43,8 @@ extern "C" {
+ #define PCEDIT_MAC        "/tmp/bdaddr"
+ #define FW_VER_FILE       "/tmp/bt_fw_version"
+ #else
+-#define AMLBT_ADDR_PATH   "/etc/bluetooth/aml/bt_addr"
+-#define FW_VER_FILE       "/etc/bluetooth/aml/bt_fw_version"
++#define AMLBT_ADDR_PATH   "/storage/.cache/bluetooth/aml/bt_addr"
++#define FW_VER_FILE       "/storage/.cache/bluetooth/aml/bt_fw_version"
+ #endif
+ 
+ #define AMLBT_RANDOM_DEV "/dev/urandom"
