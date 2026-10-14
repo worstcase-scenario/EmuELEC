@@ -283,6 +283,12 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
                 fi
                 ;;	
+		"fmtowns"|"fmtownsux")
+				if [ "${EMU}" = "tsugaru" ]; then
+				set_kill_keys "tsugaru"
+				RUNTHIS='${TBASH} tsugarustart.sh "${ROMNAME}"'
+				fi
+				;;		
 		"samcoupe")
                 if [ "${EMU}" = "simcoupe" ]; then
 				set_kill_keys "simcoupe"
@@ -361,6 +367,12 @@ case ${PLATFORM} in
                 set_kill_keys "${EMU}"
                 RUNTHIS='${TBASH} fbterm.sh mplayer_video "${ROMNAME}" "${EMU}"'
                 ;;
+		"flash")
+                if [ "${EMU}" = "ruffle" ]; then
+            set_kill_keys "ruffle.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/startruffle.sh "${ROMNAME}"'
+                fi
+                ;;
         "pico8")
                 set_kill_keys "pico8_dyn"
                 RUNTHIS='${TBASH} pico8.sh "${ROMNAME}"'
@@ -429,6 +441,12 @@ case ${PLATFORM} in
         elif [ "${EMU}" = "yabasanshiroSA1_5" ]; then
 		        set_kill_keys "yabasanshiro1_5"
             	RUNTHIS='yabasanshiro1_5.sh "${ROMNAME}"'
+        fi
+        ;;
+		"macintosh")
+        if [ "${EMU}" = "basilisk2" ]; then
+			set_kill_keys "BasiliskII"
+			RUNTHIS='${TBASH} basilisk2start.sh "${ROMNAME}"'
         fi
         ;;
         esac

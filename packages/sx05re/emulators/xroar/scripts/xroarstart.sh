@@ -67,18 +67,20 @@ fi
 # Kill old instances
 killall -9 gptokeyb 2>/dev/null
 
+# Copy default gptk to writable storage (gptokeyb opens config read/write)
+GPTK_DIR="/storage/.config/emuelec/configs/xroar/gptk"
+mkdir -p "$GPTK_DIR"
+[ -f "${GPTK_DIR}/xroar.gptk" ] || cp /usr/config/emuelec/configs/xroar/gptk/xroar.gptk "$GPTK_DIR/"
+
 # Check for game-specific gptk config
-GPTK_GAME="/storage/.config/emuelec/configs/xroar/gptk/${ROMBASE}.gptk"
-GPTK_DEFAULT="/usr/config/emuelec/configs/xroar/gptk/xroar.gptk"
+GPTK_GAME="${GPTK_DIR}/${ROMBASE}.gptk"
+GPTK_DEFAULT="${GPTK_DIR}/xroar.gptk"
 
 if [ -f "$GPTK_GAME" ]; then
     GPTK_CONFIG="$GPTK_GAME"
 else
     GPTK_CONFIG="$GPTK_DEFAULT"
 fi
-
-# Pause EmulationStation
-kill -SIGSTOP $(pgrep emulationstation) 2>/dev/null
 
 # Start gptokeyb
 gptokeyb 1 xroar -c "$GPTK_CONFIG" &
@@ -91,9 +93,6 @@ LIBGL_NOTEST=1 /usr/bin/xroar -fs \
   -default-machine "$MACHINE" \
   ${LOAD_FLAG} "$ROM" \
   ${TYPE_PARAM}
-
-# Resume EmulationStation
-kill -SIGCONT $(pgrep emulationstation) 2>/dev/null
 
 # Cleanup
 killall -9 gptokeyb 2>/dev/null

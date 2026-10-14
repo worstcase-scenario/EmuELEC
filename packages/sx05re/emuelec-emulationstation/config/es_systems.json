@@ -199,7 +199,17 @@
       "theme": "fmtowns",
       "command": "default",
       "extensions": [
-        ".cmd"
+        ".cmd",
+        ".chd",
+        ".cue",
+        ".iso",
+        ".mds",
+        ".mdf",
+        ".ccd",
+        ".d77",
+        ".d88",
+        ".hdm",
+        ".xdf"
       ],
       "emulators": [
         {
@@ -207,13 +217,23 @@
           "cores": [
             {
               "name": "mame",
-              "default": true
+              "incompatible": [".cue", ".iso", ".mds", ".mdf", ".ccd", ".d77", ".d88", ".hdm", ".xdf"]
+            }
+          ]
+        },
+        {
+          "name": "tsugaru",
+          "cores": [
+            {
+              "name": "tsugaru",
+              "default": true,
+              "incompatible": [".cmd", ".chd"]
             }
           ]
         }
       ]
     },
-    {
+        {
       "name": "apple2",
       "fullname": "Apple 2",
       "manufacturer": "Apple",
@@ -224,15 +244,33 @@
       "theme": "apple2",
       "command": "default",
       "extensions": [
-        ".cmd"
+        ".2mg",
+        ".2img",
+        ".apl",
+        ".bin",
+        ".cmd",
+        ".do",
+        ".dsk",
+        ".gz",
+        ".hdv",
+        ".m3u",
+        ".nib",
+        ".po",
+        ".woz",
+        ".zip"
       ],
       "emulators": [
         {
           "name": "libretro",
           "cores": [
             {
+              "name": "applewin",
+              "default": true,
+              "incompatible": [".cmd"]
+            },
+            {
               "name": "mame",
-              "default": true
+              "incompatible": [".2mg", ".2img", ".apl", ".bin", ".do", ".dsk", ".gz", ".hdv", ".m3u", ".nib", ".po", ".woz", ".zip"]
             }
           ]
         }
@@ -4557,7 +4595,6 @@
 		".1dd",
 		".cqm",
 		".cqi",
-		".dsk",
 		".ima",
 		".img",
 		".ufi",
@@ -4575,16 +4612,26 @@
 		".cdr",
 		".hd",
 		".hdv",
-		".2mg",
-		".hdi"
+		".hdi",
+		".hfv",
+		".hda"
       ],
       "emulators": [
+        {
+          "name": "basilisk2",
+          "cores": [
+            {
+              "name": "basilisk2",
+              "default": true,
+              "incompatible": [".zip", ".7z", ".mfi", ".dfi", ".hfe", ".mfm", ".td0", ".imd", ".d77", ".d88", ".1dd", ".cqm", ".cqi", ".ufi", ".ipf", ".dc42", ".woz", ".2mg", ".360", ".chd", ".cue", ".toc", ".nrg", ".gdi", ".cdr", ".hdi"]
+            }
+          ]
+        },
         {
           "name": "libretro",
           "cores": [
             {
-              "name": "mame",
-              "default": true
+              "name": "mame"
             },
 			{
               "name": "minivmac"
@@ -5720,6 +5767,31 @@
       ]
     },
 	{
+      "name": "flash",
+      "fullname": "Adobe Flash Player",
+      "manufacturer": "Macromedia",
+      "release": "1996",
+      "hardware": "computer",
+      "path": "/storage/roms/flash",
+      "platform": "flash",
+      "theme": "flash",
+      "command": "default",
+      "extensions": [
+        ".swf"
+      ],
+      "emulators": [
+        {
+          "name": "ruffle",
+          "cores": [
+            {
+              "name": "ruffle",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+	{
 	  "name": "oricutron",
       "fullname": "Oric Atmos",
       "manufacturer": "Tangerine Computer Systems",
@@ -5957,6 +6029,40 @@
 	}
 	]
 	},
+	{
+      "name": "3ds",
+      "fullname": "Nintendo 3DS",
+      "manufacturer": "Nintendo",
+      "release": "2011",
+      "hardware": "portable",
+      "path": "/storage/roms/3ds",
+      "platform": "n3ds",
+      "theme": "3ds",
+      "command": "default",
+      "extensions": [
+        ".3ds",
+        ".3dsx",
+        ".app",
+        ".axf",
+        ".cci",
+        ".cxi",
+        ".elf",
+        ".z3dsx",
+        ".zcci",
+        ".zcxi"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "azahar",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
     {
 	"name": "dreamm",
 	"fullname": "Dreamm",
