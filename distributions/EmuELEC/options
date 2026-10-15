@@ -12,7 +12,7 @@
 # Welcome Message for e.g. SSH Server (up to 5 Lines)
   GREETING0="##############################################"
   GREETING1="#               EmuELEC 4.9 NG               #"
-  GREETING2="#     WORSTCASE_SCENARIO-EDITION Devices     #"
+  GREETING2="#         WORSTCASE_SCENARIO-EDITION         #"
   GREETING3="#             Shall we play a game?          #"
   GREETING4="##############################################"
 
