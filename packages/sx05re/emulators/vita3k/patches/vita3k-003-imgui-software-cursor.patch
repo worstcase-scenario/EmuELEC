@@ -1,0 +1,10 @@
+--- a/vita3k/gui/src/gui.cpp
++++ b/vita3k/gui/src/gui.cpp
+@@ -835,6 +835,7 @@
+     if (ImGui::GetCurrentContext() == NULL) {
+         ImGui::CreateContext();
+     }
++    ImGui::GetIO().MouseDrawCursor = true;
+     gui.imgui_state.reset(ImGui_ImplSdl_Init(emuenv.renderer.get(), emuenv.window.get()));
+ 
+     assert(gui.imgui_state);

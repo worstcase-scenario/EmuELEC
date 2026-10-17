@@ -3714,6 +3714,33 @@
         }
       ]
     },
+	{
+      "name": "psvita",
+      "fullname": "Sony Playstation Vita",
+      "manufacturer": "Sony",
+      "release": "2011",
+      "hardware": "portable",
+      "path": "/storage/roms/psvita",
+      "platform": "psvita",
+      "theme": "psvita",
+      "command": "default",
+      "extensions": [
+        ".psvita",
+        ".vpk",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "vita3k",
+          "cores": [
+            {
+              "name": "vita3k",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "pspminis",
       "fullname": "Sony Playstation Portable Minis",

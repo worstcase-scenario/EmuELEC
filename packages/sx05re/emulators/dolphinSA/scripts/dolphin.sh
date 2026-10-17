@@ -18,6 +18,7 @@ if [ ! -L "${CONFIG_DIR}" ]; then
 fi
 
 mkdir -p /storage/roms/dolphin/dolphin-emu/StateSaves
+mkdir -p /storage/.cache/dolphin-emu
 
 AUTOGP=$(get_ee_setting dolphin_auto_gamepad)
 if [[ "${AUTOGP}" != "0" ]]; then

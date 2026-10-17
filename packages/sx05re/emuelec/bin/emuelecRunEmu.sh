@@ -91,7 +91,6 @@ KILLTHIS="none"
 KILLSIGNAL="15"
 
 if [[ "${CORE}" == *"_32b"* ]]; then
-	export VK_ICD_FILENAMES=/usr/share/vulkan32/icd.d/mali.json
     BIT32="yes"
     #LD_LIBRARY_PATH="/emuelec/lib32:${LD_LIBRARY_PATH}"
     RABIN="retroarch32"
@@ -156,7 +155,12 @@ emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
 
-if [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
+# .bighard files always go to BigInstinct, regardless of platform/emu choice
+if [[ "${ROMNAME,,}" == *.bighard ]]; then
+    set_kill_keys "biginstinct"
+    RUNTHIS='${TBASH} biginstinctstart.sh "${ROMNAME}"'
+
+elif [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
 GPTOKEYB=$(get_ee_setting "gptokeyb" "${PLATFORM}" "${BASEROMNAME}")
 VIRTUAL_KB=
@@ -175,6 +179,18 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} hatari.start "${ROMNAME}"'
                 fi
                 ;;
+		"atarijaguar")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"atarijaguarcd")
+                if [ "${EMU}" = "bigpemu" ]; then
+				set_kill_keys "bigpemu"
+				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
+                fi
+                ;;	
         "openbor")
                 VIRTUAL_KB=$(emuelec-utils set_gptokeyb "${PLATFORM}" "${GPTOKEYB}")
                 set_kill_keys "${EMU}"
@@ -260,7 +276,53 @@ case ${PLATFORM} in
         "solarus")
                 set_kill_keys "solarus-run"
                 RUNTHIS='${TBASH} solarus.sh "${ROMNAME}"'
-                        ;;
+                ;;
+		"ti99")
+                if [ "${EMU}" = "ti99sim" ]; then
+				set_kill_keys "ti99sim-sdl"
+				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"fmtowns"|"fmtownsux")
+				if [ "${EMU}" = "tsugaru" ]; then
+				set_kill_keys "tsugaru"
+				RUNTHIS='${TBASH} tsugarustart.sh "${ROMNAME}"'
+				fi
+				;;		
+		"psvita")
+				set_kill_keys "Vita3K"
+				RUNTHIS='${TBASH} vita3kstart.sh "${ROMNAME}"'
+				;;
+		"samcoupe")
+                if [ "${EMU}" = "simcoupe" ]; then
+				set_kill_keys "simcoupe"
+				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
+                fi
+                ;;
+		"iphone")
+                if [ "${EMU}" = "touchhle" ]; then
+				set_kill_keys "touchhle-sa"
+				RUNTHIS='${TBASH} start_touchhle.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"dreamm")
+                if [ "${EMU}" = "dreamm" ]; then
+				set_kill_keys "dreamm"
+				RUNTHIS='${TBASH} dreammstart.sh "${ROMNAME}"'
+                fi
+                ;;	
+		"msx"|"msx2"|"msx2+"|"msxturbor")
+				if [ "${EMU}" = "openmsx" ]; then
+				set_kill_keys "openmsx"
+				RUNTHIS='${TBASH} startopenmsx.sh "${ROMNAME}"'
+				fi
+				;;
+		"msxlaserdisc")
+				if [ "${EMU}" = "openmsx-ld" ]; then
+				set_kill_keys "openmsx-ld"
+				RUNTHIS='${TBASH} startopenmsx-ld.sh "${ROMNAME}"'
+				fi
+				;;
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
@@ -291,6 +353,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} ppsspp.sh "${ROMNAME}"'
                 fi
                 ;;
+		"ngage")
+		if [ "$EMU" = "eka2l1" ]; then
+            set_kill_keys "eka2l1"
+            RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
+        fi
+               ;;
         "neocd")
                 if [ "${EMU}" = "fbneo" ]; then
             RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
@@ -302,6 +370,12 @@ case ${PLATFORM} in
         "mplayer")
                 set_kill_keys "${EMU}"
                 RUNTHIS='${TBASH} fbterm.sh mplayer_video "${ROMNAME}" "${EMU}"'
+                ;;
+		"flash")
+                if [ "${EMU}" = "ruffle" ]; then
+            set_kill_keys "ruffle.aarch64"
+            RUNTHIS='${TBASH} /usr/bin/startruffle.sh "${ROMNAME}"'
+                fi
                 ;;
         "pico8")
                 set_kill_keys "pico8_dyn"
@@ -339,14 +413,44 @@ case ${PLATFORM} in
             set_kill_keys "jzintv"
             RUNTHIS='jzintv.sh "${ROMNAME}"'
         fi
-        ;;
-        "saturn")
+		;;
+		"x16")
+        if [ "${EMU}" = "x16emu" ]; then
+            set_kill_keys "x16emu"
+            RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
+        fi
+		;;
+		"oricatmos")
+        if [ "${EMU}" = "oricutron" ]; then
+            set_kill_keys "oricutron"
+            RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
+        fi
+		;;	
+		"mtx512")
+        if [ "${EMU}" = "memu" ]; then
+            set_kill_keys "memu"
+            RUNTHIS='${TBASH} memustart.sh "${ROMNAME}"'
+        fi
+		;;	
+		"dragon32"|"dragon64"|"mc10"|"coco"|"coco3")
+        if [ "${EMU}" = "xroar" ]; then
+            set_kill_keys "xroar"
+            RUNTHIS='${TBASH} /usr/bin/xroarstart.sh "${ROMNAME}"'
+        fi
+     	;;
+		"saturn")
         if [ "${EMU}" = "yabasanshiroSA" ]; then
             set_kill_keys "yabasanshiro"
             RUNTHIS='yabasanshiro.sh "${ROMNAME}"'
         elif [ "${EMU}" = "yabasanshiroSA1_5" ]; then
 		        set_kill_keys "yabasanshiro1_5"
             	RUNTHIS='yabasanshiro1_5.sh "${ROMNAME}"'
+        fi
+        ;;
+		"macintosh")
+        if [ "${EMU}" = "basilisk2" ]; then
+			set_kill_keys "BasiliskII"
+			RUNTHIS='${TBASH} basilisk2start.sh "${ROMNAME}"'
         fi
         ;;
         esac

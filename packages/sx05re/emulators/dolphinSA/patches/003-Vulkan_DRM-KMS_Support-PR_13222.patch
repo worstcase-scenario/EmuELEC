@@ -4,34 +4,19 @@ Date: Fri, 20 Dec 2024 22:31:48 -0600
 Subject: [PATCH] Vulkan DRM/KMS Support
 
 ---
- CMakeLists.txt                                |   5 +
- Source/Core/Common/WindowSystemInfo.h         |   1 +
- Source/Core/DolphinNoGUI/CMakeLists.txt       |   4 +
- Source/Core/DolphinNoGUI/MainNoGUI.cpp        |   9 +
- Source/Core/DolphinNoGUI/Platform.h           |   4 +
- Source/Core/DolphinNoGUI/PlatformDRM.cpp      |  63 +++++++
- Source/Core/VideoBackends/Vulkan/VKMain.cpp   |  20 +--
- .../Core/VideoBackends/Vulkan/VKSwapChain.cpp | 160 +++++++++++++++++-
- .../Core/VideoBackends/Vulkan/VKSwapChain.h   |   3 +-
- .../VideoBackends/Vulkan/VulkanContext.cpp    |  14 ++
- .../Vulkan/VulkanEntryPoints.inl              |   9 +
- .../Core/VideoBackends/Vulkan/VulkanLoader.h  |   4 +
- 12 files changed, 283 insertions(+), 13 deletions(-)
- create mode 100644 Source/Core/DolphinNoGUI/PlatformDRM.cpp
-
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 40dd391a1999..7b6d15604f70 100644
+index 5ea7f8e112..f729a4f3d3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -106,6 +106,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
+@@ -118,6 +118,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
  option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
  option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
  option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 +option(ENABLE_DRM "Enables DRM support" OFF)
+ option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
  
  # Maintainers: if you consider blanket disabling this for your users, please
- # consider the following points:
-@@ -502,6 +503,10 @@ if (OPENGL_GL)
+@@ -497,6 +498,10 @@ if (OPENGL_GL)
    include_directories(${OPENGL_INCLUDE_DIR})
  endif()
  
@@ -43,7 +28,7 @@ index 40dd391a1999..7b6d15604f70 100644
    pkg_check_modules(X11 x11 IMPORTED_TARGET)
    if(X11_FOUND)
 diff --git a/Source/Core/Common/WindowSystemInfo.h b/Source/Core/Common/WindowSystemInfo.h
-index 8936ad1a02e7..279d57880d48 100644
+index 9d154776f6..76db879c19 100644
 --- a/Source/Core/Common/WindowSystemInfo.h
 +++ b/Source/Core/Common/WindowSystemInfo.h
 @@ -13,6 +13,7 @@ enum class WindowSystemType
@@ -55,7 +40,7 @@ index 8936ad1a02e7..279d57880d48 100644
  
  struct WindowSystemInfo
 diff --git a/Source/Core/DolphinNoGUI/CMakeLists.txt b/Source/Core/DolphinNoGUI/CMakeLists.txt
-index 566a643c8969..3a8c9f18ea48 100644
+index 51c3fff708..a89ae0b4da 100644
 --- a/Source/Core/DolphinNoGUI/CMakeLists.txt
 +++ b/Source/Core/DolphinNoGUI/CMakeLists.txt
 @@ -23,6 +23,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -66,14 +51,14 @@ index 566a643c8969..3a8c9f18ea48 100644
 +  target_sources(dolphin-nogui PRIVATE PlatformDRM.cpp)
 +endif()
 +
- set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
+ if (WIN32)
+   target_sources(dolphin-nogui PRIVATE DolphinNoGUI.exe.manifest DolphinNoGUI.rc)
  
- target_link_libraries(dolphin-nogui
 diff --git a/Source/Core/DolphinNoGUI/MainNoGUI.cpp b/Source/Core/DolphinNoGUI/MainNoGUI.cpp
-index 539bbe769ffe..3327d2df6ac6 100644
+index 3bf40ea0d4..2d369ae975 100644
 --- a/Source/Core/DolphinNoGUI/MainNoGUI.cpp
 +++ b/Source/Core/DolphinNoGUI/MainNoGUI.cpp
-@@ -172,6 +172,11 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
+@@ -155,6 +155,11 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
  {
    std::string platform_name = static_cast<const char*>(options.get("platform"));
  
@@ -85,22 +70,22 @@ index 539bbe769ffe..3327d2df6ac6 100644
  #if HAVE_X11
    if (platform_name == "x11" || platform_name.empty())
      return Platform::CreateX11Platform();
-@@ -215,6 +220,10 @@ int main(int argc, char* argv[])
-             ,
-             "fbdev"
+@@ -196,6 +201,10 @@ int main(const int argc, char* argv[])
+                 ,
+                 "fbdev"
  #endif
 +#if HAVE_DRM
 +            ,
 +            "drm"
 +#endif
  #if HAVE_X11
-             ,
-             "x11"
+                 ,
+                 "x11"
 diff --git a/Source/Core/DolphinNoGUI/Platform.h b/Source/Core/DolphinNoGUI/Platform.h
-index f4dc8a94745a..3b3c869bd0ba 100644
+index f4dc8a9474..3b3c869bd0 100644
 --- a/Source/Core/DolphinNoGUI/Platform.h
 +++ b/Source/Core/DolphinNoGUI/Platform.h
-@@ -30,6 +30,10 @@ class Platform
+@@ -30,6 +30,10 @@ public:
    // Request an immediate shutdown.
    void Stop();
  
@@ -113,7 +98,7 @@ index f4dc8a94745a..3b3c869bd0ba 100644
    static std::unique_ptr<Platform> CreateX11Platform();
 diff --git a/Source/Core/DolphinNoGUI/PlatformDRM.cpp b/Source/Core/DolphinNoGUI/PlatformDRM.cpp
 new file mode 100644
-index 000000000000..557841dda291
+index 0000000000..557841dda2
 --- /dev/null
 +++ b/Source/Core/DolphinNoGUI/PlatformDRM.cpp
 @@ -0,0 +1,63 @@
@@ -181,7 +166,7 @@ index 000000000000..557841dda291
 +  return std::make_unique<PlatformDRM>();
 +}
 diff --git a/Source/Core/VideoBackends/Vulkan/VKMain.cpp b/Source/Core/VideoBackends/Vulkan/VKMain.cpp
-index e5ecd5a4dee5..675e055d39ed 100644
+index 6338e52e3d..d2bb68a6ce 100644
 --- a/Source/Core/VideoBackends/Vulkan/VKMain.cpp
 +++ b/Source/Core/VideoBackends/Vulkan/VKMain.cpp
 @@ -142,11 +142,20 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
@@ -223,10 +208,10 @@ index e5ecd5a4dee5..675e055d39ed 100644
    g_vulkan_context =
        VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface, enable_debug_utils,
 diff --git a/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp b/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp
-index 840a7b2c4e58..7db55b37fa46 100644
+index 370e22d15c..dbcdc49452 100644
 --- a/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp
 +++ b/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp
-@@ -37,8 +37,163 @@ SwapChain::~SwapChain()
+@@ -36,8 +36,163 @@ SwapChain::~SwapChain()
    DestroySurface();
  }
  
@@ -391,7 +376,7 @@ index 840a7b2c4e58..7db55b37fa46 100644
  #if defined(VK_USE_PLATFORM_WIN32_KHR)
    if (wsi.type == WindowSystemType::Windows)
    {
-@@ -578,7 +733,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
+@@ -577,7 +732,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
  
    // Re-create the surface with the new native handle
    m_wsi.render_surface = native_handle;
@@ -402,10 +387,10 @@ index 840a7b2c4e58..7db55b37fa46 100644
      return false;
  
 diff --git a/Source/Core/VideoBackends/Vulkan/VKSwapChain.h b/Source/Core/VideoBackends/Vulkan/VKSwapChain.h
-index 5f173185a0e4..f7bf31f18fb2 100644
+index 17334dbf97..2bc81bd888 100644
 --- a/Source/Core/VideoBackends/Vulkan/VKSwapChain.h
 +++ b/Source/Core/VideoBackends/Vulkan/VKSwapChain.h
-@@ -25,7 +25,8 @@ class SwapChain
+@@ -25,7 +25,8 @@ public:
    ~SwapChain();
  
    // Creates a vulkan-renderable surface for the specified window handle.
@@ -416,10 +401,10 @@ index 5f173185a0e4..f7bf31f18fb2 100644
    // Create a new swap chain from a pre-existing surface.
    static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
 diff --git a/Source/Core/VideoBackends/Vulkan/VulkanContext.cpp b/Source/Core/VideoBackends/Vulkan/VulkanContext.cpp
-index c6ff5e148d50..d3340dc7cdc7 100644
+index d388300b6e..22683892c6 100644
 --- a/Source/Core/VideoBackends/Vulkan/VulkanContext.cpp
 +++ b/Source/Core/VideoBackends/Vulkan/VulkanContext.cpp
-@@ -361,6 +361,20 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
+@@ -362,6 +362,20 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
      return false;
    }
  #endif
@@ -441,7 +426,7 @@ index c6ff5e148d50..d3340dc7cdc7 100644
    if (wstype == WindowSystemType::Android &&
        !AddExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
 diff --git a/Source/Core/VideoBackends/Vulkan/VulkanEntryPoints.inl b/Source/Core/VideoBackends/Vulkan/VulkanEntryPoints.inl
-index d716ce49d28b..da46ece84963 100644
+index d716ce49d2..da46ece849 100644
 --- a/Source/Core/VideoBackends/Vulkan/VulkanEntryPoints.inl
 +++ b/Source/Core/VideoBackends/Vulkan/VulkanEntryPoints.inl
 @@ -49,6 +49,15 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateXlibSurfaceKHR, false)
@@ -461,7 +446,7 @@ index d716ce49d28b..da46ece84963 100644
  VULKAN_INSTANCE_ENTRY_POINT(vkCreateAndroidSurfaceKHR, false)
  #endif
 diff --git a/Source/Core/VideoBackends/Vulkan/VulkanLoader.h b/Source/Core/VideoBackends/Vulkan/VulkanLoader.h
-index 33784d5d2ea0..13ad118f77b2 100644
+index 33784d5d2e..13ad118f77 100644
 --- a/Source/Core/VideoBackends/Vulkan/VulkanLoader.h
 +++ b/Source/Core/VideoBackends/Vulkan/VulkanLoader.h
 @@ -9,6 +9,10 @@

@@ -1,0 +1,51 @@
+Subject: [PATCH] Vulkan DRM: match display surface to mode and plane
+
+Use the display mode resolution, the plane stack index reported by the
+driver and skip planes bound to other displays (as vkcube does).
+Fixes VK_ERROR_OUT_OF_DEVICE_MEMORY on swap chain creation (Mali-G31).
+---
+diff --git a/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp b/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp
+index c9e26e6b68..0615f65e9d 100644
+--- a/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp
++++ b/Source/Core/VideoBackends/Vulkan/VKSwapChain.cpp
+@@ -95,11 +95,25 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, [[maybe_unused]
+       return VK_NULL_HANDLE;
+     }
+ 
++    std::vector<VkDisplayPlanePropertiesKHR> plane_props(plane_count);
++    if (VkResult err = vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physical_device, &plane_count,
++                                                                    plane_props.data());
++        err != VK_SUCCESS)
++    {
++      LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR failed: ");
++      return VK_NULL_HANDLE;
++    }
++
+     // Find a plane compatible with the display
+     uint32_t compatible_plane_index = UINT32_MAX;
+ 
+     for (uint32_t plane_index = 0; plane_index < plane_count; plane_index++)
+     {
++      // Skip planes that are already bound to another display
++      if (plane_props[plane_index].currentDisplay != VK_NULL_HANDLE &&
++          plane_props[plane_index].currentDisplay != display_props.display)
++        continue;
++
+       // Query the number of displays supported by the plane
+       display_count = 0;
+       VkResult err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index,
+@@ -172,12 +186,11 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, [[maybe_unused]
+     surface_create_info.sType = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR;
+     surface_create_info.displayMode = mode_props.displayMode;
+     surface_create_info.planeIndex = compatible_plane_index;
+-    surface_create_info.planeStackIndex = 0;
++    surface_create_info.planeStackIndex = plane_props[compatible_plane_index].currentStackIndex;
+     surface_create_info.transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+     surface_create_info.globalAlpha = 1.0f;
+     surface_create_info.alphaMode = alpha_mode;
+-    surface_create_info.imageExtent.width = display_props.physicalResolution.width;
+-    surface_create_info.imageExtent.height = display_props.physicalResolution.height;
++    surface_create_info.imageExtent = mode_props.parameters.visibleRegion;
+ 
+     VkSurfaceKHR surface;
+     if (VkResult res =
