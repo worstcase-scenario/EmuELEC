@@ -1,20 +1,12 @@
 <?xml version="1.0"?>
 <gameList>
 	<game>
-		<path>./btsetup.sh</path>
-		<name>Setup Bluetooth Audio device</name>
-		<desc>Scan and pair bluetooth audio devices (like speakers and headphones or earbuds) to EmuELEC (via pulseaudio). After the setup, you must run the "Connect Bluetooth Audio device"-script. Make sure to switch the audio device in the retroarch menu from alsa to pulseaudio in order to hear the in-game sound.</desc>
+		<path>./bt-commander.sh</path>
+		<name>BT Commander</name>
+		<desc>Scan and pair bluetooth audio devices (like speakers and headphones or earbuds) to EmuELEC via pulseaudio, pick one from the list of paired devices, reconnect the device used last, disconnect it again or remove its pairing. Connecting also switches EmulationStation and RetroArch over to pulseaudio, so both play through the device without any further setup. Standalone emulators keep using the analog or HDMI output.</desc>
 		<developer>worstcase_scenario </developer>
 		<genre>script</genre>
 		<image>./setup_images/btsetup.png</image>
-	</game>
-	<game>
-		<path>./btconnect.sh</path>
-		<name>Connect Bluetooth Audio device</name>
-		<desc>Connect last paired bluetooth audio device. Make sure to switch the audio device in retroarch menu from alsa to pulseaudio in order to hear the in-game sound.</desc>
-		<developer>worstcase_scenario </developer>
-		<genre>script</genre>
-		<image>./setup_images/btconnect.png</image>
 	</game>
 	<game>
 		<path>./create_rom_dirs.sh</path>
@@ -34,7 +26,23 @@
 		<genre>script</genre>
 		<image>./setup_images/portmaster.png</image>
 	</game>
-		<game>
+	<game>
+		<path>./eka-install.sh</path>
+		<name>EKA2L1 Commander</name>
+		<desc>Controller-driven management tool for the eka2l1 Symbian emulator on EmuELEC. Features: initial setup, firmware installation, SIS/SISX game installation with platform detection, UID launcher and gamelist.xml generation, device management, app listing and uninstallation, and a complete reset option.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/ekainstall.png</image>
+	</game>
+	<game>
+		<path>./dreamm-install.sh</path>
+		<name>DREAMM Commander</name>
+		<desc>Controller-driven management tool for the standalone DREAMM emulator on EmuELEC. Features: install games from folders or disk images, create .dreamm entries for EmulationStation and manually build .dreamm files for unrecognized games.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/dreammer.png</image>
+	</game>
+	<game>
 		<path>./macrosetup.sh</path>
 		<name>Macro Setup</name>
 		<desc>Define a trigger button on your controller that executes a macro of button presses. When you are finished recording the button input, wait three seconds. The configuration is being saved in macro_config.json</desc>
@@ -49,6 +57,22 @@
 		<developer>worstcase_scenario </developer>
 		<genre>script</genre>
 		<image>./setup_images/macrorun.png</image>
+	</game>
+	<game>
+		<path>./cmdmaker.sh</path>
+		<name>.cmd maker for MAME systems</name>
+		<desc>This script automates the creation of .cmd files for MAME ROMs in EmuELEC. What it does: - Reads MAME's listmedia.txt to detect available systems and their media types (floppy, cartridge, CD-ROM, etc.) - Lets you browse and select a MAME system (e.g., apple2gs, fmtownsux) - Choose the media type with correct extensions - Select your ROM directory - Generates .cmd files for each ROM with the proper MAME command line - Optionally updates gamelist.xml to point to the new .cmd files instead of original ROMs.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/cmdmaker.png</image>
+	</game>
+	<game>
+		<path>./optsmaker.sh</path>
+		<name>.opts maker for Tsugaru (FM Towns)</name>
+		<desc>This script lets you create and edit per-game .opts files for the Tsugaru FM Towns emulator in EmuELEC. What it does: - Scans your FM Towns ROM directories for CD/floppy images - Lets you browse and select a game - Toggle over 30 Tsugaru command-line options (gameport/controller mode, CPU fidelity, CD speed, RAM size, resolution, sound, boot key, and more) with a live preview of the resulting command line - Edit free-form options directly for anything not covered by the toggles (e.g. -APP presets) - Saves the result as a "&lt;romname&gt;.opts" file next to the ROM, automatically picked up by tsugarustart.sh on the next launch - Lets you delete an existing .opts file to reset a game back to defaults.</desc>
+		<developer>worstcase_scenario </developer>
+		<genre>script</genre>
+		<image>./setup_images/optsmaker.png</image>
 	</game>
 	<game>
 		<path>./file_manager.sh</path>

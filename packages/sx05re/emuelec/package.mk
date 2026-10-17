@@ -11,13 +11,19 @@ PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
 PKG_EXPERIMENTAL="nestopiaCV quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 fbneoSA same_cdi ikemen-go" 
-PKG_EMUS="${LIBRETRO_CORES} desmume melonds advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed ecwolf potator freej2me duckstation flycastsa fmsx-libretro jzintv mupen64plussa vita3k"
+PKG_EMUS="${LIBRETRO_CORES} desmume melonds advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed ecwolf potator freej2me duckstation flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron eka2l1 bigpemu biginstinct memu ruffle tsugaru openmsx openmsx-ld touchhle dreamm basilisk2"
+
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL}"
 
 
 # These packages are only meant for S922x, S905x2 and A311D devices as they run poorly on S905" 
 if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
 	PKG_DEPENDS_TARGET+=" ${LIBRETRO_S922X_CORES}"
+fi
+
+# Vita3K needs Vulkan
+if [ "${DEVICE}" == "Amlogic-no" ]; then
+	PKG_DEPENDS_TARGET+=" vita3k"
 fi
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then

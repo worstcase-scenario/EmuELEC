@@ -2,8 +2,8 @@
 # Copyright (C) 2019 Trond Haugland (trondah@gmail.com)
 
 PKG_NAME="mame"
-PKG_VERSION="a90e86e100f79533f257ac2b30ccefe26a76daad"
-PKG_SHA256="686ac235ebf5514271c14eaf5c2c02fc728893c75a187f8410d47279443d96de"
+PKG_VERSION="d1d5abf76fe83eeaa3adac63c251450accaaa8df"
+PKG_SHA256="ca393a867b0b47c518e7ba69de455f790266c865044a9476ecfe945edc50b044"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mame"
@@ -23,28 +23,29 @@ if [ "${ARCH}" == "arm" ]; then
 fi
 
 PKG_MAKE_OPTS_TARGET="REGENIE=1 \
-		      VERBOSE=1 \
-		      NOWERROR=1 \
-		      OPENMP=1 \
-		      CROSS_BUILD=1 \
-		      TOOLS=0 \
-		      RETRO=1 \
-		      PTR64=${PTR64} \
-		      NOASM=${NOASM} \
-		      PYTHON_EXECUTABLE=python3 \
-		      CONFIG=libretro \
-		      LIBRETRO_OS=unix \
-		      LIBRETRO_CPU=arm64 \
-		      PLATFORM=arm64 \
-		      ARCH= \
-		      TARGET=mame \
-		      SUBTARGET=mame \
-		      OPTIMIZE=fast \
-		      OSD=retro \
-		      USE_SYSTEM_LIB_EXPAT=1 \
-		      USE_SYSTEM_LIB_ZLIB=1 \
-		      USE_SYSTEM_LIB_FLAC=1 \
-		      USE_SYSTEM_LIB_SQLITE3=1"
+          VERBOSE=1 \
+          NOWERROR=1 \
+          OPENMP=1 \
+          CROSS_BUILD=1 \
+          TOOLS=0 \
+          RETRO=1 \
+          PTR64=${PTR64} \
+          NOASM=${NOASM} \
+          PYTHON_EXECUTABLE=python3 \
+          CONFIG=libretro \
+          LIBRETRO_OS=unix \
+          LIBRETRO_CPU=arm64 \
+          PLATFORM=arm64 \
+          ARCH= \
+          TARGET=mame \
+          SUBTARGET=mame \
+          OPTIMIZE=fast \
+          OSD=retro \
+          USE_BGFX=0 \
+          USE_SYSTEM_LIB_EXPAT=1 \
+          USE_SYSTEM_LIB_ZLIB=1 \
+          USE_SYSTEM_LIB_FLAC=1 \
+          USE_SYSTEM_LIB_SQLITE3=1"
 
 export ARCHOPTS="-D__aarch64__ -DASMJIT_BUILD_X86"
 

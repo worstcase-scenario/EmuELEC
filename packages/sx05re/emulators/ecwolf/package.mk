@@ -4,7 +4,7 @@
 PKG_NAME="ecwolf"
 PKG_VERSION="601d5b2a0f12b7491205d311ca462c3fcf6ada21"
 PKG_LICENSE="GPLv2"
-PKG_SITE="https://bitbucket.org/ecwolf/ecwolf"
+PKG_SITE="https://github.com/ECWolfEngine/ECWolf"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_mixer SDL2_net ecwolf:host"
 PKG_DEPENDS_HOST="SDL2:host SDL2_mixer:host SDL2_net:host"

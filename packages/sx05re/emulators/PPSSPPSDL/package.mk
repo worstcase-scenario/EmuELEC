@@ -19,6 +19,8 @@ PKG_CMAKE_OPTS_TARGET+="-DUSE_SYSTEM_FFMPEG=ON \
                         -DUSING_EGL=OFF \
                         -DUSING_GLES2=ON \
                         -DUSING_X11_VULKAN=OFF \
+                        -DUSE_WAYLAND_WSI=OFF \
+                        -DUSE_VULKAN_DISPLAY_KHR=OFF \
                         -DUSE_DISCORD=OFF"
 
 if [ ${ARCH} == "aarch64" ]; then
@@ -64,4 +66,6 @@ makeinstall_target() {
 for dir in Cheats PPSSPP_STATE SAVEDATA TEXTURES; do
 		ln -sf "/storage/roms/savestates/PPSSPPSDL/PSP/${dir}" "${INSTALL}/usr/config/ppsspp/PSP/${dir}"
 done
+    mkdir -p "${INSTALL}/usr/config/emuelec/configs"
+    ln -sf "/storage/.config/ppsspp" "${INSTALL}/usr/config/emuelec/configs/ppsspp"
 } 

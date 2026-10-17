@@ -2,8 +2,8 @@
 # Copyright (C) 2020-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="sdljoytest"
-PKG_VERSION="2daaf52122303197bfb6502a73280cfa65fe0524"
-PKG_SHA256="ff45b1677361e4fd361c1372c4804f1a8eca1dade048b4f9f32126d2cdc9dfd9"
+PKG_VERSION="49724c185e19d176cb05f08eab5f2349c4c365b7"
+PKG_SHA256="e6c321cfb33b040dc56aa1472df6f50f5c956446e765e0238b073da4e6774ab1"
 PKG_LICENSE="OSS"
 PKG_SITE="https://github.com/EmuELEC/sdljoytest"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
@@ -20,4 +20,5 @@ mkdir -p ${INSTALL}/usr/bin
 cp -rf test_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoytest
 cp -rf map_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoymap
 cp -rf gamepad_info ${INSTALL}/usr/bin/gamepad_info
+cp -rf sdl_ra_joystick_map ${INSTALL}/usr/bin/sdl_ra_joystick_map
 }
