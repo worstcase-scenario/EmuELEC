@@ -21,9 +21,9 @@ if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DE
 	PKG_DEPENDS_TARGET+=" ${LIBRETRO_S922X_CORES}"
 fi
 
-# Vita3K needs Vulkan
+# Vita3K and ARMSX2 need Vulkan
 if [ "${DEVICE}" == "Amlogic-no" ]; then
-	PKG_DEPENDS_TARGET+=" vita3k"
+	PKG_DEPENDS_TARGET+=" vita3k armsx2SA"
 fi
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then

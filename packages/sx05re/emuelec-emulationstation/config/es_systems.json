@@ -3954,6 +3954,35 @@
       ]
     },
     {
+      "name": "ps2",
+      "fullname": "Sony Playstation 2",
+      "manufacturer": "Sony",
+      "release": "2000",
+      "hardware": "console",
+      "path": "/storage/roms/ps2",
+      "platform": "ps2",
+      "theme": "ps2",
+      "command": "default",
+      "extensions": [
+        ".iso",
+        ".chd",
+        ".cso",
+        ".bin",
+        ".cue"
+      ],
+      "emulators": [
+        {
+          "name": "armsx2SA",
+          "cores": [
+            {
+              "name": "armsx2SA",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "psp",
       "fullname": "Sony Playstation Portable",
       "manufacturer": "Sony",
