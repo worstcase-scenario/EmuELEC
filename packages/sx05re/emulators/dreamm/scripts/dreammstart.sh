@@ -15,6 +15,7 @@ export SWCURSOR_MENU="${SWCURSOR_MENU:-67}"       # F10 -> F12
 
 export LIBGL_NOTEST=1
 export SDL_VIDEODRIVER=mali
+[ "${EE_DEVICE}" = "Amlogic-no" ] && export SDL_VIDEODRIVER=kmsdrm
 
 # DREAMM ROM directory
 USERPATH="/storage/roms/dreamm"

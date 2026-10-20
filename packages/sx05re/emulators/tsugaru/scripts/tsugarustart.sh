@@ -60,8 +60,11 @@ else
     echo "WARNING: no gptk config found ($GPTK)"
 fi
 
+VIDEO="mali"
+[ "${EE_DEVICE}" = "Amlogic-no" ] && VIDEO="kmsdrm"
+
 # --- run ----------------------------------------------------------------------
-SDL_VIDEODRIVER=mali "$BIN" "$BIOS" \
+SDL_VIDEODRIVER="$VIDEO" "$BIN" "$BIOS" \
     -FULLSCREEN -AUTOSCALE -CDSPEED 32 \
     -HIGHRES -MAXSNDDBLBUF -NODAMPERWIRELINE \
     -GAMEPORT0 "$GAMEPORT0" \

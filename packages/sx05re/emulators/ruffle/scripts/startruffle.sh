@@ -22,6 +22,7 @@ ln -sf "$ROM" "$SESSION/ruffle_data/movie.swf"
 # EmuELEC's SDL2 only provides the mali and offscreen video backends, and mali
 # has no hardware cursor - the preloaded shim draws one from the mouse events.
 export SDL_VIDEODRIVER=mali
+[ "${EE_DEVICE}" = "Amlogic-no" ] && export SDL_VIDEODRIVER=kmsdrm
 export SDL_AUDIODRIVER=alsa
 export LD_PRELOAD="/usr/lib/sdl_swcursor.so"
 
