@@ -20,6 +20,9 @@ RUNEMU=$(echo "${1}" | grep "^emuelecRunEmu.sh")
 init_game
 [[ -z "${RUNEMU}" ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
+# KMSDRM: ES may still hold DRM master for a moment after releasing the display
+[ "${EE_DEVICE}" = "Amlogic-no" ] && export SDL_KMSDRM_REQUIRE_DRM_MASTER=0
+
 "$@"
 
 [[ -z "${RUNEMU}" ]] && emuelec-utils end_app_video "${PLATFORM}" "${ROMNAME}"

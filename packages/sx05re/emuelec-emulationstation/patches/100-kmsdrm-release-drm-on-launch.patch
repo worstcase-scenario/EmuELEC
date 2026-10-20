@@ -1,0 +1,27 @@
+diff --git a/es-app/src/FileData.cpp b/es-app/src/FileData.cpp
+index 6edece82..04ea8f7e 100644
+--- a/es-app/src/FileData.cpp
++++ b/es-app/src/FileData.cpp
+@@ -22,6 +22,8 @@
+ #include "Gamelist.h" 
+ #include "ApiSystem.h"
+ #include <time.h>
++#include <cstring>
++#include <SDL.h>
+ #include <algorithm>
+ #include "LangParser.h"
+ #include "resources/ResourceManager.h"
+@@ -746,8 +748,11 @@ bool FileData::launchGame(Window* window, LaunchGameOptions options)
+ 
+ 	bool hideWindow = Settings::getInstance()->getBool("HideWindow");
+ #ifdef _ENABLEEMUELEC
+-	// attempts to fix screen tearing issue, we always need hideWindow to false
+-	hideWindow = false;
++	// attempts to fix screen tearing issue, we always need hideWindow to false.
++	// Under KMSDRM (Amlogic-no) ES must release /dev/dri/card0, otherwise the
++	// emulator gets no display (kmsdrm not available / VK_KHR_display: no displays).
++	const char* videoDriver = SDL_GetCurrentVideoDriver();
++	hideWindow = (videoDriver != nullptr && strcmp(videoDriver, "KMSDRM") == 0);
+ #endif
+ 	window->deinit(hideWindow);
+ 	

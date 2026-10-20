@@ -32,7 +32,7 @@ PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \
                        -DSDL_DISKAUDIO=OFF \
                        -DSDL_DUMMYAUDIO=OFF \
                        -DSDL_DUMMYVIDEO=OFF \
-                       -DSDL_WAYLAND=ON \
+                       -DSDL_WAYLAND=OFF \
                        -DSDL_COCOA=OFF \
                        -DSDL_DIRECTFB=OFF \
                        -DSDL_VIVANTE=OFF \

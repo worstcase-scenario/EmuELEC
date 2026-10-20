@@ -2,13 +2,13 @@
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="3de652c69481de5fad2178ceebb9470950b3e683"
+PKG_VERSION="7ce56b5d0be93c4f29787d96007d1863c73fb6b2"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
-#PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
-PKG_SITE="https://github.com/worstcase-scenario/emuelec-emulationstation"
+PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
+#PKG_SITE="https://github.com/worstcase-scenario/emuelec-emulationstation"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak"
 PKG_SECTION="emuelec"
@@ -155,4 +155,10 @@ post_install() {
 	ln -sf /storage/.config/emuelec/configs/locale ${INSTALL}/usr/share/locale
 	mkdir -p ${INSTALL}/usr/bin/batocera/
 	ln -sf /usr/bin/7zr ${INSTALL}/usr/bin/batocera/7zr
+}
+post_makeinstall_target() {
+  if [ "${DEVICE}" = "Amlogic-no" ]; then
+    mkdir -p ${INSTALL}/usr/lib/systemd/system/emustation.service.d
+    printf '[Service]\nEnvironment=SDL_VIDEODRIVER=kmsdrm\n' > ${INSTALL}/usr/lib/systemd/system/emustation.service.d/kmsdrm.conf
+  fi
 }
