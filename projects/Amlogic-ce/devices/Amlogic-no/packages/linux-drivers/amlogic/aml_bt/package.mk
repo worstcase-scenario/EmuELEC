@@ -52,3 +52,8 @@ makeinstall_target() {
     cp ${PKG_BUILD}/aml_bt/firmware/w1_bt_fw_*.bin ${INSTALL}/$(get_full_firmware_dir)/aml
     cp ${PKG_BUILD}/aml_bt/firmware/w2_bt_fw_*.bin ${INSTALL}/$(get_full_firmware_dir)/aml
 }
+
+post_unpack() {
+  # /etc is read-only: keep the BT address persistent across reboots
+  sed -i 's#"/etc/bluetooth/aml/#"/storage/.cache/bluetooth/aml/#' ${PKG_BUILD}/aml_bt/aml_hciattach/aml_comm.h
+}
