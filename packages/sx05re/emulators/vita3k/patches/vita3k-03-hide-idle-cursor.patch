@@ -1,0 +1,29 @@
+--- a/vita3k/interface.cpp
++++ b/vita3k/interface.cpp
+@@ -56,6 +56,7 @@
+ #include <SDL3/SDL_events.h>
+ #include <SDL3/SDL_system.h>
+ #include <SDL3/SDL_video.h>
++#include <SDL3/SDL_timer.h>
+ 
+ #include <cmath>
+ 
+@@ -934,6 +935,18 @@
+     } else
+         r3_down = false;
+ 
++    // hide the ImGui software cursor after 3 s without mouse movement or clicks
++    static float last_mx = -1.f, last_my = -1.f;
++    static Uint64 last_activity = 0;
++    float cx, cy;
++    const auto mouse_buttons = SDL_GetMouseState(&cx, &cy);
++    if (cx != last_mx || cy != last_my || mouse_buttons) {
++        last_mx = cx;
++        last_my = cy;
++        last_activity = SDL_GetTicks();
++    }
++    ImGui::GetIO().MouseDrawCursor = SDL_GetTicks() - last_activity < 3000;
++
+     return true;
+ }
+ 

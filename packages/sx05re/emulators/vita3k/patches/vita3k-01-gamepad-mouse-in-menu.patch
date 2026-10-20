@@ -1,0 +1,65 @@
+--- a/vita3k/interface.cpp
++++ b/vita3k/interface.cpp
+@@ -57,6 +57,8 @@
+ #include <SDL3/SDL_system.h>
+ #include <SDL3/SDL_video.h>
+ 
++#include <cmath>
++
+ #include <fmt/chrono.h>
+ #include <stb_image_write.h>
+ 
+@@ -885,6 +887,53 @@
+         }
+     }
+ 
++    // EmuELEC: right stick moves the mouse and R3 clicks, but only while no app
++    // is running or the running app is paused (home screen, LiveArea, menus)
++    static bool r3_down = false;
++    SDL_Gamepad *pad = nullptr;
++    {
++        std::lock_guard<std::mutex> lock(emuenv.ctrl.mutex);
++        if (!emuenv.ctrl.controllers.empty())
++            pad = emuenv.ctrl.controllers.begin()->second.controller.get();
++    }
++    const bool menu_active = emuenv.io.title_id.empty() || emuenv.kernel.is_threads_paused();
++
++    // show the ImGui menu bar while the app is paused (home screen, LiveArea),
++    // restore the show-gui setting when the app resumes
++    static bool was_paused = false;
++    const bool paused = !emuenv.io.title_id.empty() && emuenv.kernel.is_threads_paused();
++    if (paused != was_paused) {
++        was_paused = paused;
++        emuenv.display.imgui_render = paused || emuenv.cfg.show_gui;
++    }
++    if (pad && menu_active) {
++        constexpr float deadzone = 8000.f, speed = 14.f;
++        const auto axis = [&](SDL_GamepadAxis a) {
++            const float v = SDL_GetGamepadAxis(pad, a);
++            return std::fabs(v) < deadzone ? 0.f : (v - std::copysign(deadzone, v)) / (32767.f - deadzone);
++        };
++        const float dx = axis(SDL_GAMEPAD_AXIS_RIGHTX), dy = axis(SDL_GAMEPAD_AXIS_RIGHTY);
++        float mx, my;
++        SDL_GetMouseState(&mx, &my);
++        if (dx != 0.f || dy != 0.f)
++            SDL_WarpMouseInWindow(emuenv.window.get(), mx + dx * speed, my + dy * speed);
++
++        const bool r3 = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
++        if (r3 != r3_down) {
++            r3_down = r3;
++            SDL_Event e{};
++            e.type = r3 ? SDL_EVENT_MOUSE_BUTTON_DOWN : SDL_EVENT_MOUSE_BUTTON_UP;
++            e.button.windowID = SDL_GetWindowID(emuenv.window.get());
++            e.button.button = SDL_BUTTON_LEFT;
++            e.button.down = r3;
++            e.button.clicks = 1;
++            e.button.x = mx;
++            e.button.y = my;
++            SDL_PushEvent(&e);
++        }
++    } else
++        r3_down = false;
++
+     return true;
+ }
+ 

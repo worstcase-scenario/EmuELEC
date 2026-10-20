@@ -147,6 +147,12 @@ makeinstall_target() {
   sed -i -e "s/# video_filter_dir =/video_filter_dir =\/usr\/share\/video_filters/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# video_gpu_screenshot = true/video_gpu_screenshot = false/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# video_fullscreen = false/video_fullscreen = true/" ${INSTALL}/etc/retroarch.cfg
+  if [ "${DEVICE}" == "Amlogic-no" ]; then
+    sed -i -e "s/# video_driver = .*/video_driver = \"vulkan\"/" ${INSTALL}/etc/retroarch.cfg
+    sed -i -e "s/# video_context_driver =.*/video_context_driver = \"khr_display\"/" ${INSTALL}/etc/retroarch.cfg
+    sed -i -e "s/# video_fullscreen_x = 0/video_fullscreen_x = \"1920\"/" ${INSTALL}/etc/retroarch.cfg
+    sed -i -e "s/# video_fullscreen_y = 0/video_fullscreen_y = \"1080\"/" ${INSTALL}/etc/retroarch.cfg
+  fi
 
   # Audio
   sed -i -e "s/# audio_driver =/audio_driver = \"alsathread\"/" ${INSTALL}/etc/retroarch.cfg

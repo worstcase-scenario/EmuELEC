@@ -87,6 +87,5 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/armsx2start.sh ${INSTALL}/usr/bin/
   chmod +x ${INSTALL}/usr/bin/armsx2start.sh
-  mkdir -p ${INSTALL}/usr/config/emuelec/configs/armsx2
-  cp ${PKG_DIR}/config/PCSX2.ini ${INSTALL}/usr/config/emuelec/configs/armsx2/
+  cp ${PKG_DIR}/config/PCSX2.ini ${INSTALL}/usr/share/armsx2SA/
 }
