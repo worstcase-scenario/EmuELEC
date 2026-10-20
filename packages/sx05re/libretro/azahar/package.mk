@@ -21,6 +21,7 @@ pre_configure_target() {
                          -DENABLE_LTO=OFF \
                          -DCITRA_WARNINGS_AS_ERRORS=OFF \
                          -DCMAKE_BUILD_TYPE=Release"
+  [ "${DEVICE}" = "Amlogic-no" ] && PKG_CMAKE_OPTS_TARGET="${PKG_CMAKE_OPTS_TARGET/-DENABLE_VULKAN=OFF/-DENABLE_VULKAN=ON}"
 }
 
 make_target() {

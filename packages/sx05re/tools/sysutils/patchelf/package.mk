@@ -12,5 +12,5 @@ PKG_LONGDESC="A small utility to modify the dynamic linker and RPATH of ELF exec
 PKG_TOOLCHAIN="configure"
 
 pre_configure_target() {
-./bootstrap.sh
+  (cd ${PKG_BUILD} && ./bootstrap.sh)
 }

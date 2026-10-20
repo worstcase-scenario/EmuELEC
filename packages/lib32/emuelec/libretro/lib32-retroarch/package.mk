@@ -82,6 +82,7 @@ pre_configure_target() {
 # Retroarch does not like -O3 for CHD loading with cheevos
   export CFLAGS="${CFLAGS} -O3 -fno-tree-vectorize"
   export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+  [ "${DEVICE}" = "Amlogic-no" ] && export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${SYSROOT_PREFIX}/usr/lib32/pkgconfig" && export LDFLAGS="${LDFLAGS} -L${SYSROOT_PREFIX}/usr/lib32 -Wl,-rpath-link,${SYSROOT_PREFIX}/usr/lib32"
   TARGET_CONFIGURE_OPTS=""
   cd ${PKG_BUILD}
 }
