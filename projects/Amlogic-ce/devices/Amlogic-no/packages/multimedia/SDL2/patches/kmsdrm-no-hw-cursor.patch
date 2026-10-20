@@ -1,0 +1,30 @@
+diff --git a/src/video/kmsdrm/SDL_kmsdrmmouse.c b/src/video/kmsdrm/SDL_kmsdrmmouse.c
+index c589476..c8c0053 100644
+--- a/src/video/kmsdrm/SDL_kmsdrmmouse.c
++++ b/src/video/kmsdrm/SDL_kmsdrmmouse.c
+@@ -125,6 +125,11 @@ static int KMSDRM_RemoveCursorFromBO(SDL_VideoDisplay *display)
+     SDL_VideoDevice *video_device = SDL_GetVideoDevice();
+     SDL_VideoData *viddata = ((SDL_VideoData *)video_device->driverdata);
+ 
++    /* No hardware cursor (no cursor BO): nothing to hide */
++    if (!dispdata->cursor_bo) {
++        return 0;
++    }
++
+     ret = KMSDRM_drmModeSetCursor(viddata->drm_fd,
+                                   dispdata->crtc->crtc_id, 0, 0, 0);
+ 
+@@ -152,7 +157,12 @@ static int KMSDRM_DumpCursorToBO(SDL_VideoDisplay *display, SDL_Cursor *cursor)
+     int i;
+     int ret;
+ 
+-    if (!curdata || !dispdata->cursor_bo) {
++    /* No hardware cursor (no cursor BO): nothing to show */
++    if (!dispdata->cursor_bo) {
++        return 0;
++    }
++
++    if (!curdata) {
+         return SDL_SetError("Cursor or display not initialized properly.");
+     }
+ 

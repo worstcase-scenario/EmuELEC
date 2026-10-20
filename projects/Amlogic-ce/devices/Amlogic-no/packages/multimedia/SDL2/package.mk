@@ -45,6 +45,7 @@ PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \
                        -DSDL_RENDER_D3D=OFF \
                        -DSDL_X11=OFF \
                        -DSDL_OPENGLES=ON \
+					  -DSDL_OPENGL=OFF \
                        -DSDL_VULKAN=ON \
                        -DSDL_PULSEAUDIO=ON \
                        -DSDL_HIDAPI_JOYSTICK=OFF \
