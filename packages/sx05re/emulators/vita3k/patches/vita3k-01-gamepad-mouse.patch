@@ -1,5 +1,17 @@
+diff --git a/vita3k/config/include/config/config.h b/vita3k/config/include/config/config.h
+index ab30e365..81cf0716 100644
+--- a/vita3k/config/include/config/config.h
++++ b/vita3k/config/include/config/config.h
+@@ -120,6 +120,7 @@ enum ScreenshotFormat {
+     code(int, "screenshot-format", static_cast<int>(JPEG), screenshot_format)                           \
+     code(bool, "disable-motion", false, disable_motion)                                                 \
+     code(float, "controller-analog-multiplier", 1.0f, controller_analog_multiplier)                     \
++    code(float, "pad-mouse-speed", 14.0f, pad_mouse_speed)                                              \
+     code(int, "keyboard-button-select", 229, keyboard_button_select)                                    \
+     code(int, "keyboard-button-start", 40, keyboard_button_start)                                       \
+     code(int, "keyboard-button-up", 82, keyboard_button_up)                                             \
 diff --git a/vita3k/interface.cpp b/vita3k/interface.cpp
-index a22c044d..89a7a76c 100644
+index a22c044d..6ba934e2 100644
 --- a/vita3k/interface.cpp
 +++ b/vita3k/interface.cpp
 @@ -57,6 +57,11 @@
@@ -32,7 +44,7 @@ index a22c044d..89a7a76c 100644
  
      // A set to store the last pressed buttons to prevent duplicate inputs from the controller.
      std::set<uint32_t> last_buttons;
-@@ -885,6 +892,64 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
+@@ -885,6 +892,65 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
          }
      }
  
@@ -60,7 +72,8 @@ index a22c044d..89a7a76c 100644
 +    float mx, my;
 +    SDL_GetMouseState(&mx, &my);
 +    if (pad && pad_mouse) {
-+        constexpr float deadzone = 8000.f, speed = 14.f;
++        constexpr float deadzone = 8000.f;
++        const float speed = emuenv.cfg.pad_mouse_speed;
 +        const auto axis = [&](SDL_GamepadAxis a) {
 +            const float v = SDL_GetGamepadAxis(pad, a);
 +            return std::fabs(v) < deadzone ? 0.f : (v - std::copysign(deadzone, v)) / (32767.f - deadzone);
