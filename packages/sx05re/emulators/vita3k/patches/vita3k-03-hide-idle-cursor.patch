@@ -1,3 +1,5 @@
+diff --git a/vita3k/interface.cpp b/vita3k/interface.cpp
+index 89a7a76c..ce21e1b3 100644
 --- a/vita3k/interface.cpp
 +++ b/vita3k/interface.cpp
 @@ -56,6 +56,7 @@
@@ -6,11 +8,11 @@
  #include <SDL3/SDL_video.h>
 +#include <SDL3/SDL_timer.h>
  
+ #include <atomic>
  #include <cmath>
- 
-@@ -934,6 +935,18 @@
-     } else
-         r3_down = false;
+@@ -950,6 +951,18 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
+         emuenv.display.imgui_render = gui_on || emuenv.cfg.show_gui;
+     }
  
 +    // hide the ImGui software cursor after 3 s without mouse movement or clicks
 +    static float last_mx = -1.f, last_my = -1.f;

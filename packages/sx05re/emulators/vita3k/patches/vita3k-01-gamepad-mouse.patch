@@ -1,0 +1,124 @@
+diff --git a/vita3k/interface.cpp b/vita3k/interface.cpp
+index a22c044d..89a7a76c 100644
+--- a/vita3k/interface.cpp
++++ b/vita3k/interface.cpp
+@@ -57,6 +57,11 @@
+ #include <SDL3/SDL_system.h>
+ #include <SDL3/SDL_video.h>
+ 
++#include <atomic>
++#include <cmath>
++
++extern std::atomic<bool> pad_touch; // touch.cpp
++
+ #include <fmt/chrono.h>
+ #include <stb_image_write.h>
+ 
+@@ -604,6 +609,8 @@ static void take_screenshot(EmuEnvState &emuenv) {
+     }
+ }
+ 
++static bool pad_mouse = true; // EmuELEC gamepad mouse active
++
+ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
+     const auto allow_switch_state = !emuenv.io.title_id.empty() && !gui.vita_area.app_close && !gui.vita_area.home_screen && !gui.vita_area.user_management && !gui.configuration_menu.custom_settings_dialog && !gui.configuration_menu.settings_dialog && !gui.controls_menu.controls_dialog && gui::get_sys_apps_state(gui);
+ 
+@@ -692,7 +699,7 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
+     };
+ 
+     // Check if any settings or controls dialog is open and drop inputs on this case
+-    emuenv.drop_inputs = gui.configuration_menu.settings_dialog || gui.configuration_menu.custom_settings_dialog || gui.controls_menu.controllers_dialog || gui.controls_menu.controls_dialog;
++    emuenv.drop_inputs = pad_mouse || gui.configuration_menu.settings_dialog || gui.configuration_menu.custom_settings_dialog || gui.controls_menu.controllers_dialog || gui.controls_menu.controls_dialog;
+ 
+     // A set to store the last pressed buttons to prevent duplicate inputs from the controller.
+     std::set<uint32_t> last_buttons;
+@@ -885,6 +892,64 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
+         }
+     }
+ 
++    // EmuELEC gamepad mouse: R3 toggles it anytime (on by default in menus, off
++    // in-game), right stick moves, X (south) clicks / touches. While active, all
++    // other pad input is dropped. In-game, the menu bar shows at the top edge.
++    static bool r3_down = false, click_down = false, was_menu = true;
++    SDL_Gamepad *pad = nullptr;
++    {
++        std::lock_guard<std::mutex> lock(emuenv.ctrl.mutex);
++        if (!emuenv.ctrl.controllers.empty())
++            pad = emuenv.ctrl.controllers.begin()->second.controller.get();
++    }
++    const bool menu_active = emuenv.io.title_id.empty() || emuenv.kernel.is_threads_paused();
++    if (menu_active != was_menu) {
++        was_menu = menu_active;
++        pad_mouse = menu_active;
++    }
++    if (pad) {
++        const bool r3 = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
++        if (r3 && !r3_down)
++            pad_mouse = !pad_mouse;
++        r3_down = r3;
++    }
++    float mx, my;
++    SDL_GetMouseState(&mx, &my);
++    if (pad && pad_mouse) {
++        constexpr float deadzone = 8000.f, speed = 14.f;
++        const auto axis = [&](SDL_GamepadAxis a) {
++            const float v = SDL_GetGamepadAxis(pad, a);
++            return std::fabs(v) < deadzone ? 0.f : (v - std::copysign(deadzone, v)) / (32767.f - deadzone);
++        };
++        const float dx = axis(SDL_GAMEPAD_AXIS_RIGHTX), dy = axis(SDL_GAMEPAD_AXIS_RIGHTY);
++        if (dx != 0.f || dy != 0.f)
++            SDL_WarpMouseInWindow(emuenv.window.get(), mx + dx * speed, my + dy * speed);
++
++        const bool click = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_SOUTH);
++        if (click != click_down) {
++            click_down = click;
++            pad_touch = click && !menu_active;
++            SDL_Event e{};
++            e.type = click ? SDL_EVENT_MOUSE_BUTTON_DOWN : SDL_EVENT_MOUSE_BUTTON_UP;
++            e.button.windowID = SDL_GetWindowID(emuenv.window.get());
++            e.button.button = SDL_BUTTON_LEFT;
++            e.button.down = click;
++            e.button.clicks = 1;
++            e.button.x = mx;
++            e.button.y = my;
++            SDL_PushEvent(&e);
++        }
++    } else
++        click_down = pad_touch = false;
++
++    // ImGui (menu bar) while paused, in-game also while the pad mouse is at the top edge
++    static bool was_gui = false;
++    const bool gui_on = !emuenv.io.title_id.empty() && (emuenv.kernel.is_threads_paused() || (pad_mouse && (my < 40.f || ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId))));
++    if (gui_on != was_gui) {
++        was_gui = gui_on;
++        emuenv.display.imgui_render = gui_on || emuenv.cfg.show_gui;
++    }
++
+     return true;
+ }
+ 
+diff --git a/vita3k/touch/src/touch.cpp b/vita3k/touch/src/touch.cpp
+index f9ae5d12..d18d3423 100644
+--- a/vita3k/touch/src/touch.cpp
++++ b/vita3k/touch/src/touch.cpp
+@@ -25,8 +25,11 @@
+ 
+ #include <SDL3/SDL_events.h>
+ 
++#include <atomic>
+ #include <cstring>
+ 
++std::atomic<bool> pad_touch{ false }; // EmuELEC: gamepad X as front touch
++
+ // are the touch events about the front or back touchscreen
+ static SceTouchPortType touchscreen_port = SCE_TOUCH_PORT_FRONT;
+ 
+@@ -134,6 +137,8 @@ void touch_vsync_update(const EmuEnvState &emuenv) {
+     } else {
+         SceFVector2 touch_pos_window = { 0, 0 };
+         uint32_t buttons = SDL_GetMouseState(&touch_pos_window.x, &touch_pos_window.y);
++        if (pad_touch)
++            buttons |= SDL_BUTTON_LMASK;
+ 
+         for (int port = 0; port < 2; port++) {
+             // do it for both the front and the back touchscreen
