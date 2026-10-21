@@ -1,0 +1,71 @@
+diff --git a/src/glx/hardext.c b/src/glx/hardext.c
+index ca36d83..63e1a90 100644
+--- a/src/glx/hardext.c
++++ b/src/glx/hardext.c
+@@ -10,6 +10,12 @@
+ #endif
+ #include "glx_gbm.h"
+ 
++#ifndef ANDROID
++#include <dlfcn.h>
++#include <fcntl.h>
++#include <unistd.h>
++#endif
++
+ #ifndef EGL_PLATFORM_GBM_KHR
+ #define EGL_PLATFORM_GBM_KHR                     0x31D7
+ #endif
+@@ -200,6 +206,38 @@ void GetHardwareExtensions(int notest)
+         eglDisplay = egl_eglGetDisplay(EGL_DEFAULT_DISPLAY);
+ 
+     egl_eglBindAPI(EGL_OPENGL_ES_API);
++#ifndef ANDROID
++    // No default display (e.g. Mali on KMS): test on a GBM device of the render
++    // node, so the DRM master stays free for the application
++    int test_fd = -1;
++    void *test_gbm = NULL, *gbm_lib = NULL;
++    if (!globals4es.usegbm && egl_eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
++        egl_eglTerminate(eglDisplay);
++        LOAD_EGL_EXT(eglGetPlatformDisplay);
++        gbm_lib = dlopen("libgbm.so.1", RTLD_LAZY);
++        void *(*gbm_create)(int) = gbm_lib ? (void *(*)(int))dlsym(gbm_lib, "gbm_create_device") : NULL;
++        // render node first, card0 only briefly for the test (closed again below)
++        const char *nodes[] = { "/dev/dri/renderD128", "/dev/dri/card0" };
++        for (int i = 0; i < 2 && gbm_create && !test_gbm; i++) {
++            if ((test_fd = open(nodes[i], O_RDWR | O_CLOEXEC)) < 0)
++                continue;
++            if ((test_gbm = gbm_create(test_fd))) {
++                eglDisplay = egl_eglGetPlatformDisplay ? egl_eglGetPlatformDisplay(EGL_PLATFORM_GBM_KHR, test_gbm, NULL)
++                                                       : egl_eglGetDisplay((EGLNativeDisplayType)test_gbm);
++                if (egl_eglInitialize(eglDisplay, NULL, NULL) == EGL_TRUE) {
++                    SHUT_LOGD("Hardware test on GBM device %s\n", nodes[i]);
++                    break;
++                }
++                void (*gbm_destroy)(void *) = (void (*)(void *))dlsym(gbm_lib, "gbm_device_destroy");
++                if (gbm_destroy)
++                    gbm_destroy(test_gbm);
++                test_gbm = NULL;
++            }
++            close(test_fd);
++            test_fd = -1;
++        }
++    }
++#endif
+     if (egl_eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
+         LOGE("Error while gathering supported extension (eglInitialize: %s), default to none\n", PrintEGLError(0));
+         egl_eglTerminate(eglDisplay);
+@@ -459,5 +497,14 @@ void GetHardwareExtensions(int notest)
+     egl_eglDestroyContext(eglDisplay, eglContext);
+ 
+     egl_eglTerminate(eglDisplay);
++#ifndef ANDROID
++    if (test_gbm) {
++        void (*gbm_destroy)(void *) = (void (*)(void *))dlsym(gbm_lib, "gbm_device_destroy");
++        if (gbm_destroy)
++            gbm_destroy(test_gbm);
++    }
++    if (test_fd >= 0)
++        close(test_fd);
++#endif
+ #endif
+ }
