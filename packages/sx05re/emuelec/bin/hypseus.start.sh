@@ -9,11 +9,6 @@ name=${name%.*}
 config="/storage/.config/emuelec/configs/hypseus"
 configfile="${config}/hypinput.ini"
 
-# hypseus core (SDL_OpenAudioDevice) and Singe (Mix_OpenAudio) both open
-# the audio device since 2.11.4 - raw hw:0,0 only allows one client,
-# so use dmix for software mixing.
-export AUDIODEV="plug:dmix"
-
 if [[ ! -f "${config}/ee_updated" ]]; then
     cp "/usr/config/emuelec/configs/hypseus/hypinput_gamepad.ini" "${configfile}"
 fi
@@ -27,6 +22,14 @@ fi
 sed -i 's|AXIS_TRIGGER_RIGHT|BUTTON_X AXIS_TRIGGER_RIGHT|' ${configfile}
 
 cd "${config}"
+
+# Match the window to the current display mode, otherwise -fullscreen
+# requests a 640x480 mode switch that the HDMI driver may reject.
+res=""
+vsize=$(cat /sys/class/graphics/fb0/virtual_size 2>/dev/null)
+if [[ -n "${vsize}" ]]; then
+    res="-x ${vsize%,*} -y $(( ${vsize#*,} / 2 ))"
+fi
 
 # -useoverlaysb is only valid for lair/ace/tq since hypseus 2.12,
 # any other game type will hard-fail on this argument
@@ -46,11 +49,11 @@ elif [[ -f "${dir}/${name}.png" ]]; then
 fi
 
 if [[ -f "${dir}/${name}.zip" ]]; then
-    hypseus singe vldp -gamepad -manymouse -framefile "${dir}/${name}.txt" -zlua "${dir}/${name}.zip" -fullscreen ${bezel} ${params}
+    hypseus singe vldp -gamepad -manymouse -framefile "${dir}/${name}.txt" -zlua "${dir}/${name}.zip" -fullscreen ${res} ${bezel} ${params}
 elif [[ -f "${dir}/${name}.singe" ]]; then
-    hypseus singe vldp -gamepad -manymouse -framefile "${dir}/${name}.txt" -script "${dir}/${name}.singe" -fullscreen ${bezel} ${params}
+    hypseus singe vldp -gamepad -manymouse -framefile "${dir}/${name}.txt" -script "${dir}/${name}.singe" -fullscreen ${res} ${bezel} ${params}
 else
-    hypseus "${name}" vldp -gamepad -manymouse -framefile "${dir}/${name}.txt" -fullscreen ${sboverlay} ${params}
+    hypseus "${name}" vldp -gamepad -manymouse -framefile "${dir}/${name}.txt" -fullscreen ${res} ${sboverlay} ${params}
 fi
 
 ret=$?
