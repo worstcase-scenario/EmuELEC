@@ -33,9 +33,15 @@ fi
 
 duckstationcheevos.sh
 
+# Mali output has alpha < 1 -> make osd0 opaque (2 = None), restore after
+modetest -M meson -w 31:"pixel blend mode":2 >/dev/null 2>&1
 
 if [[ "${1}" == *"duckstation_gui.pbp"* ]]; then
     duckstation-nogui -fullscreen
 else
     duckstation-nogui -fullscreen -settings "${CONFIG_DIR}/settings.ini" -- "${1}" > /dev/null 2>&1
 fi
+RC=$?
+
+modetest -M meson -w 31:"pixel blend mode":0 >/dev/null 2>&1
+exit $RC
