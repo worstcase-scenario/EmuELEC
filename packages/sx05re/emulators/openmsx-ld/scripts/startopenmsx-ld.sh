@@ -50,6 +50,8 @@ sleep 0.3
 
 /usr/bin/openmsx-ld \
   -command "${INIT_CMD}" \
+  -command "set autorunlaserdisc off" \
+  -command 'after time 3 {type "1"}; after time 6 {type "color 0\rcls\rkeyoff\rcallld\r"}' \
   -machine Pioneer_PX-7 \
   -laserdisc "${ROM}"
 
