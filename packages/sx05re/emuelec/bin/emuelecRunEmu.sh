@@ -256,6 +256,7 @@ case ${PLATFORM} in
                 ;;
         "amiga"|"amigacd32")
                 if [ "${EMU}" = "AMIBERRY-LITE" ] || [ "${EMU}" = "AMIBERRY" ]; then
+            set_kill_keys "${EMU,,}"
             RUNTHIS='${TBASH} amiberry.start "${ROMNAME}" "${EMU}"'
                 fi
                 ;;
