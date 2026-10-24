@@ -204,8 +204,9 @@ if [[ "${CVER}" != "${NVER}" ]]; then
 fi
 
 # SM2-Emu: games.xml must match the installed core version
-if [ -d /usr/share/sm2-emu ] && [ ! -e /storage/roms/bios/sm2-emu ]; then
-    ln -s /usr/share/sm2-emu /storage/roms/bios/sm2-emu
+if [ -f /usr/share/sm2-emu/games.xml ] && ! cmp -s /usr/share/sm2-emu/games.xml /storage/roms/bios/sm2-emu/games.xml; then
+    mkdir -p /storage/roms/bios/sm2-emu
+    cp /usr/share/sm2-emu/games.xml /storage/roms/bios/sm2-emu/
 fi
 
 (
