@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="armsx2SA"
-PKG_VERSION="091a8b3e1bce77352549a2b862f2c21770a515e2"
+PKG_VERSION="bed5204ace14a5d7494db9b6bef7b1e42f87cd72"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/ARMSX2/ARMSX2"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
@@ -51,13 +51,26 @@ set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN ${TOOLCHAIN})
 set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN ${TOOLCHAIN})
 EOF
   # clang rejects GCC's -mabi=lp64 (the aarch64 default anyway) and big.LITTLE -mtune syntax
-  CFLAGS="${CFLAGS//-mabi=lp64/}"; CFLAGS="${CFLAGS//cortex-a73.cortex-a53/cortex-a55}"
-  CXXFLAGS="${CXXFLAGS//-mabi=lp64/}"; CXXFLAGS="${CXXFLAGS//cortex-a73.cortex-a53/cortex-a55}"
-  # Amlogic-no is Cortex-A55 (ARMv8.2): enable LSE atomics, which the toolchain's -march=armv8-a leaves out
-  CFLAGS="${CFLAGS//-march=armv8-a/-march=armv8.2-a}"
-  CXXFLAGS="${CXXFLAGS//-march=armv8-a/-march=armv8.2-a}"
+  CFLAGS="${CFLAGS//-mabi=lp64/}"
+  CXXFLAGS="${CXXFLAGS//-mabi=lp64/}"
+
+  # Tune for Cortex-A73 (priority target); tuning only affects scheduling, so A55 still runs fine
+  CFLAGS="$(echo "${CFLAGS}" | sed 's/-mtune=[^ ]*//g') -mtune=cortex-a73"
+  CXXFLAGS="$(echo "${CXXFLAGS}" | sed 's/-mtune=[^ ]*//g') -mtune=cortex-a73"
+
+  # Baseline must stay ARMv8.0 (A73/A53 have no LSE). If the toolchain gave no -march, set one,
+  # because the project's CMake would otherwise add -march=armv8.1-a (LSE -> SIGILL on A73).
+  case "${CXXFLAGS}" in
+    *-march=*) ;;
+    *) CFLAGS="${CFLAGS} -march=armv8-a+crc"; CXXFLAGS="${CXXFLAGS} -march=armv8-a+crc" ;;
+  esac
+
+  # Outline atomics: helpers pick LSE at runtime (A55+) or LL/SC (A73/A53), so one binary runs on both
+  CFLAGS="${CFLAGS} -moutline-atomics"
+  CXXFLAGS="${CXXFLAGS} -moutline-atomics"
 
   PKG_CMAKE_OPTS_TARGET="-DCMAKE_TOOLCHAIN_FILE=${PKG_BUILD}/clang.cmake \
+                         -DCMAKE_BUILD_TYPE=Release \
                          -DCMAKE_PREFIX_PATH=${DEPS} \
                          -DENABLE_QT_UI=OFF \
                          -DENABLE_SDL_FRONTEND=ON \
@@ -84,8 +97,11 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/armsx2SA
   cp bin/armsx2-sdl ${INSTALL}/usr/share/armsx2SA/
   cp -r bin/resources ${INSTALL}/usr/share/armsx2SA/
+
   mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/armsx2start.sh ${INSTALL}/usr/bin/
   chmod +x ${INSTALL}/usr/bin/armsx2start.sh
-  cp ${PKG_DIR}/config/PCSX2.ini ${INSTALL}/usr/share/armsx2SA/
+
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/armsx2
+  cp ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/armsx2/
 }

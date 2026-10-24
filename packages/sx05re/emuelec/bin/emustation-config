@@ -203,6 +203,11 @@ if [[ "${CVER}" != "${NVER}" ]]; then
 
 fi
 
+# SM2-Emu: games.xml must match the installed core version
+if [ -d /usr/share/sm2-emu ] && [ ! -e /storage/roms/bios/sm2-emu ]; then
+    ln -s /usr/share/sm2-emu /storage/roms/bios/sm2-emu
+fi
+
 (
 # Pico-8 check
 # If there is a new version copy the files

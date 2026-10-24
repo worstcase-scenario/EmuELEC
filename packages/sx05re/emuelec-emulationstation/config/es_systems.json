@@ -3622,6 +3622,32 @@
       ]
     },
     {
+      "name": "model2",
+      "fullname": "Sega Model 2",
+      "manufacturer": "Sega",
+      "release": "1993",
+      "hardware": "arcade",
+      "path": "/storage/roms/model2",
+      "platform": "model2",
+      "theme": "model2",
+      "command": "default",
+      "extensions": [
+        ".7z",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "sm2",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "sc-3000",
       "fullname": "Sega SC-3000",
       "manufacturer": "Sega",
