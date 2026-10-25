@@ -3644,6 +3644,14 @@
               "default": true
             }
           ]
+        },
+        {
+          "name": "sm2emuSA",
+          "cores": [
+            {
+              "name": "sm2emuSA"
+            }
+          ]
         }
       ]
     },

@@ -23,7 +23,7 @@ fi
 
 # Vita3K and ARMSX2 need Vulkan
 if [ "${DEVICE}" == "Amlogic-no" ]; then
-	PKG_DEPENDS_TARGET+=" vita3k armsx2SA"
+	PKG_DEPENDS_TARGET+=" vita3k armsx2SA sm2emuSA"
 fi
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then

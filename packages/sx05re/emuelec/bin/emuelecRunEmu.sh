@@ -296,6 +296,12 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} armsx2start.sh "${ROMNAME}"'
 				fi
 				;;
+		"model2")
+				if [ "${EMU}" = "sm2emuSA" ]; then
+				set_kill_keys "sm2-emu"
+				RUNTHIS='${TBASH} sm2emustart.sh "${ROMNAME}"'
+				fi
+				;;
 		"psvita")
 				set_kill_keys "Vita3K"
 				RUNTHIS='${TBASH} vita3kstart.sh "${ROMNAME}"'
