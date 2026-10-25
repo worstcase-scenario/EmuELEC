@@ -7,14 +7,14 @@ PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/Zer0one/sm2-emu-libretro"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain shaderc:host vulkan-headers"
-PKG_LONGDESC="SM2-Emu Libretro - Sega Model 2 emulator (Vulkan)"
+PKG_LONGDESC="SM2-Emu Libretro - Sega Model 2 emulator (Vulkan, OpenGL ES)"
 PKG_TOOLCHAIN="cmake"
 GET_HANDLER_SUPPORT="git"
 
 PKG_CMAKE_OPTS_TARGET="-DSM2_BUILD_STANDALONE=OFF \
                        -DSM2_BUILD_LIBRETRO=ON \
                        -DSM2_LIBRETRO_VULKAN=ON \
-                       -DSM2_LIBRETRO_OPENGL=OFF \
+                       -DSM2_LIBRETRO_OPENGL=ON \
                        -DSM2_BUILD_TESTS=OFF \
                        -DSM2_GLSLC=${TOOLCHAIN}/bin/glslc \
                        -DCMAKE_BUILD_TYPE=Release"
