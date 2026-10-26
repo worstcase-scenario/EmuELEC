@@ -1,0 +1,55 @@
+diff --git a/shaders/polygon.vert b/shaders/polygon.vert
+index 3cad525..3a850df 100644
+--- a/shaders/polygon.vert
++++ b/shaders/polygon.vert
+@@ -80,7 +80,10 @@ void main()
+ #ifdef SM2_TARGET_GL
+     order = order * 2.0 - 1.0;
+ #endif
+-    gl_Position = vec4(ndc * w, order * w, w);
++    // Mali-G31 (r44p0): with a per-polygon depth plus the dynamic
++    // depth/stencil state below, the stencil fill mask no longer decides which
++    // polygon owns a pixel (ground textures over the cars). Keep z constant.
++    gl_Position = vec4(ndc * w, 0.0, w);
+     vTexel      = inTexel;
+     vPolygon    = inPolygon;
+ }
+diff --git a/src/render/vk/poly3d_pass.cpp b/src/render/vk/poly3d_pass.cpp
+index 5e954da..d291741 100644
+--- a/src/render/vk/poly3d_pass.cpp
++++ b/src/render/vk/poly3d_pass.cpp
+@@ -685,10 +685,10 @@ bool Poly3DPass::create_polygon_pipeline(const u32*  fragment_code,
+ 
+     // Depth and stencil testing are dynamic so the blended translucency pass
+     // can swap the fill mask for a depth test without pipelines of its own.
++    // EmuELEC/Mali: static depth/stencil state (stencil fill mask on, depth
++    // off); blended translucency is unavailable.
+     const VkDynamicState dynamic_states[] = {
+-        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
+-        VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,  VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
+-        VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,   VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE};
++        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR};
+     VkPipelineDynamicStateCreateInfo dynamic_state{};
+     dynamic_state.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+     dynamic_state.dynamicStateCount = static_cast<u32>(std::size(dynamic_states));
+@@ -1178,11 +1178,6 @@ void Poly3DPass::draw_polygons()
+ 
+         // Everything but the blended pass keeps the fill mask; with blending
+         // on it also records its draw order as depth for that pass to test.
+-        const VkBool32 ordered = blending() ? VK_TRUE : VK_FALSE;
+-        device_functions().cmd_set_depth_test_enable(cmd, ordered);
+-        device_functions().cmd_set_depth_write_enable(cmd, ordered);
+-        device_functions().cmd_set_depth_compare_op(cmd, VK_COMPARE_OP_ALWAYS);
+-        device_functions().cmd_set_stencil_test_enable(cmd, VK_TRUE);
+ 
+         VkPipeline bound   = VK_NULL_HANDLE;
+         bool       blended = false;
+@@ -1190,7 +1185,7 @@ void Poly3DPass::draw_polygons()
+             if (batch.vertex_count == 0) {
+                 continue;
+             }
+-            if (batch.blended && !blended) {
++            if (false && batch.blended && !blended) {
+                 blended = true;
+                 device_functions().cmd_set_depth_test_enable(cmd, VK_TRUE);
+                 device_functions().cmd_set_depth_write_enable(cmd, VK_FALSE);

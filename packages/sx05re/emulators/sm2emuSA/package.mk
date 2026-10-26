@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="sm2emuSA"
-PKG_VERSION="be696244fc425f55e3c0cab9bc43c03d44b621aa"
+PKG_VERSION="4c290c558afaaa85956fa2364971c92cfde707cf"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL-3.0-or-later"
-PKG_SITE="https://github.com/Zer0one/sm2-emu-libretro"
+PKG_SITE="https://github.com/dmanlfc/sm2-emu"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain shaderc:host vulkan-headers vulkan-loader ${OPENGLES} libdrm alsa-lib systemd fontconfig"
 PKG_LONGDESC="SM2-Emu - Sega Model 2 emulator (standalone, SDL3, Vulkan and OpenGL ES)"
@@ -30,5 +30,8 @@ pre_configure_target() {
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/sm2emuSA ${INSTALL}/usr/bin
   cp bin/sm2-emu ${PKG_BUILD}/data/games.xml ${INSTALL}/usr/share/sm2emuSA
+  cp -r ${PKG_BUILD}/data/lang ${INSTALL}/usr/share/sm2emuSA
   cp ${PKG_DIR}/scripts/sm2emustart.sh ${INSTALL}/usr/bin
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/sm2emuSA/gptk
+  cp ${PKG_DIR}/config/sm2emuSA.gptk ${INSTALL}/usr/config/emuelec/configs/sm2emuSA/gptk
 }
