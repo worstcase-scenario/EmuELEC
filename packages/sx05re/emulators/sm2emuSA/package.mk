@@ -32,6 +32,4 @@ makeinstall_target() {
   cp bin/sm2-emu ${PKG_BUILD}/data/games.xml ${INSTALL}/usr/share/sm2emuSA
   cp -r ${PKG_BUILD}/data/lang ${INSTALL}/usr/share/sm2emuSA
   cp ${PKG_DIR}/scripts/sm2emustart.sh ${INSTALL}/usr/bin
-  mkdir -p ${INSTALL}/usr/config/emuelec/configs/sm2emuSA/gptk
-  cp ${PKG_DIR}/config/sm2emuSA.gptk ${INSTALL}/usr/config/emuelec/configs/sm2emuSA/gptk
 }

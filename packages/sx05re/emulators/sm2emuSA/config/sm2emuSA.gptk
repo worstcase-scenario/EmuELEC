@@ -1,7 +1,0 @@
-# SM2-Emu gptokeyb configuration
-#
-# Only buttons listed here are sent as keys; the emulator reads the gamepad itself.
-# Game-specific file: /storage/.config/emuelec/configs/sm2emuSA/gptk/<romname>.gptk
-#
-# L3 opens/closes the menu (F1); the menu is then navigated with the gamepad
-l3 = f1
