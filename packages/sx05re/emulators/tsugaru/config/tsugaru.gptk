@@ -13,14 +13,20 @@
 # tsugarustart.sh will automatically load the respective gptk file when starting the game.
 #
 # If no game-specific gptk file is found, the emulator will always use "tsugaru.gptk" in /emuelec/configs/tsugaru/gptk
+#
+# Default pad mode is -GAMEPORT0 KEY: Z/X = A/B, A = RUN, S = SELECT, arrow keys = D-Pad.
+#
+# Other pad modes (e.g. the 6-button Capcom pad for Street Fighter II) can be set per game with the
+# OPTS Maker in the setup menu: choose the game and set "Gameport 0", e.g. to PHYS0CAPCOM.
+# The controller is then read directly by Tsugaru. The .opts file is saved next to the ROM.
 #----------------------------------------------------------------------------------------------------------------------------
-back = a
-start = s
+back = s
+start = a
 select =
 a = z
 b = x
-x =
-y =
+x = enter
+y = esc
 
 l1 = mouse_left
 l2 =
