@@ -9,52 +9,47 @@
 CONFIG_DIR="/storage/.config/scummvm"
 ROM_DIR="/storage/roms/scummvm"
 TMP_DIR="/tmp/scummvm"
-GAME="$(echo $2 | sed 's=.*/==;s/\.[^.]*$//')" 
+GAME="$(basename "$2")"
+GAME="${GAME%.*}"
 RATMPCONF="/storage/.config/retroarch/retroarch.cfg"
 
 create_svm(){
-    mkdir -p ${TMP_DIR}
-    scummvm --list-targets | tail -n +3 | cut -d " " -f 1 | while read line; do
-    id=($line);
-    [[ -f "${TMP_DIR}/${id}.scummvm" ]] && rm "${TMP_DIR}/${id}.scummvm"
-    touch "${TMP_DIR}/${id}.scummvm"
-    SVMPATH=$(cat ${CONFIG_DIR}/scummvm.ini | sed -n "/\[$id\]/,/\[/p" | grep path= | sed "s|path=||")
-    echo "-p \"${SVMPATH}\" ${id}" > "${TMP_DIR}/${id}.scummvm"
-    echo "${id} has been added with the path $SVMPATH to ${ROM_DIR}/${id}.scummvm"
-	done 
-    cp -rf ${TMP_DIR}/*.scummvm ${ROM_DIR}
-    rm -rf ${TMP_DIR}
+    mkdir -p "${TMP_DIR}"
+    SDL_VIDEODRIVER=offscreen scummvm --list-targets | tail -n +3 | cut -d " " -f 1 | while read id; do
+    [[ -z "${id}" ]] && continue
+    echo "${id}" > "${TMP_DIR}/${id}.scummvm"
+    echo "${id} has been added to ${ROM_DIR}/${id}.scummvm"
+	done
+    ls "${TMP_DIR}"/*.scummvm >/dev/null 2>&1 && cp -f "${TMP_DIR}"/*.scummvm "${ROM_DIR}"
+    rm -rf "${TMP_DIR}"
 	}
 
 if [ ! -d "${CONFIG_DIR}" ]; then
- mkdir -p ${CONFIG_DIR}
- cp -rf /usr/config/scummvm/* $CONFIG_DIR/
+ mkdir -p "${CONFIG_DIR}"
+ cp -rf /usr/config/scummvm/* "${CONFIG_DIR}/"
 fi
 
-if [ ! -d "${ROM_DIR}" ]; then
- mkdir -p ${ROM_DIR}
-fi
+mkdir -p "${ROM_DIR}"
 
-if [ -d "/storage/.config/scummvm/extra" ]; then 
-EXTRA="--extrapath=/storage/.config/scummvm/extra"
+if [ -d "${CONFIG_DIR}/extra" ]; then
+EXTRA="--extrapath=${CONFIG_DIR}/extra"
 fi
 
 case $1 in
-"sa") 
+"sa")
 set_audio "fluidsynth"
-scummvm --fullscreen --joystick=0 $EXTRA "${GAME}"
+scummvm --fullscreen --joystick=0 ${EXTRA} "${GAME}"
 set_audio "pulseaudio"
 ;;
-"libretro") 
-retroarch -L /tmp/cores/scummvm_libretro.so --config ${RATMPCONF} "${GAME}"
+"libretro")
+retroarch -L /tmp/cores/scummvm_libretro.so --config "${RATMPCONF}" "$2"
 ;;
-"add") 
-scummvm --add --path="/storage/roms/scummvm" --recursive
+"add")
+SDL_VIDEODRIVER=offscreen scummvm --add --path="${ROM_DIR}" --recursive
 mkdir -p /storage/roms/bios/
-cp ${CONFIG_DIR}/scummvm.ini /storage/roms/bios/scummvm.ini
+cp "${CONFIG_DIR}/scummvm.ini" /storage/roms/bios/scummvm.ini
 ;;
-"create") 
+"create")
 create_svm
 ;;
-
-esac 
+esac

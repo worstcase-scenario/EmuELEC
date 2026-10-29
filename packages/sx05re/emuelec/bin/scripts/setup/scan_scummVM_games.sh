@@ -11,6 +11,8 @@ function restart_confirm() {
 	[[ $? == 21 ]] && systemctl restart emustation || exit 0; 
 }
 
-sdlterm --title "Adding Scummvm games, please be patient..." --run "/usr/bin/scummvm.start" --runargs "add"
-sdlterm --title "Creating Scummvm game files, please be patient..." --run  "/usr/bin/scummvm.start " --runargs "create"
+echo "Adding Scummvm games, please be patient..."
+/usr/bin/scummvm.start add
+echo "Creating Scummvm game files, please be patient..."
+/usr/bin/scummvm.start create
 restart_confirm
