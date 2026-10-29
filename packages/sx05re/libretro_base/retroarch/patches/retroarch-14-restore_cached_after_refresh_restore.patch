@@ -1,0 +1,14 @@
+--- a/retroarch.c	2026-10-29 18:04:26.372037034 +0100
++++ b/retroarch.c	2026-10-29 18:04:26.378036952 +0100
+@@ -8629,7 +8629,11 @@
+    /* Restore original refresh rate, if it has been changed
+     * automatically in SET_SYSTEM_AV_INFO */
+    if (video_st->video_refresh_rate_original)
++   {
+       video_display_server_restore_refresh_rate();
++      /* Refresh rate restore may reinit drivers and switch the video driver again */
++      video_driver_restore_cached(settings);
++   }
+ 
+    if (!(runloop_st->flags & RUNLOOP_FLAG_SHUTDOWN_INITIATED))
+    {
