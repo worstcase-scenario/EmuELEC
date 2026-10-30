@@ -59,7 +59,7 @@
     KERNEL_NAME="kernel.img"
     
   # CODENAME BASED KERNEL
-  OS_CODENAME="Piers"
+  OS_CODENAME="WORSTCASE_SCENARIO"
 
 ################################################################################
 # setup build defaults
