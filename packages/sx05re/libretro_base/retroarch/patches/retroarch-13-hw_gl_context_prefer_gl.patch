@@ -1,0 +1,14 @@
+--- a/gfx/video_driver.c
++++ b/gfx/video_driver.c
+@@ -2304,9 +2304,9 @@
+                   configuration_set_string(settings,
+                         settings->arrays.video_driver,
+-                        "glcore");
++                        "gl");
+                   RARCH_LOG("[Video] \"%s\" saved as cached driver.\n",
+                         settings->arrays.video_driver);
+-                  video_st->current_video = &video_gl3;
++                  video_st->current_video = &video_gl2;
+                   return true;
+                }
+ #else
