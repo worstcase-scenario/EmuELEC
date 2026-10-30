@@ -1,0 +1,24 @@
+--- a/GLideN64/src/Graphics/Context.h	2026-10-29 17:47:44.281079039 +0100
++++ b/GLideN64/src/Graphics/Context.h	2026-10-29 17:47:44.288079017 +0100
+@@ -56,6 +56,8 @@
+ 
+ 		void destroy();
+ 
++		bool isInitialized() const { return m_impl != nullptr; }
++
+ 		void setClampMode(ClampMode _mode);
+ 
+ 		ClampMode getClampMode();
+--- a/GLideN64/src/DisplayWindow.cpp	2026-10-29 17:47:44.283079033 +0100
++++ b/GLideN64/src/DisplayWindow.cpp	2026-10-29 17:47:44.290079011 +0100
+@@ -93,6 +93,10 @@
+ {
+ 	if (!m_bToggleFullscreen)
+ 		return false;
++	if (!gfxContext.isInitialized()) {
++		m_bToggleFullscreen = false;
++		return false;
++	}
+ 	m_drawer._destroyData();
+ 	_changeWindow();
+ 	updateScale();
