@@ -10,7 +10,7 @@ if [[ -e "/storage/roms/bios/pico-8" ]]; then
     mkdir -p /emuelec/bin/pico-8
     cp -rf /storage/roms/bios/pico-8/* /emuelec/bin/pico-8
     rm -rf /storage/roms/bios/pico-8
-    chmod +x /emuelec/bin/pico-8/pico8_dyn
+    chmod +x /emuelec/bin/pico-8/pico8_dyn /emuelec/bin/pico-8/pico8_64 2>/dev/null
     touch /storage/roms/pico-8/splore.p8
     
 fi 
@@ -35,11 +35,14 @@ fi
 #LD_LIBRARY_PATH="/emuelec/lib32:${LD_LIBRARY_PATH}"
 
 CART="${1}"
+# Amlogic-no has no 32-bit EGL, use the native aarch64 binary
+PICO8="/emuelec/bin/pico-8/pico8_dyn"
+[[ "${EE_DEVICE}" == "Amlogic-no" && -x "/emuelec/bin/pico-8/pico8_64" ]] && PICO8="/emuelec/bin/pico-8/pico8_64"
 
 if [[ "${CART}" == *"/splore"* ]]; then
-    /emuelec/bin/pico-8/pico8_dyn -splore -home /emuelec/configs/pico-8 -root_path /storage/roms/pico-8 -joystick 0
+    "${PICO8}" -splore -home /emuelec/configs/pico-8 -root_path /storage/roms/pico-8 -joystick 0
 else
-    /emuelec/bin/pico-8/pico8_dyn -run "${CART}" -home /emuelec/configs/pico-8 -root_path /storage/roms/pico-8 -joystick 0
+    "${PICO8}" -run "${CART}" -home /emuelec/configs/pico-8 -root_path /storage/roms/pico-8 -joystick 0
 fi
 
 if [[ "${EE_DEVICE}" == "Amlogic-old" ]]; then
