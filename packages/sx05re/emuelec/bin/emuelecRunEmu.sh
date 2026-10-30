@@ -391,7 +391,7 @@ case ${PLATFORM} in
                 fi
                 ;;
         "pico8")
-                set_kill_keys "pico8_dyn"
+                [[ "${EE_DEVICE}" == "Amlogic-no" && -x /emuelec/bin/pico-8/pico8_64 ]] && set_kill_keys "pico8_64" || set_kill_keys "pico8_dyn"
                 RUNTHIS='${TBASH} pico8.sh "${ROMNAME}"'
                         ;;
         "prboom")
