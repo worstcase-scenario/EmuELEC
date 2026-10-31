@@ -495,6 +495,12 @@ if [ -s "/emuelec/configs/RA_ARGS" ]; then
 	RA_ARGS = $(cat "/emuelec/configs/RA_ARGS")
 fi
 
+# 32-bit RetroArch has no Vulkan on Amlogic-no, force gl
+if [[ "${BIT32}" == "yes" && "${EE_DEVICE}" == "Amlogic-no" ]]; then
+	echo 'video_driver = "gl"' > /tmp/ra32.cfg
+	RA_ARGS+=" --appendconfig /tmp/ra32.cfg"
+fi
+
 RUNTHIS='${RABIN} ${VERBOSE} ${RA_ARGS} -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 
