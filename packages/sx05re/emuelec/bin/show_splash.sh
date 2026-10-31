@@ -270,9 +270,9 @@ write_log "DURATION is ${DURATION}"
      if [ "${have_mpv}" -eq 1 ]; then
        ${PLAYER_IMG} --fullscreen --no-keepaspect --vf="${MPV_VF}" --image-display-duration=${DURATION} "${SPLASH}" >/dev/null 2>&1
      else
-       # Under KMSDRM the frame vanishes when ffplay exits, so keep it running for DURATION
+       # Under KMSDRM the frame vanishes when ffplay exits; keep it running for DURATION plus ~2 s startup, KILL if it hangs
        [ "${DURATION%.*}" -gt 0 ] 2>/dev/null || DURATION=1
-       timeout -s KILL ${DURATION} ffplay -fs -loglevel error -nostats -loop 0 -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
+       timeout -k 3 $(( ${DURATION%.*} + 2 )) ffplay -fs -loglevel error -nostats -loop 0 -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
      fi
    elif is_video "${SPLASH}"; then
    
