@@ -272,7 +272,7 @@ write_log "DURATION is ${DURATION}"
      else
        # Under KMSDRM the frame vanishes when ffplay exits, so keep it running for DURATION
        [ "${DURATION%.*}" -gt 0 ] 2>/dev/null || DURATION=1
-       timeout ${DURATION} ffplay -fs -loglevel error -nostats -loop 0 -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
+       timeout -s KILL ${DURATION} ffplay -fs -loglevel error -nostats -loop 0 -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
      fi
    elif is_video "${SPLASH}"; then
    
