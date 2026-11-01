@@ -2,8 +2,8 @@
 # Copyright (C) 2025-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="mt76"
-PKG_VERSION="558ea6fb54b636998ea2fcfc8fcad75f0ddc218d"
-PKG_SHA256="bfaaee047ccacf9639f66a9bd4dd837cbd31f1c8bcf78e784831625b16d39eb7"
+PKG_VERSION="2be28adcfda096d96d8109f4d4807fa697e3cf77"
+PKG_SHA256="b8f1fa0927c769d7c5379bfbd0fb5904e4f9f1c8efcf05ee8ab5a226f2e026c1"
 PKG_ARCH="arm aarch64"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/CoreELEC/mt76"
@@ -40,6 +40,8 @@ make_target() {
 }
 
 makeinstall_target() {
+  mkdir -p ${INSTALL}/$(get_full_firmware_dir)/mediatek
+  cp ${PKG_BUILD}/firmware/TxPwrLimit*.dat ${INSTALL}/$(get_full_firmware_dir)/mediatek/
   mkdir -p ${INSTALL}/$(get_full_module_dir)/${PKG_NAME}
   find ${PKG_BUILD}/ -name \*.ko -not -path '*/\.*' -exec cp {} ${INSTALL}/$(get_full_module_dir)/${PKG_NAME} \;
 }
