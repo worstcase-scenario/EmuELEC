@@ -97,6 +97,9 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/armsx2SA
   cp bin/armsx2-sdl ${INSTALL}/usr/share/armsx2SA/
   cp -r bin/resources ${INSTALL}/usr/share/armsx2SA/
+  # patches.zip (game fixes) is not in the source tree, upstream CI fetches it
+  curl -fL -o ${INSTALL}/usr/share/armsx2SA/resources/patches.zip \
+    https://github.com/isztldav/pcsx2_patches/releases/latest/download/patches.zip
 
   mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/armsx2start.sh ${INSTALL}/usr/bin/

@@ -3,7 +3,7 @@
 . /etc/profile
 
 CONF_DIR="/storage/.config/ARMSX2"
-DEF_DIR="/usr/share/armsx2SA"
+DEF_DIR="/usr/config/emuelec/configs/armsx2"
 BIOS_DIR="/storage/roms/bios/pcsx2/bios"
 
 # BIOS is shared with the libretro core
@@ -13,13 +13,13 @@ mkdir -p "${CONF_DIR}/inis" "${BIOS_DIR}"
 # Full default INI on first start (a partial one would be reset by the emulator)
 [ -f "${CONF_DIR}/inis/PCSX2.ini" ] || cp "${DEF_DIR}/PCSX2.ini" "${CONF_DIR}/inis/"
 
-# Find a PS2 BIOS (4 MB) in BIOS_DIR, else link one from /storage/roms/bios
+# Find a PS2 BIOS (4 MB) in BIOS_DIR, else copy one from /storage/roms/bios
 is_ps2bios() { [ -f "$1" ] && [ "$(wc -c < "$1")" -eq 4194304 ]; }
 BIOS=""
 for f in "${BIOS_DIR}"/*; do is_ps2bios "$f" && { BIOS="$f"; break; }; done
 if [ -z "${BIOS}" ]; then
     for f in /storage/roms/bios/*; do
-        is_ps2bios "$f" && { ln -sf "$f" "${BIOS_DIR}/"; BIOS="$f"; break; }
+        is_ps2bios "$f" && { cp "$f" "${BIOS_DIR}/"; BIOS="$f"; break; }
     done
 fi
 

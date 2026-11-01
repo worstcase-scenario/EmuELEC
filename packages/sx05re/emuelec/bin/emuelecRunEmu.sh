@@ -181,12 +181,14 @@ case ${PLATFORM} in
                 ;;
 		"atarijaguar")
                 if [ "${EMU}" = "bigpemu" ]; then
+				VIRTUAL_KB=$(emuelec-utils set_gptokeyb "bigpemu" "${GPTOKEYB}")
 				set_kill_keys "bigpemu"
 				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
                 fi
                 ;;	
 		"atarijaguarcd")
                 if [ "${EMU}" = "bigpemu" ]; then
+				VIRTUAL_KB=$(emuelec-utils set_gptokeyb "bigpemu" "${GPTOKEYB}")
 				set_kill_keys "bigpemu"
 				RUNTHIS='${TBASH} bigpemustart.sh "${ROMNAME}"'
                 fi
@@ -336,7 +338,7 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} startopenmsx-ld.sh "${ROMNAME}"'
 				fi
 				;;
-        "daphne"|"Actionmax")
+        "daphne"|"actionmax"|"videodriver"|"captpower")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
             RUNTHIS='${TBASH} hypseus.start.sh "${ROMNAME}"'
