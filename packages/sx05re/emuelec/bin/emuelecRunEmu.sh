@@ -472,6 +472,15 @@ case ${PLATFORM} in
 elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
 
+# mame_auto: generate .cmd from listmedia.txt/mame_map.txt and start it with mame_libretro
+if [ "${EMU}" = "mame_auto_libretro" ]; then
+	EMU="mame_libretro"
+	if MAMECMD=$(python3 /usr/bin/mame_autostart.py "${ROMNAME}" 2>> ${EMUELECLOG}); then
+		ROMNAME="${MAMECMD}"
+		RA_ARGS+=" --appendconfig /tmp/mame_auto/append.cfg"
+	fi
+fi
+
 case ${PLATFORM} in
 "arcade"|"mame"|"fmtmarty"|"pgm2"|"apple2")
 	if [ "$EMU" = "mame_libretro" ]; then

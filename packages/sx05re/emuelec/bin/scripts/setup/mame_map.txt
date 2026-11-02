@@ -1,0 +1,15 @@
+# rom folder=MAME system [options] [-media]   (* = file name is the machine)
+# Overridden by /storage/roms/mame_map.txt
+apple2=apple2gs -gameio joy
+apple2gs=apple2gs -gameio joy
+archimedes=aa310 -bios 311
+bbc=bbcb
+camplynx=lynx96k
+microvision=microvsn
+oricatmos=orica
+sordm5=m5
+spectravideo=svi328
+supercharger=a2600 -cart scharger -cass
+ti99=ti99_4a -ioport peb -ioport:peb:slot2 32kmem
+tvgames=*
+tvgc=elektor
