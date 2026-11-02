@@ -22,6 +22,11 @@ fi
 [ -d "${CONFIG_DIR}/images" ] || cp -r "${DEFAULT_DIR}/images" "${CONFIG_DIR}/" 2>/dev/null || :
 mkdir -p "${CONFIG_DIR}"/{disks,tapes}
 
+# Oric-ROMs werden nicht mitgeliefert: fehlende aus dem BIOS-Ordner verlinken
+for r in basic10 basic11b microdis jasmin bd500 8dos2; do
+  [ -e "${CONFIG_DIR}/roms/${r}.rom" ] || [ ! -f "/storage/roms/bios/${r}.rom" ] || ln -s "/storage/roms/bios/${r}.rom" "${CONFIG_DIR}/roms/${r}.rom"
+done
+
 if [[ -n "${ROM}" && "${ROM}" != /* ]]; then
   ROM="$(pwd)/${ROM}"
 fi
