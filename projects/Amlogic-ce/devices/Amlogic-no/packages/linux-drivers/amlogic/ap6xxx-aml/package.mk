@@ -2,7 +2,7 @@
 # Copyright (C) 2022-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="ap6xxx-aml"
-PKG_VERSION="b2541e247f88e84873041cad9d2605aa4202d352"
+PKG_VERSION="f0130717e2cdfc0d339a10e5b430ef15ee6b0c29"
 PKG_SHA256=""
 PKG_ARCH="arm aarch64"
 PKG_LICENSE="GPL"
@@ -13,13 +13,6 @@ PKG_NEED_UNPACK="${LINUX_DEPENDS}"
 PKG_LONGDESC="ap6xxx: Linux drivers for AP6xxx WLAN chips used in some devices based on Amlogic SoCs"
 PKG_IS_KERNEL_PKG="yes"
 PKG_TOOLCHAIN="manual"
-
-pre_make_target() {
-
-  find ${PKG_BUILD} -name "*.cmd" -delete 2>/dev/null || true
-  find ${PKG_BUILD} -name ".*.cmd" -delete 2>/dev/null || true
-}
-
 
 make_target() {
   echo
