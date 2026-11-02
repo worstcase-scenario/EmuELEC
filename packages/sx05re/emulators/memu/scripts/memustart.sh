@@ -31,7 +31,7 @@ GPTK_CONFIG="${CONFIGDIR}/gptk/memu.gptk"
 gptokeyb 1 memu -c "$GPTK_CONFIG" &
 sleep 1
 
-echo 1 > /sys/class/graphics/fb0/osd_clear 2>/dev/null
+echo 0,0 > /sys/class/graphics/fb0/pan
 fbfix 0
 
 cd "${CONFIGDIR}"
