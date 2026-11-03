@@ -91,6 +91,25 @@ sub = emu.add_machine_frame_notifier(function()
 end)
 """
 
+# Aquarius: RETURN at the start screen, CLOAD the _BAS loader, RUN, then insert the _A data tape for the loader's CLOAD*
+# (every CLOAD waits for RETURN after "Press <PLAY>"; the tape has no motor control)
+AQUARIUS_LUA = """local nk, cas, img, data = manager.machine.natkeyboard, nil, nil, %s
+for _, c in pairs(manager.machine.cassettes) do cas = c end
+for _, i in pairs(manager.machine.images) do if i.device.tag:find("cass") then img = i end end
+local steps, n, t = {"\\n", "wait", "CLOAD\\n", "\\n", "play", "end", "RUN\\n"}, 1, 0
+if data ~= "" then for _, x in ipairs({"load", "wait", "wait", "\\n", "play"}) do steps[#steps + 1] = x end end
+sub = emu.add_machine_frame_notifier(function()
+    t = t + 1
+    local s = steps[n]
+    if not s then sub:unsubscribe() return end
+    if s == "play" then cas:play(); n = n + 1; t = 0
+    elseif s == "load" then img:load(data); n = n + 1; t = 0
+    elseif s == "end" then if t > 60 and cas.position >= cas.length - 0.1 then n = n + 1; t = 0 end
+    elseif s == "wait" then if t >= 180 then n = n + 1; t = 0 end
+    elseif t >= 60 and nk.empty then nk:post(s); n = n + 1; t = 0 end
+end)
+"""
+
 # Types text slowly, char by char (disk autoboot)
 TYPE_LUA = """local nk, buf, gap = manager.machine.natkeyboard, %s, 0
 sub = emu.add_machine_frame_notifier(function()
@@ -230,6 +249,13 @@ def build_cmd(rom, systems):
             lua = os.path.join(TMPDIR, "autoboot.lua")
             with open(lua, 'w') as f: f.write(TYPE_LUA % json.dumps(cmd))
             extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
+    if system.startswith('aquarius') and brief == 'cass' and '-autoboot' not in extra:
+        top = [f for f in files if os.path.dirname(f) == os.path.join(TMPDIR, "_media")] or files
+        top.sort(key=lambda f: not f.upper().endswith('_BAS.CAQ'))   # loader first, data tape second
+        files = top[:1]
+        lua = os.path.join(TMPDIR, "autoboot.lua")
+        with open(lua, 'w') as f: f.write(AQUARIUS_LUA % json.dumps(top[1] if len(top) > 1 else ""))
+        extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
     slots = [b for b, x in systems[system] if b.rstrip('0123456789') == brief.rstrip('0123456789') and set(x) == set(exts)]
     args = ' '.join(f'-{b} "{f}"' for b, f in zip(slots or [brief], files))
     if brief == 'cass' and '-autoboot' not in extra:
