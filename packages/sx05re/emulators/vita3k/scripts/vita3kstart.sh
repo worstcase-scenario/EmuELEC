@@ -19,8 +19,9 @@ unset XDG_DATA_DIRS
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME"
 # new config: skip the setup wizard (not usable with a gamepad); face buttons
 # rotated like the ARMSX2 config, EmuELEC's SDL mapping swaps South/East, West/North
+# memory-mapping disabled:
 CFG="$XDG_CONFIG_HOME/Vita3K/config.yml"
-[ -f "$CFG" ] || { mkdir -p "${CFG%/*}"; printf 'initial-setup: true\ncontroller-binds: [1, 0, 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]\n' > "$CFG"; }
+[ -f "$CFG" ] || { mkdir -p "${CFG%/*}"; printf 'initial-setup: true\ncontroller-binds: [1, 0, 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]\nmemory-mapping: disabled\n' > "$CFG"; }
 # install firmware on first start; second try covers the upstream first-run crash
 PUP="/storage/roms/bios/PSVUPDAT.PUP"
 FW="$XDG_DATA_HOME/Vita3K/Vita3K/vs0"
