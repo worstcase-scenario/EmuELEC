@@ -162,7 +162,7 @@ def build_cmd(rom, systems):
     folder = os.path.basename(os.path.dirname(rom))
     system, _, extra = load_map().get(folder, folder).partition(' ')
     if system == '*':                                          # file name is the machine (e.g. tvgames)
-        return f'{os.path.splitext(os.path.basename(rom))[0]} -rp "{ROMPATH};{os.path.dirname(rom)}" -skip_gameinfo {extra}'.strip()
+        return f'{os.path.splitext(os.path.basename(rom))[0]} -rp "{ROMPATH};{os.path.dirname(rom)}" -skip_gameinfo -noreadconfig {extra}'.strip()
     ext = os.path.splitext(rom)[1].lower()
     if system not in systems:
         sys.exit(f"{system} is not a MAME system in listmedia.txt")
@@ -171,7 +171,7 @@ def build_cmd(rom, systems):
     if forced:                                                 # map ends with "-<media>": put file there
         extra = extra[:extra.rindex(forced)].strip()
         if forced == '-cass': extra = f'{extra} {cass_lua(b"", system)}'
-        return f'{system} -rp "{ROMPATH}" -skip_gameinfo {extra} {forced} "{rom}"'
+        return f'{system} -rp "{ROMPATH}" -skip_gameinfo -noreadconfig {extra} {forced} "{rom}"'
     if ext == ".zip":
         z = zipfile.ZipFile(rom)
         names = [n for n in z.namelist() if not n.endswith('/')]
@@ -186,11 +186,11 @@ def build_cmd(rom, systems):
         if not hits: continue
         hits.sort(key=lambda n: not BOOT.search(os.path.basename(n)))
         if brief == 'cass': head = z.read(hits[0])
-        if len(hits) == 1 and not brief.startswith('flop'):   # neutral name, avoids softlist match
+        if len(hits) == 1 and not brief.startswith(('flop', 'cass')):   # neutral name, avoids softlist match
             files = [os.path.join(TMPDIR, "_media.zip")]
             if os.path.lexists(files[0]): os.remove(files[0])
             os.symlink(rom, files[0])
-        else:                                                  # floppies/multiple files: extract, boot disk first
+        else:                                                  # floppies/tapes/multiple files: extract, boot disk first
             out = os.path.join(TMPDIR, "_media")
             shutil.rmtree(out, ignore_errors=True)
             files = [z.extract(n, out) for n in hits]
@@ -213,7 +213,7 @@ def build_cmd(rom, systems):
     args = ' '.join(f'-{b} "{f}"' for b, f in zip(slots or [brief], files))
     if brief == 'cass' and '-autoboot' not in extra:
         extra = f'{extra} {cass_lua(head, system)}'.strip()
-    return f'{system} -rp "{ROMPATH}" -skip_gameinfo {extra} {args}'.replace('  ', ' ')
+    return f'{system} -rp "{ROMPATH}" -skip_gameinfo -noreadconfig {extra} {args}'.replace('  ', ' ')
 
 if __name__ == "__main__":
     if len(sys.argv) != 2 or not LISTMEDIA:

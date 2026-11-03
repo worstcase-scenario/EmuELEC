@@ -5,6 +5,7 @@ apple2gs=apple2gs -gameio joy
 archimedes=aa310 -bios 311
 bbc=bbcb
 camplynx=lynx96k
+coco=coco2b
 microvision=microvsn
 oricatmos=orica
 sordm5=m5
