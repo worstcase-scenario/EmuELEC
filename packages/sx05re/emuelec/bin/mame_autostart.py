@@ -32,9 +32,10 @@ def load_map():
     with open(MAPFILE) as f:
         return dict(l.strip().split('=', 1) for l in f if '=' in l and not l.startswith('#'))
 
-# Tape: types pre (slowly, char by char), starts the tape, waits until it stops (or ~end, or the end of the signal), types post
+# Tape: types pre (slowly, char by char), starts the tape, waits until it stops (or ~end, or the end of the signal),
+# inserts and plays the next tape if given, types post
 LUA = """local nk, cas, state, last, still, buf, gap = manager.machine.natkeyboard, nil, 0, -1, 0, %s, 0
-local post, stop = %s, %s
+local post, stop, nxt = %s, %s, %s
 for _, c in pairs(manager.machine.cassettes) do cas = c end
 local function typing()
     if buf == "" then return false end
@@ -50,7 +51,10 @@ sub = emu.add_machine_frame_notifier(function()
         still = (p == last and p > 0) and still + 1 or 0; last = p
         if still >= 30 or p >= cas.length - 1 or (stop > 0 and p >= stop) then state = 2; still = 0 end
     elseif state == 2 then still = still + 1
-        if still == 120 then buf = post; state = 3 end
+        if still == 120 and nxt ~= "" then
+            for _, i in pairs(manager.machine.images) do if i.device.tag:find("cass") then i:load(nxt) end end
+            nxt = ""; state = 0; last = -1; still = 0
+        elseif still == 120 then buf = post; state = 3 end
     else sub:unsubscribe() end
 end)
 """
@@ -110,6 +114,25 @@ sub = emu.add_machine_frame_notifier(function()
 end)
 """
 
+# Steps of {frames to wait, text to type slowly}; {NAME} presses the input field NAME (e.g. {RETURN}), {PLAY} starts the tape
+SEQ_LUA = """local nk, steps, n, t, buf, hold, f = manager.machine.natkeyboard, %s, 1, 0, "", nil, {}
+for _, p in pairs(manager.machine.ioport.ports) do for k, x in pairs(p.fields) do f[k] = x end end
+sub = emu.add_machine_frame_notifier(function()
+    t = t + 1
+    if hold then if t >= 10 then hold:clear_value(); hold = nil; t = 0 end
+    elseif buf ~= "" then
+        if t >= 15 and nk.empty then
+            local name = buf:match("^{(.-)}")
+            if name == "PLAY" then for _, c in pairs(manager.machine.cassettes) do c:play() end; buf = buf:sub(7)
+            elseif name then hold = f[name]; hold:set_value(1); buf = buf:sub(#name + 3)
+            else nk:post(buf:sub(1, 1)); buf = buf:sub(2) end
+            t = 0
+        end
+    elseif not steps[n] then sub:unsubscribe()
+    elseif t >= steps[n][1] then buf = steps[n][2]; n = n + 1; t = 0 end
+end)
+"""
+
 # Types text slowly, char by char (disk autoboot)
 TYPE_LUA = """local nk, buf, gap = manager.machine.natkeyboard, %s, 0
 sub = emu.add_machine_frame_notifier(function()
@@ -136,6 +159,12 @@ def atom_start(dsk):
 def tape_autoboot(data, system=''):
     """Input before/after loading, from the tape header: Acorn UEF (Electron/BBC), Oric, FM-7, Colour Genie, MS-BASIC (D3), Lynx, CoCo/MC-10"""
     if data[:2] == b'\x1f\x8b': data = gzip.decompress(data)
+    if system.startswith('mz700'):                             # monitor: L loads and starts machine code
+        return "L\n", ""
+    if system.startswith('mz800'):                             # boot menu: C loads and starts from cassette
+        return "C", ""
+    if system.startswith('mz80k'):                             # monitor SP-1002: LOAD loads and starts machine code
+        return "LOAD\n", ""
     if system.startswith(('hec2hr', 'hec2mdhrx', 'hec2mx')):   # Hector HRX/MX menu: 5 = Hector 1 mode, 1 = cassette, then play
         return "51", ""
     if data[:9] == b'UEF File!' and system.startswith(('electron', 'bbc')):
@@ -179,12 +208,12 @@ def mc10_first_end(data):
         if typ == 0xff: return round(t + 1, 1)
         last, off = typ, k + 5 + ln
 
-def cass_lua(head, system=''):
+def cass_lua(head, system='', nxt=''):
     """Lua autoboot for tapes; without a recognized command only the tape is started"""
     ab = tape_autoboot(head or b'', system) or ("", "")
     lua = os.path.join(TMPDIR, "autoboot.lua")
     stop = mc10_first_end(head) if system.startswith(('alice', 'mc10')) else 0   # type post in the silence after the first file
-    with open(lua, 'w') as f: f.write(LUA % (json.dumps(ab[0]), json.dumps(ab[1]), stop))
+    with open(lua, 'w') as f: f.write(LUA % (json.dumps(ab[0]), json.dumps(ab[1]), stop, json.dumps(nxt)))
     return f'-autoboot_delay 5 -autoboot_script {lua}'
 
 def resolve_cmd(cmd):
@@ -226,7 +255,8 @@ def build_cmd(rom, systems):
         if not hits: continue
         hits.sort(key=lambda n: not BOOT.search(os.path.basename(n)))
         if brief == 'cass': head = z.read(hits[0])
-        if len(hits) == 1 and not brief.startswith(('flop', 'cass')):   # neutral name, avoids softlist match
+        p6 = system.startswith('pc6001') and brief == 'dump'    # PC-6001 tapes: snapshot device, needs a real file
+        if len(hits) == 1 and not brief.startswith(('flop', 'cass')) and not p6:   # neutral name, avoids softlist match
             files = [os.path.join(TMPDIR, "_media.zip")]
             if os.path.lexists(files[0]): os.remove(files[0])
             os.symlink(rom, files[0])
@@ -256,10 +286,21 @@ def build_cmd(rom, systems):
         lua = os.path.join(TMPDIR, "autoboot.lua")
         with open(lua, 'w') as f: f.write(AQUARIUS_LUA % json.dumps(top[1] if len(top) > 1 else ""))
         extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
+    if system.startswith('pc6001') and brief == 'dump' and '-autoboot' not in extra:   # answer "How Many Pages?", CLOAD, RUN after ~600 baud
+        page = re.search(r'Page (\d)', os.path.basename(rom))
+        wait = int(os.path.getsize(files[0]) / 60 * 60) + 600
+        lua = os.path.join(TMPDIR, "autoboot.lua")
+        with open(lua, 'w') as f: f.write(SEQ_LUA % ('{{60, "%s{RETURN}"}, {300, "cload{RETURN}"}, {%d, "run{RETURN}"}}' % (page.group(1) if page else "", wait)))
+        extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
     slots = [b for b, x in systems[system] if b.rstrip('0123456789') == brief.rstrip('0123456789') and set(x) == set(exts)]
     args = ' '.join(f'-{b} "{f}"' for b, f in zip(slots or [brief], files))
+    if system.startswith('mz2000') and brief == 'cass' and '-autoboot' not in extra:
+        lua = os.path.join(TMPDIR, "autoboot.lua")                 # IPL: C boots from cassette
+        with open(lua, 'w') as f: f.write(SEQ_LUA % '{{1, "C"}, {180, "{PLAY}"}}')   # press PLAY once "Make ready CMT" shows
+        extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
     if brief == 'cass' and '-autoboot' not in extra:
-        extra = f'{extra} {cass_lua(head, system)}'.strip()
+        nxt = files[0].replace('(Loader)', '(Program)')               # two-part tapes: loader, then program
+        extra = f'{extra} {cass_lua(head, system, nxt if nxt != files[0] and os.path.exists(nxt) else "")}'.strip()
     return f'{system} -rp "{ROMPATH}" -skip_gameinfo -noreadconfig {extra} {args}'.replace('  ', ' ')
 
 if __name__ == "__main__":

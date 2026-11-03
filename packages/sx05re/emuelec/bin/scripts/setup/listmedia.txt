@@ -1,3 +1,5 @@
+SYSTEM           MEDIA NAME       (brief)    IMAGE FILE EXTENSIONS SUPPORTED
+---------------- --------------------------- -------------------------------
 005              (none)
 005a             (none)
 100in1rg         (none)
@@ -623,6 +625,7 @@ abpw4            printout         (prin)     .prn
 abscam           (none)
 abunai           (none)
 aburner          (none)
+aburner131       (none)
 aburner2         (none)
 aburner2g        (none)
 abv105           (none)
@@ -704,9 +707,9 @@ ace1000          floppydisk1      (flop1)    .mfi  .dfi  .d13  .dsk  .do   .po  
 ace1000          floppydisk2      (flop2)    .mfi  .dfi  .d13  .dsk  .do   .po   .edd  .woz  .nib  
 ace1000          cassette         (cass)     .wav  .flac .aif  .aiff 
 ace2200          cassette         (cass)     .wav  .flac .aif  .aiff 
+ace2200          printout         (prin)     .prn  
 ace2200          floppydisk1      (flop1)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
 ace2200          floppydisk2      (flop2)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
-ace2200          printout         (prin)     .prn  
 ace500           printout         (prin)     .prn  
 ace500           floppydisk1      (flop1)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
 ace500           floppydisk2      (flop2)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
@@ -771,7 +774,7 @@ actfancr         (none)
 actfancr1        (none)
 actfancr2        (none)
 actfancrj        (none)
-action           (none)
+actionf2         (none)
 actionhw         (none)
 acw443           cassette         (cass)     .wav  .flac .aif  .aiff .csw  .uef  
 acw443           printout         (prin)     .prn  
@@ -1188,6 +1191,7 @@ akamj            (none)
 akazukin         (none)
 aking            (none)
 akiss            (none)
+akissa           (none)
 akkaarrh         (none)
 akkanvdr         (none)
 akumajou         (none)
@@ -1322,6 +1326,7 @@ alpham2p         memcard          (memc)     .neo
 alphamis         (none)
 alphaone         (none)
 alphaonea        (none)
+alphar           (none)
 alphatan         printout         (prin)     .prn  
 alphatan         cassette         (cass)     .wav  .flac .aif  .aiff 
 alphatp1         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
@@ -1424,6 +1429,7 @@ am_mg3ga         (none)
 am_mg4sk         (none)
 am_mg4v          (none)
 am_mg5hu         (none)
+amarillo         (none)
 amatelas         (none)
 amazon           (none)
 amazonh          (none)
@@ -1503,6 +1509,7 @@ ampkr2b1         (none)
 ampkr2b2         (none)
 ampkr2b3         (none)
 ampkr2b4         (none)
+ampkr2b5         (none)
 ampkr2jsp        (none)
 ampkr2jspa       (none)
 ampkr2jspb       (none)
@@ -1978,6 +1985,7 @@ arena            (none)
 arenaa           (none)
 arenaf           (none)
 arenag           (none)
+arenau           (none)
 arescue          (none)
 arescuej         (none)
 arescueu         (none)
@@ -2440,25 +2448,25 @@ atleta           (none)
 atm              snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 atm              quickload        (quik)     .raw  .scr  
 atm              cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-atm              floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atm              floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atm              floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atm              floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+atm              floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atm              floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atm              floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atm              floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 atm18mcc         (none)
 atmtb2           snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 atmtb2           quickload        (quik)     .raw  .scr  
 atmtb2           cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-atmtb2           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atmtb2           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atmtb2           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atmtb2           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+atmtb2           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atmtb2           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atmtb2           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atmtb2           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 atmtb2plus       snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 atmtb2plus       quickload        (quik)     .raw  .scr  
 atmtb2plus       cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-atmtb2plus       floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atmtb2plus       floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atmtb2plus       floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-atmtb2plus       floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+atmtb2plus       floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atmtb2plus       floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atmtb2plus       floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+atmtb2plus       floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 atom             cassette         (cass)     .wav  .flac .aif  .aiff .tap  .csw  .uef  
 atom             printout         (prin)     .prn  
 atom             quickload        (quik)     .atm  
@@ -2517,6 +2525,32 @@ atturbo          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 atturbo          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 atvtrack         (none)
 atvtracka        (none)
+atw_avbp         (none)
+atw_barb         (none)
+atw_batm         (none)
+atw_dp           (none)
+atw_enc          (none)
+atw_fz           (none)
+atw_fz2          (none)
+atw_gaby         (none)
+atw_hpot         (none)
+atw_jwld         (none)
+atw_lilo         (none)
+atw_lol          (none)
+atw_lola         (none)
+atw_mine         (none)
+atw_mv           (none)
+atw_mva          (none)
+atw_paw          (none)
+atw_pepa         (none)
+atw_pok          (none)
+atw_rbh          (none)
+atw_ryan         (none)
+atw_soni         (none)
+atw_spdm         (none)
+atw_swst         (none)
+atw_swy          (none)
+atw_toys         (none)
 atworld          (none)
 atworldd1        (none)
 atworlde1        (none)
@@ -2580,6 +2614,7 @@ avalonsa         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso 
 avalonsc         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 avalonse         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 avalonsf         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+avanti           (none)
 avcc             (none)
 avefenix         (none)
 avefenixl        (none)
@@ -2798,6 +2833,7 @@ ballboy          (none)
 ballboy3p        (none)
 ballbros         (none)
 ballch           (none)
+ballermn         (none)
 ballpom          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 balonfgt         (none)
 baluba           (none)
@@ -3283,10 +3319,10 @@ bestria          (none)
 bestzx           snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 bestzx           quickload        (quik)     .raw  .scr  
 bestzx           cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-bestzx           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-bestzx           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-bestzx           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-bestzx           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+bestzx           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+bestzx           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+bestzx           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+bestzx           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 beta             cartridge        (cart)     .bin  .rom  
 betafrce         (none)
 betzoo           (none)
@@ -3303,6 +3339,7 @@ bg_dbells        (none)
 bg_ddb           (none)
 bg_max           (none)
 bg_maxa          (none)
+bgaction         (none)
 bgalaxn          (none)
 bgaregga         (none)
 bgareggabl       (none)
@@ -3343,11 +3380,15 @@ bigbena          (none)
 bigbenb          (none)
 bigbenq          (none)
 bigblue          (none)
-bigboard         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-bigboard         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+bigboard         floppydisk1      (flop1)    .mfi  .dfi  .imd  
+bigboard         floppydisk2      (flop2)    .mfi  .dfi  .imd  
 bigboard         quickload        (quik)     .com  .cpm  
+bigboard5        floppydisk1      (flop1)    .mfi  .dfi  .imd  
+bigboard5        floppydisk2      (flop2)    .mfi  .dfi  .imd  
+bigboard5        quickload        (quik)     .com  .cpm  
 bigbord2         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 bigbord2         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+bigbord2         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 bigbucks         (none)
 bigcsino         (none)
 bigdeal          (none)
@@ -3369,6 +3410,7 @@ bigjoke          (none)
 bigkarnk         (none)
 bigkarnka        (none)
 bigkarnkm        (none)
+bigkick          (none)
 bigkong          (none)
 bigkonggx        (none)
 bigprowr         (none)
@@ -3591,6 +3633,7 @@ blitz99a         cdrom2           (cdrm2)    .chd  .cue  .toc  .nrg  .gdi  .iso 
 blitzs           snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 blitzs           quickload        (quik)     .raw  .scr  
 blitzs           cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
+blizzard         (none)
 blkbrum          (none)
 blkbustr         (none)
 blkdrgon         (none)
@@ -3893,6 +3936,7 @@ bookthr          (none)
 boomrang         (none)
 boomranga        (none)
 boonggab         (none)
+boosters         (none)
 bootcamp         (none)
 bootcampa        (none)
 boothill         (none)
@@ -3914,6 +3958,7 @@ borenchj         (none)
 boris            (none)
 borisa           (none)
 borisdpl         (none)
+bornk220         (none)
 bornkidh         (none)
 borntofi         (none)
 borntofia        (none)
@@ -4047,6 +4092,10 @@ brvteam          (none)
 bs4thmix         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 bs9009cx         (none)
 bs94             (none)
+bs_gradius       (none)
+bs_gwarrior      (none)
+bs_rf2           (none)
+bs_twinbee       (none)
 bsb105           (none)
 bsbonanza        (none)
 bsbonanza10      (none)
@@ -4617,6 +4666,7 @@ carnevil1        harddisk1        (hard1)    .chd  .hd   .hdv  .2mg  .hdi
 carnevil1        cdrom1           (cdrm1)    .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 carnevil1        harddisk2        (hard2)    .chd  .hd   .hdv  .2mg  .hdi  
 carnevil1        cdrom2           (cdrm2)    .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+carniv37         (none)
 carnivac         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 carnivac         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 carnival         (none)
@@ -5141,6 +5191,7 @@ ch2000v1         (none)
 ch2000v2         (none)
 ch2001           (none)
 ch3001r          (none)
+ch3008           (none)
 ch48633c         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ch48633c         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ch48633c         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -5720,6 +5771,7 @@ colony7          (none)
 colony7a         (none)
 colorama         (none)
 coloramas        (none)
+colossos         (none)
 colt             (none)
 columbia         (none)
 columbus         (none)
@@ -5924,6 +5976,7 @@ cookbib3         (none)
 cookbiba         (none)
 cookrace         (none)
 cool104          (none)
+coolbi           (none)
 coolmini         (none)
 coolminii        (none)
 coolpool         (none)
@@ -6356,6 +6409,8 @@ csdjc            (none)
 csdq             (none)
 csdsp            (none)
 csdtenis         (none)
+csesame          (none)
+csesame2         (none)
 csf5550          (none)
 cshift           (none)
 cshooter         (none)
@@ -6397,6 +6452,7 @@ csprints1        (none)
 csret            (none)
 css11501sk9      (none)
 cstlevna         (none)
+cstliiw1         (none)
 csuperas         (none)
 csv1_qps         (none)
 cswat            (none)
@@ -6445,6 +6501,7 @@ ctntune          (none)
 ctomaday         memcard          (memc)     .neo  
 ctornado         (none)
 ctower           (none)
+ctrc1            (none)
 ctribe           (none)
 ctribeb          (none)
 ctribeb2         (none)
@@ -6454,6 +6511,7 @@ ctribeua         (none)
 ctrpllrp         (none)
 ctstein          (none)
 ctsttape         (none)
+cttower          (none)
 ctvboy           cartridge        (cart)     .bin  
 cubeqst          (none)
 cubeqsta         (none)
@@ -6804,7 +6862,7 @@ database         cartridge        (cart)     .bin  .rom
 datacast         bitbanger1       (bitb1)    .     
 datacast         bitbanger2       (bitb2)    .     
 dataman          (none)
-dator3k          (none)
+dator3k          printout         (prin)     .prn  
 datum            (none)
 dauphin          cassette         (cass)     .wav  .flac .aif  .aiff 
 dawg             harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -7134,6 +7192,7 @@ dectalk          (none)
 deecoseal        (none)
 deepfrz          (none)
 deepfrzu         (none)
+deepscch         (none)
 deerhunt         (none)
 deerhunta        (none)
 deerhuntb        (none)
@@ -7793,6 +7852,7 @@ dpplpot          (none)
 dpplson          (none)
 dpplstrt         (none)
 dps1             floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+dpsd7            (none)
 dpsv55           (none)
 dquizgo          (none)
 dquizgo2         (none)
@@ -7966,10 +8026,11 @@ drumsta          (none)
 drumsups         (none)
 drw80pkr         (none)
 drw80wld         (none)
-drwrt100         (none)
-drwrt200         (none)
-drwrt400         (none)
-drwrt450         (none)
+drwrt100         printout         (prin)     .prn  
+drwrt200         printout         (prin)     .prn  
+drwrt200         floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
+drwrt400         printout         (prin)     .prn  
+drwrt450         printout         (prin)     .prn  
 ds2              quickload        (quik)     .rex  .ds2  
 ds2000           (none)
 ds2100           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -9936,7 +9997,7 @@ erosone          (none)
 ertictac         (none)
 ertictaca        (none)
 ertictacb        (none)
-es210_es         (none)
+es210_es         printout         (prin)     .prn  
 esb              (none)
 esbattle         (none)
 escape           (none)
@@ -9992,11 +10053,14 @@ eswatjd          (none)
 eswatu           (none)
 eswatud          (none)
 et3400           cassette         (cass)     .wav  .flac .aif  .aiff 
+et532            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+et532            tape             (tap)      .tap  
 eti660           cassette         (cass)     .wav  .flac .aif  .aiff 
 eti660           quickload        (quik)     .bin  .c8   .ch8  
 eto              (none)
 etoa             (none)
 eturtles         (none)
+eurbingo7        (none)
 eurit30          (none)
 euro2k2          (none)
 euro2k2a         (none)
@@ -10091,6 +10155,7 @@ exerionba        (none)
 exeriont         (none)
 exerizer         (none)
 exerizerb        (none)
+exfever          (none)
 exl100           cartridge        (cart)     .bin  .rom  
 exl100           cassette         (cass)     .wav  .flac .aif  .aiff 
 exodus           (none)
@@ -11019,6 +11084,7 @@ fmtownsv03       memcard          (memc)     .icm
 fmx              cartridge        (cart)     .mx1  .bin  .rom  
 fmx              cassette         (cass)     .wav  .flac .aif  .aiff .tap  .cas  .tsx  
 fncywld          (none)
+fncywlda         (none)
 fnf              (none)
 fnkyfish         (none)
 fnshark          (none)
@@ -11437,6 +11503,7 @@ futurspa         (none)
 futurwld         (none)
 fuudol           cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 fuusenpn         (none)
+fuxingg          (none)
 fvipers          (none)
 fvipers2         (none)
 fvipers2o        (none)
@@ -11498,6 +11565,9 @@ ga486vs          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 ga486vs          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ga486vs          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 ga486vs          printout         (prin)     .prn  
+ga586ip          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
+ga586ip          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
+ga586ip          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 ga6la7           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 ga6la7           cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 ga6la7           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
@@ -11540,6 +11610,7 @@ galagamf         (none)
 galagamk         (none)
 galagamw         (none)
 galagao          (none)
+galaktca         (none)
 galaktron        (none)
 galaktrons3      (none)
 galap1           (none)
@@ -11566,6 +11637,7 @@ galaxiani        (none)
 galaxianiii      (none)
 galaxianm        (none)
 galaxianmo       (none)
+galaxianoly      (none)
 galaxianrp       (none)
 galaxiant        (none)
 galaxrcgg        (none)
@@ -11653,6 +11725,7 @@ galpans2j        (none)
 galpans3         (none)
 galpansu         (none)
 galpansua        (none)
+galpro           (none)
 galsnew          (none)
 galsnewj         (none)
 galsnewk         (none)
@@ -11680,6 +11753,7 @@ gambler          (none)
 gamblra5         (none)
 gamebox          (none)
 gameboy          cartridge        (cart)     .bin  .gb   .gbc  .gbx  
+gameclik         (none)
 gamecom          cartridge1       (cart1)    .bin  .tgc  
 gamecom          cartridge2       (cart2)    .bin  .tgc  
 gamecst2         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -12031,6 +12105,9 @@ genesispf        (none)
 genesispg        (none)
 geneve           (none)
 genie            (none)
+genie3de         printout         (prin)     .prn  
+genie3de         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .dmk  
+genie3de         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .dmk  
 geniea           (none)
 geniep           (none)
 genitvp          (none)
@@ -12049,6 +12126,7 @@ gepoker          (none)
 gepoker1         (none)
 gepoker2         (none)
 gepoker3         (none)
+germwars         (none)
 ges9051n         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ges9051n         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ges9051n         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -12621,7 +12699,6 @@ gradius4aa       (none)
 gradius4ja       (none)
 gradius4u        (none)
 gradius4ua       (none)
-gradiusb         (none)
 grainbow         (none)
 grainbowk        (none)
 grally           (none)
@@ -12711,7 +12788,8 @@ grindstm         (none)
 grindstma        (none)
 grizzly          (none)
 grmatch          (none)
-grnada           (none)
+grnadaf1         (none)
+grnadaw1         (none)
 grndprix         (none)
 grndtour         (none)
 grnlizrd         (none)
@@ -12757,6 +12835,7 @@ gsfc80u          printout         (prin)     .prn
 gsfc80u          cassette         (cass)     .wav  .flac .aif  .aiff .tap  .cas  .tsx  
 gslgr94j         (none)
 gslgr94u         (none)
+gslgr94ua        (none)
 gslugrsj         (none)
 gsp5             (none)
 gsspade          (none)
@@ -13100,7 +13179,6 @@ gwarb            (none)
 gwarfare         (none)
 gwarj            (none)
 gwarrior         (none)
-gwarriorb        (none)
 gwasu            (none)
 gwing2           (none)
 gwinggen         (none)
@@ -13185,9 +13263,12 @@ hamhouse         (none)
 hamhouse9        (none)
 hammer           (none)
 hammerch         (none)
+hana6            (none)
+hana6bl          (none)
 hana6pt2         (none)
 hanaawas         (none)
 hanaawasa        (none)
+hanaawmh         (none)
 hanadojo         (none)
 hanadojoa        (none)
 hanagumi         (none)
@@ -13197,7 +13278,7 @@ hanamomb         (none)
 hanamomo         (none)
 hanaoji          (none)
 hanaojia         (none)
-hanaren2         (none)
+hanaren          (none)
 hanaroku         (none)
 hanayara         (none)
 hangly           (none)
@@ -13702,6 +13783,8 @@ hexionb          (none)
 hexpool          (none)
 hexpoola         (none)
 hg_frd           (none)
+hgege            (none)
+hgegea           (none)
 hginga           (none)
 hgingaa          (none)
 hgkairak         (none)
@@ -13788,6 +13871,7 @@ hkb502a          (none)
 hkc8800a         floppydisk1      (flop1)    .mfi  .dfi  .d13  .dsk  .do   .po   .edd  .woz  .nib  
 hkc8800a         floppydisk2      (flop2)    .mfi  .dfi  .d13  .dsk  .do   .po   .edd  .woz  .nib  
 hkc8800a         cassette         (cass)     .wav  .flac .aif  .aiff 
+hkcastle         (none)
 hkuranai         (none)
 hlddz            (none)
 hldspin1         (none)
@@ -13841,6 +13925,8 @@ hogalleyi        (none)
 hogwild          (none)
 hohnadam         (none)
 holddraw         (none)
+holddrawa        (none)
+holddrawb        (none)
 holdrma6         (none)
 holdrma6a        (none)
 holeland         (none)
@@ -14225,6 +14311,7 @@ hs36red          (none)
 hs80             (none)
 hs_l3            (none)
 hs_l4            (none)
+hs_uc            (none)
 hsf2             (none)
 hsf2a            (none)
 hsf2d            (none)
@@ -14607,7 +14694,8 @@ ichirk           (none)
 icldrsm40        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 icldrsm40        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 icldrsm40        harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
-icm3216          (none)
+icm3216          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+icm3216          tape             (tap)      .tap  
 icp_etg          (none)
 icpf40_01        (none)
 icpf40_02        (none)
@@ -14975,7 +15063,7 @@ ippo             cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso 
 ippo2            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 iq128            cartridge        (cart)     .bin  
 iq128_fr         cartridge        (cart)     .bin  
-iq151            cassette         (cass)     .wav  .flac .aif  .aiff 
+iq151            cassette         (cass)     .wav  .flac .aif  .aiff .csw  
 iq151            cartridge1       (cart1)    .bin  .rom  
 iq151            cartridge2       (cart2)    .bin  .rom  
 iq151            cartridge3       (cart3)    .bin  .rom  
@@ -16521,6 +16609,7 @@ jackalr          (none)
 jackbean         (none)
 jackhous         (none)
 jackie           (none)
+jackiea          (none)
 jackler          (none)
 jackpool         (none)
 jackpot          (none)
@@ -16558,6 +16647,7 @@ jak_care         cartridge        (cart)     .bin  .u1
 jak_cind         (none)
 jak_ctah         (none)
 jak_dbz          cartridge        (cart)     .bin  .u1   
+jak_dbza         cartridge        (cart)     .bin  .u1   
 jak_dchp         (none)
 jak_ddhp         (none)
 jak_disf         cartridge        (cart)     .bin  .u1   
@@ -16621,6 +16711,7 @@ jak_spd3         (none)
 jak_spdm         cartridge        (cart)     .bin  .u1   
 jak_spdmo        (none)
 jak_spdmoa       (none)
+jak_spdmob       (none)
 jak_spdv         (none)
 jak_spmm         (none)
 jak_ssmo         (none)
@@ -16651,6 +16742,7 @@ jak_xmenp        (none)
 jakms41          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 jakms41          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 jakms41          printout         (prin)     .prn  
+jamaica          (none)
 jambo            (none)
 jamesb           (none)
 jamesb2          (none)
@@ -16662,6 +16754,7 @@ jangtaku         (none)
 janjans1         (none)
 janjans2         (none)
 jankenmn         (none)
+jankmg           (none)
 jankmg2          (none)
 janmu            (none)
 janoh            (none)
@@ -16788,6 +16881,7 @@ jkrmast          (none)
 jkrmasta         (none)
 jkrmastb         (none)
 jkrmastc         (none)
+jkrmastd         (none)
 jkrpkra5         (none)
 jkrpoker         (none)
 jl1810gr         (none)
@@ -17026,6 +17120,7 @@ jungler          (none)
 junglero         (none)
 junglers         (none)
 jungleyo         (none)
+jungleyoa        (none)
 jungsub          (none)
 junior           (none)
 junior80         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
@@ -17160,10 +17255,10 @@ kaximond         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi
 kay1024          snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 kay1024          quickload        (quik)     .raw  .scr  
 kay1024          cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-kay1024          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-kay1024          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-kay1024          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-kay1024          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+kay1024          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+kay1024          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+kay1024          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+kay1024          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 kaypro1          quickload        (quik)     .com  .cpm  
 kaypro1          printout         (prin)     .prn  
 kaypro1          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .kay  
@@ -17171,9 +17266,11 @@ kaypro1          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 kaypro10         quickload        (quik)     .com  .cpm  
 kaypro10         printout         (prin)     .prn  
 kaypro10         floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .kay  
+kaypro10         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 kaypro1084       quickload        (quik)     .com  .cpm  
 kaypro1084       printout         (prin)     .prn  
 kaypro1084       floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .kay  
+kaypro1084       harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 kaypro16         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 kaypro16         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 kaypro16         printout         (prin)     .prn  
@@ -17453,6 +17550,7 @@ kizuna           memcard          (memc)     .neo
 kizuna4p         (none)
 kkcount          (none)
 kkongltd         (none)
+kkornf4          (none)
 kkotnoli         (none)
 klax             (none)
 klax4            (none)
@@ -17904,21 +18002,21 @@ laperla          (none)
 laperlag         (none)
 larana           (none)
 larana2          (none)
+las128e2         printout         (prin)     .prn  
 las128e2         floppydisk1      (flop1)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
 las128e2         floppydisk2      (flop2)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
-las128e2         printout         (prin)     .prn  
+las128ex         printout         (prin)     .prn  
 las128ex         floppydisk1      (flop1)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
 las128ex         floppydisk2      (flop2)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
-las128ex         printout         (prin)     .prn  
 laser            (none)
 laser110         snapshot         (dump)     .vz   
 laser110         cassette         (cass)     .wav  .flac .aif  .aiff .cas  
+laser128         printout         (prin)     .prn  
 laser128         floppydisk1      (flop1)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
 laser128         floppydisk2      (flop2)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
-laser128         printout         (prin)     .prn  
+laser128o        printout         (prin)     .prn  
 laser128o        floppydisk1      (flop1)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
 laser128o        floppydisk2      (flop2)    .mfi  .dfi  .dsk  .do   .po   .edd  .woz  .nib  
-laser128o        printout         (prin)     .prn  
 laser200         snapshot         (dump)     .vz   
 laser200         cassette         (cass)     .wav  .flac .aif  .aiff .cas  
 laser210         snapshot         (dump)     .vz   
@@ -17965,6 +18063,7 @@ lasso            (none)
 lasstixx         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 lastapos         (none)
 lastbank         (none)
+lastbank130j     (none)
 lastbh           (none)
 lastbh_006       (none)
 lastblad         memcard          (memc)     .neo  
@@ -18128,6 +18227,7 @@ lexi30           (none)
 lexiart          (none)
 lexibds          (none)
 lexifit          (none)
+lexiig10         (none)
 lexipcm          cartridge        (cart)     .bin  
 lexiseal         (none)
 lexitvsprt       (none)
@@ -18136,6 +18236,7 @@ lfhouse          (none)
 lfhouseb         (none)
 lft1230          (none)
 lft1510          (none)
+lg600fr          (none)
 lgfish           (none)
 lgfisha          (none)
 lggp40           (none)
@@ -18530,6 +18631,7 @@ luckyclrs        (none)
 luckycoin        (none)
 luckycrs         (none)
 luckygrl         (none)
+luckyjkr         (none)
 luckylad         (none)
 luckypkr         (none)
 luckyplr         (none)
@@ -18622,6 +18724,7 @@ lxcmcyfzb        (none)
 lxcmcyls         (none)
 lxcmcypj         (none)
 lxcmcypp         (none)
+lxcmcypp75       (none)
 lxcmcyppa        (none)
 lxcmcysp         (none)
 lxcmcyspa        (none)
@@ -18647,6 +18750,7 @@ lxpcli           (none)
 lxpcpp           (none)
 lxpcs            (none)
 lxpcsp           (none)
+lxplasma         (none)
 lxspidaj         (none)
 lxts3            (none)
 lynx             quickload        (quik)     .o    
@@ -25511,6 +25615,7 @@ m5001            (none)
 m505neo          (none)
 m521neo          (none)
 m55050           (none)
+m55f1            (none)
 m55hipl          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 m55hipl          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 m55hipl          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
@@ -26192,8 +26297,8 @@ mac128k          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 mac2bios         (none)
 mac2fdhd         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 mac2fdhd         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-mac2fdhd         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 mac2fdhd         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+mac2fdhd         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 mac3             cassette         (cass)     .wav  .flac .aif  .aiff 
 mac512k          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 mac512k          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
@@ -26202,6 +26307,7 @@ mac512ke         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 mac_1808         (none)
 mac_zois         (none)
 macao            (none)
+macaor           (none)
 macattck         (none)
 maccclas         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maccclas         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -26242,21 +26348,21 @@ machdrum         (none)
 machiman         (none)
 machomou         (none)
 macii            floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-macii            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 macii            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+macii            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciici          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 maciici          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciici          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 maciicx          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 maciicx          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-maciicx          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciicx          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+maciicx          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciifx          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-maciifx          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciifx          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+maciifx          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciihmu         floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-maciihmu         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciihmu         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+maciihmu         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciisi          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 maciisi          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciisi          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -26268,8 +26374,8 @@ maciivx          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi
 maciivx          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 maciix           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 maciix           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-maciix           cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 maciix           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+maciix           cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 macjungl         (none)
 macjungn         (none)
 maclc            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
@@ -26389,8 +26495,8 @@ macse            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso 
 macse            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 macse30          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 macse30          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
-macse30          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 macse30          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+macse30          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 macsefd          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 macsefd          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .dc42 .woz  .moof .po   .2mg  
 macsefd          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
@@ -26537,6 +26643,7 @@ magjack          (none)
 magjacka         (none)
 magjackb         (none)
 magjackc         (none)
+magjackd         (none)
 magjackp         (none)
 magjackpa        (none)
 magjoker         (none)
@@ -26584,6 +26691,7 @@ majest12j        (none)
 majest12u        (none)
 majest12ua       (none)
 majest12ub       (none)
+majesto          (none)
 majgnc           (none)
 majkon           (none)
 majorpkr         (none)
@@ -26644,6 +26752,7 @@ maniacsqs        (none)
 manicpnc         (none)
 manohman         (none)
 manpuku          (none)
+manpukuh         (none)
 manxtt           (none)
 manxttc          (none)
 manxttdx         (none)
@@ -26776,6 +26885,7 @@ matrim           memcard          (memc)     .neo
 matrimbl         memcard          (memc)     .neo  
 matrix           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 matrix           cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+matrixx          (none)
 mattelcs         (none)
 mausuke          (none)
 mav_100          (none)
@@ -27781,6 +27891,7 @@ mjderngr         (none)
 mjdialq2         (none)
 mjdialq2a        (none)
 mjdiplob         (none)
+mjdiploba        (none)
 mjegolf          (none)
 mjelct3          (none)
 mjelct3a         (none)
@@ -27897,12 +28008,13 @@ mk3snes          (none)
 mk4              (none)
 mk4a             (none)
 mk4b             (none)
-mk82             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-mk82             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+mk82             floppydisk1      (flop1)    .mfi  .dfi  .imd  
+mk82             floppydisk2      (flop2)    .mfi  .dfi  .imd  
 mk82             quickload        (quik)     .com  .cpm  
 mk83             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 mk83             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-mk83             quickload        (quik)     .com  .cpm  
+mk84             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+mk84             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 mk85             (none)
 mk88             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 mk88             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
@@ -28125,6 +28237,7 @@ mo6              cartridge        (cart)     .m5   .rom
 mo6              printout         (prin)     .prn  
 mobigo           cartridge        (cart)     .bin  
 mobigo2          cartridge        (cart)     .bin  
+mobigof          cartridge        (cart)     .bin  
 mobigos          cartridge        (cart)     .bin  
 mocapb           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 mocapbj          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -28144,8 +28257,8 @@ mogitate         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso 
 moguchan         (none)
 mogura           (none)
 mohicans         (none)
-mojmikro         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-mojmikro         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+mojmikro         floppydisk1      (flop1)    .mfi  .dfi  .imd  
+mojmikro         floppydisk2      (flop2)    .mfi  .dfi  .imd  
 mojmikro         quickload        (quik)     .com  .cpm  
 mok              cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 mokp386          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
@@ -28247,6 +28360,7 @@ montreux         (none)
 monty            (none)
 monymony         (none)
 monymony2        (none)
+monymony3        (none)
 monzagp          (none)
 monzagpa         (none)
 moogsource       (none)
@@ -28478,6 +28592,7 @@ mpt02            cartridge        (cart)     .st2  .bin  .rom
 mpt02h           cartridge        (cart)     .st2  .bin  .rom  
 mpt05            quickload        (quik)     .pgm  .tvc  
 mpt05            cartridge        (cart)     .bin  .rom  
+mptschf2         (none)
 mpu1000          quickload        (quik)     .pgm  .tvc  
 mpu1000          cartridge        (cart)     .bin  .rom  
 mpu2000          quickload        (quik)     .pgm  .tvc  
@@ -28686,6 +28801,7 @@ mspacmanbi       (none)
 mspacmanblt      (none)
 mspacmanblt2     (none)
 mspacmanblt3     (none)
+mspacmanblt4     (none)
 mspacmanbpl      (none)
 mspacmancr       (none)
 mspacmane        (none)
@@ -28715,6 +28831,7 @@ mswordj          (none)
 mswordr1         (none)
 mswordu          (none)
 mt100            (none)
+mt2090           (none)
 mt32             (none)
 mt420            (none)
 mt440            (none)
@@ -28793,6 +28910,7 @@ mtchxl6ko4       cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso 
 mtchxlgld        cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 mtchxlgldo       cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 mtchxlti         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+mtclssic         (none)
 mtd1256          (none)
 mtetrisc         (none)
 mtjpoker         (none)
@@ -28889,6 +29007,7 @@ multi8           cassette         (cass)     .wav  .flac .aif  .aiff
 multi96          (none)
 multibaby        (none)
 multidrw         (none)
+multif2          (none)
 multigam         (none)
 multigm2         (none)
 multigm3         (none)
@@ -29070,6 +29189,9 @@ mygalagb         (none)
 myhero           (none)
 myherobl         (none)
 myherok          (none)
+mylife           cartridge        (cart)     .bin  
+mylifei          cartridge        (cart)     .bin  
+mylifes          cartridge        (cart)     .bin  
 mylpony          (none)
 mymman           (none)
 mympac           (none)
@@ -29368,6 +29490,7 @@ ncv2j            (none)
 nd80z            (none)
 nd8lines         (none)
 ndcfboxa         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+ndiscow1         (none)
 ndongmul         (none)
 ndongmul2        (none)
 ndpbj            (none)
@@ -29894,10 +30017,10 @@ nwarrb           (none)
 nwarrh           (none)
 nwarru           (none)
 nwarrud          (none)
-nws1250          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
 nws1250          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
-nws1580          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
+nws1250          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
 nws1580          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+nws1580          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
 nws3260          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
 nws3260          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 nws3410          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
@@ -29912,6 +30035,7 @@ nws5000x         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi
 nws5000x         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 nws831           floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  
 nws831           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+nyankids         (none)
 nyanpai          (none)
 nyanpani         (none)
 nycaptor         (none)
@@ -30165,6 +30289,7 @@ optiger          (none)
 optigera         (none)
 optigerj         (none)
 optigersm        (none)
+optmsw1          (none)
 optomaxv         printout         (prin)     .prn  
 opwolf           (none)
 opwolf3          (none)
@@ -30802,38 +30927,39 @@ pc50ii           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 pc50ii           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 pc50ii           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 pc532            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
-pc6001           cartridge1       (cart1)    .bin  
-pc6001           cartridge2       (cart2)    .cas  .p6   
+pc532            tape             (tap)      .tap  
+pc6001           cartridge        (cart)     .bin  
+pc6001           snapshot         (dump)     .cas  .p6   
 pc6001           printout         (prin)     .prn  
-pc6001a          cartridge1       (cart1)    .bin  
-pc6001a          cartridge2       (cart2)    .cas  .p6   
+pc6001a          cartridge        (cart)     .bin  
+pc6001a          snapshot         (dump)     .cas  .p6   
 pc6001a          printout         (prin)     .prn  
-pc6001mk2        cartridge1       (cart1)    .bin  
-pc6001mk2        cartridge2       (cart2)    .cas  .p6   
+pc6001mk2        cartridge        (cart)     .bin  
+pc6001mk2        snapshot         (dump)     .cas  .p6   
 pc6001mk2        printout         (prin)     .prn  
-pc6001mk2sr      cartridge1       (cart1)    .bin  
-pc6001mk2sr      cartridge2       (cart2)    .cas  .p6   
+pc6001mk2sr      cartridge        (cart)     .bin  
+pc6001mk2sr      snapshot         (dump)     .cas  .p6   
 pc6001mk2sr      printout         (prin)     .prn  
 pc6001mk2sr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-pc6001mk2sr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc6001mk2sr      floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc6001mk2sr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc6001mk2sr      floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc60iii          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 pc60iii          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 pc60iii          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 pc60iii          printout         (prin)     .prn  
 pc644vz          (none)
-pc6601           cartridge1       (cart1)    .bin  
-pc6601           cartridge2       (cart2)    .cas  .p6   
+pc6601           cartridge        (cart)     .bin  
+pc6601           snapshot         (dump)     .cas  .p6   
 pc6601           printout         (prin)     .prn  
 pc6601           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-pc6601           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc6601           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc6601sr         cartridge1       (cart1)    .bin  
-pc6601sr         cartridge2       (cart2)    .cas  .p6   
+pc6601           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc6601           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc6601sr         cartridge        (cart)     .bin  
+pc6601sr         snapshot         (dump)     .cas  .p6   
 pc6601sr         printout         (prin)     .prn  
 pc6601sr         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-pc6601sr         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc6601sr         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc6601sr         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc6601sr         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc679cy          (none)
 pc7000           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 pc7000           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
@@ -30845,18 +30971,18 @@ pc70iii          printout         (prin)     .prn
 pc714vz          (none)
 pc716vy          (none)
 pc718vy          (none)
-pc8001           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8001           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8001           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8001           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8001           printout         (prin)     .prn  
 pc8001           cassette         (cass)     .wav  .flac .aif  .aiff 
 pc8001           snapshot         (dump)     .bin  .n80  
-pc8001mk2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8001mk2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8001mk2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8001mk2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8001mk2        printout         (prin)     .prn  
 pc8001mk2        cassette         (cass)     .wav  .flac .aif  .aiff 
 pc8001mk2        snapshot         (dump)     .bin  .n80  
-pc8001mk2sr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8001mk2sr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8001mk2sr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8001mk2sr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8001mk2sr      printout         (prin)     .prn  
 pc8001mk2sr      cassette         (cass)     .wav  .flac .aif  .aiff 
 pc8001mk2sr      snapshot         (dump)     .bin  .n80  
@@ -30873,45 +30999,45 @@ pc8401bd         cartridge1       (cart1)    .bin  .rom
 pc8401bd         cartridge2       (cart2)    .bin  .rom  
 pc8500           cartridge1       (cart1)    .bin  .rom  
 pc8500           cartridge2       (cart2)    .bin  .rom  
-pc8801           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801           printout         (prin)     .prn  
 pc8801           cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801fa         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801fa         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801fa         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801fa         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801fa         printout         (prin)     .prn  
 pc8801fa         cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801ma         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801ma         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801ma         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801ma         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801ma         printout         (prin)     .prn  
 pc8801ma         cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801ma2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801ma2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801ma2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801ma2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801ma2        printout         (prin)     .prn  
 pc8801ma2        cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801mc         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801mc         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801mc         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801mc         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801mc         printout         (prin)     .prn  
 pc8801mc         cassette         (cass)     .wav  .flac .aif  .aiff 
 pc8801mc         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
-pc8801mh         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801mh         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801mh         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801mh         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801mh         printout         (prin)     .prn  
 pc8801mh         cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801mk2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801mk2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801mk2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801mk2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801mk2        printout         (prin)     .prn  
 pc8801mk2        cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801mk2fr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801mk2fr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801mk2fr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801mk2fr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801mk2fr      printout         (prin)     .prn  
 pc8801mk2fr      cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801mk2mr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801mk2mr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801mk2mr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801mk2mr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801mk2mr      printout         (prin)     .prn  
 pc8801mk2mr      cassette         (cass)     .wav  .flac .aif  .aiff 
-pc8801mk2sr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc8801mk2sr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc8801mk2sr      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc8801mk2sr      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc8801mk2sr      printout         (prin)     .prn  
 pc8801mk2sr      cassette         (cass)     .wav  .flac .aif  .aiff 
 pc88va           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
@@ -30924,8 +31050,8 @@ pc9486           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi
 pc9486           printout         (prin)     .prn  
 pc9801           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
-pc9801           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc9801           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc9801           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc9801           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc9801bx2        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801bx2        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801bx2        harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -30936,16 +31062,16 @@ pc9801f          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 pc9801f          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801f          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801f          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
-pc9801f          floppydisk5      (flop5)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc9801f          floppydisk6      (flop6)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc9801f          floppydisk5      (flop5)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc9801f          floppydisk6      (flop6)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc9801fs         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801fs         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801fs         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 pc9801fs         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 pc9801m2         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801m2         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
-pc9801m2         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
-pc9801m2         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  
+pc9801m2         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
+pc9801m2         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .fdi  .hfe  
 pc9801rs         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801rs         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .hdm  .fdi  .fdd  .dcp  .dcu  .dip  .nfd  
 pc9801rs         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -31458,10 +31584,10 @@ penpira          (none)
 pent1024         snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 pent1024         quickload        (quik)     .raw  .scr  
 pent1024         cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-pent1024         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pent1024         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pent1024         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pent1024         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+pent1024         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pent1024         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pent1024         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pent1024         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 penta            (none)
 pentacup         (none)
 pentacup2        (none)
@@ -31470,17 +31596,17 @@ pentacupt        (none)
 pentagon         snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 pentagon         quickload        (quik)     .raw  .scr  
 pentagon         cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-pentagon         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pentagon         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pentagon         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pentagon         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+pentagon         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pentagon         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pentagon         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pentagon         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 pentevo          snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 pentevo          quickload        (quik)     .raw  .scr  
 pentevo          cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-pentevo          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pentevo          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pentevo          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-pentevo          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+pentevo          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pentevo          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pentevo          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+pentevo          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 pentevo          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 pepk0719         (none)
 pepk0719a        (none)
@@ -32300,6 +32426,7 @@ phoenixgu        (none)
 phoenixha        (none)
 phoenixi         (none)
 phoenixj         (none)
+phoenixjpl       (none)
 phoenixs         (none)
 phoenixt         (none)
 phoenxp2         (none)
@@ -32677,6 +32804,7 @@ pleiadsb2        (none)
 pleiadsgmp       (none)
 pleiadsi         (none)
 pleiadsia        (none)
+pleiadsmm        (none)
 pleiadsn         (none)
 pleiadss         (none)
 plets300         (none)
@@ -32684,6 +32812,7 @@ plets350         (none)
 plgirls          (none)
 plgirls2         (none)
 plgirls2b        (none)
+plgirls2j        (none)
 pljh             (none)
 pljh2            (none)
 plldium          cartridge        (cart)     .bin  
@@ -32802,6 +32931,7 @@ pokeresp         (none)
 pokeri           (none)
 pokeriwc         (none)
 pokermon         (none)
+pokermor         (none)
 pokeroul         (none)
 pokerout         (none)
 pokersis         (none)
@@ -33102,6 +33232,7 @@ pp1392           quickload        (quik)     .pgm  .tvc
 pp1392           cartridge        (cart)     .bin  .rom  
 pp6578           (none)
 ppan             (none)
+ppatrol          (none)
 ppc512           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ppc512           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 ppc512           printout1        (prin1)    .prn  
@@ -33304,6 +33435,7 @@ prehisleu        (none)
 preisle2         memcard          (memc)     .neo  
 premiere         (none)
 premline         (none)
+pres2k           (none)
 prestige         cartridge        (cart)     .bin  
 prestmpt         cartridge        (cart)     .bin  
 prideaf          (none)
@@ -33390,10 +33522,10 @@ prof80           printout         (prin)     .prn
 profi            snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 profi            quickload        (quik)     .raw  .scr  
 profi            cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-profi            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-profi            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-profi            floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-profi            floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+profi            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+profi            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+profi            floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+profi            floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 profpac          (none)
 profpc33         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 profpc33         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
@@ -33488,6 +33620,8 @@ psion3a2_us      ssd1             (ssd1)     .rom  .bin
 psion3a2_us      ssd2             (ssd2)     .rom  .bin  
 psion3c          ssd1             (ssd1)     .rom  .bin  
 psion3c          ssd2             (ssd2)     .rom  .bin  
+psion3c_de       ssd1             (ssd1)     .rom  .bin  
+psion3c_de       ssd2             (ssd2)     .rom  .bin  
 psion3mx         ssd1             (ssd1)     .rom  .bin  
 psion3mx         ssd2             (ssd2)     .rom  .bin  
 psion3mx_fr      ssd1             (ssd1)     .rom  .bin  
@@ -33502,6 +33636,7 @@ psion5mxp        harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi
 psion5mxp        quickload        (quik)     .bin  
 psion5mxp_de     harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 psion5mxp_de     quickload        (quik)     .bin  
+psion618c        (none)
 psion7           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 psioncm          datapack1        (dpak1)    .opk  
 psioncm          datapack2        (dpak2)    .opk  
@@ -33725,12 +33860,12 @@ punchita         (none)
 punchkid         (none)
 punchout         (none)
 punchouta        (none)
+punchoutah       (none)
 punchoutj        (none)
 punchy           (none)
 punchy3          (none)
 punifrnd         (none)
 punij1m          (none)
-punij1pk         (none)
 punij1pu         (none)
 punij2pk         (none)
 punipic          (none)
@@ -33751,6 +33886,7 @@ punkshot2a       (none)
 punkshot2e       (none)
 punkshotj        (none)
 punkywil         (none)
+purpurr          (none)
 pururun          (none)
 pururuna         (none)
 pushman          (none)
@@ -33775,6 +33911,7 @@ puzlclub         (none)
 puzldama         (none)
 puzlstar         (none)
 puzlstara        (none)
+puzlwrld         (none)
 puzzball         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 puzzballa        cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 puzzldpr         memcard          (memc)     .neo  
@@ -34121,10 +34258,10 @@ quizwizc         cartridge        (cart)     .bin
 quorum           snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 quorum           quickload        (quik)     .raw  .scr  
 quorum           cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-quorum           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-quorum           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-quorum           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-quorum           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+quorum           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+quorum           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+quorum           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+quorum           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 quorum48         snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 quorum48         quickload        (quik)     .raw  .scr  
 quorum48         cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
@@ -34806,7 +34943,6 @@ rex6000          quickload        (quik)     .rex  .ds2
 rezon            (none)
 rezono           (none)
 rf2              (none)
-rf2b             (none)
 rf51w14cg        (none)
 rfcp168          (none)
 rfjailbrk        (none)
@@ -35017,6 +35153,7 @@ robie            quickload        (quik)     .com  .cpm
 robie            printout         (prin)     .prn  
 robie            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .kay  
 robie            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .kay  
+robin            (none)
 robo_a29         (none)
 robo_a30         (none)
 robo_a34         (none)
@@ -35046,6 +35183,7 @@ roboti           (none)
 robotron         (none)
 robotron12       (none)
 robotron87       (none)
+robotronr3       (none)
 robotrontd       (none)
 robotronun       (none)
 robotronyo       (none)
@@ -35140,6 +35278,7 @@ romanl           (none)
 rompers          (none)
 romperso         (none)
 ron2             (none)
+ron2a            (none)
 rongrong         (none)
 rongrongg        (none)
 rongrongj        (none)
@@ -35363,6 +35502,7 @@ ryujin           (none)
 ryujina          (none)
 ryukendn         (none)
 ryukendna        (none)
+ryukendnb        (none)
 ryukobou         (none)
 ryukyu           (none)
 ryukyua          (none)
@@ -35377,8 +35517,28 @@ rzbatfor         (none)
 rzindy500        (none)
 rztoshden        (none)
 s10              (none)
+s1000            midiin           (min)      .mid  .syx  
+s1000            midiout1         (mout1)    .mid  
+s1000            midiout2         (mout2)    .mid  
+s1000            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+s1000            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+s1000            floppydisk       (flop)     .mfi  .dfi  .img  .hfe  
+s1000            cassette         (cass)     .wav  .flac .aif  .aiff 
+s1000pb          midiin           (min)      .mid  .syx  
+s1000pb          midiout1         (mout1)    .mid  
+s1000pb          midiout2         (mout2)    .mid  
+s1000pb          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+s1000pb          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+s1000pb          floppydisk       (flop)     .mfi  .dfi  .img  .hfe  
 s10_520          (none)
 s10fake          (none)
+s1100            midiin           (min)      .mid  .syx  
+s1100            midiout1         (mout1)    .mid  
+s1100            midiout2         (mout2)    .mid  
+s1100            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+s1100            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+s1100            floppydisk       (flop)     .mfi  .dfi  .img  .hfe  
+s1100            cassette         (cass)     .wav  .flac .aif  .aiff 
 s1945            (none)
 s1945a           (none)
 s1945bl          (none)
@@ -35412,9 +35572,45 @@ s3670            (none)
 s50              floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .out  .w30  
 s550             floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .out  .w30  
 s5_520           (none)
+s612             midiin           (min)      .mid  .syx  
+s612             midiout1         (mout1)    .mid  
+s612             midiout2         (mout2)    .mid  
+s612             cassette1        (cass1)    .wav  .flac .aif  .aiff 
+s612             cassette2        (cass2)    .wav  .flac .aif  .aiff .tap  
+s700             midiin           (min)      .mid  .syx  
+s700             midiout1         (mout1)    .mid  
+s700             midiout2         (mout2)    .mid  
+s700             cassette         (cass)     .wav  .flac .aif  .aiff 
+s8000            harddisk1        (hard1)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000            harddisk2        (hard2)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000            harddisk3        (hard3)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000            harddisk4        (hard4)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000s2          harddisk1        (hard1)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000s2          harddisk2        (hard2)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000s2          harddisk3        (hard3)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000s2          harddisk4        (hard4)    .chd  .hd   .hdv  .2mg  .hdi  
+s8000v1          (none)
 s80btest         (none)
 s80tst           (none)
 s8waysfc         (none)
+s900             midiin           (min)      .mid  .syx  
+s900             midiout1         (mout1)    .mid  
+s900             midiout2         (mout2)    .mid  
+s900             cassette         (cass)     .wav  .flac .aif  .aiff 
+s900             bitbanger        (bitb)     .     
+s900             floppydisk       (flop)     .mfi  .dfi  .img  .hfe  
+s950             midiin           (min)      .mid  .syx  
+s950             midiout1         (mout1)    .mid  
+s950             midiout2         (mout2)    .mid  
+s950             cassette         (cass)     .wav  .flac .aif  .aiff 
+s950             floppydisk       (flop)     .mfi  .dfi  .img  .hfe  
+s950scsi         midiin           (min)      .mid  .syx  
+s950scsi         midiout1         (mout1)    .mid  
+s950scsi         midiout2         (mout2)    .mid  
+s950scsi         cassette         (cass)     .wav  .flac .aif  .aiff 
+s950scsi         floppydisk       (flop)     .mfi  .dfi  .img  .hfe  
+s950scsi         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+s97801           (none)
 sabavdpl         cartridge        (cart)     .bin  .chf  
 sabavpl2         cartridge        (cart)     .bin  .chf  
 sabotenb         (none)
@@ -35441,16 +35637,16 @@ sagitta180       (none)
 sahalove         (none)
 saikyopc         (none)
 sailormn         (none)
+sailormne        (none)
 sailormnh        (none)
-sailormnj        (none)
 sailormnk        (none)
-sailormnn        (none)
+sailormnne       (none)
 sailormnnh       (none)
 sailormnnj       (none)
 sailormnnk       (none)
 sailormnnt       (none)
 sailormnnu       (none)
-sailormno        (none)
+sailormnoe       (none)
 sailormnoh       (none)
 sailormnoj       (none)
 sailormnok       (none)
@@ -35596,6 +35792,8 @@ sb2003           (none)
 sb2003a          (none)
 sb2m600b         cassette         (cass)     .wav  .flac .aif  .aiff 
 sb486            cartridge        (cart)     .nes  .unf  .unif 
+sb80             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+sb80             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 sb8085           (none)
 sbackgc          (none)
 sbagman          (none)
@@ -41221,10 +41419,10 @@ score5           (none)
 scorpio          snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 scorpio          quickload        (quik)     .raw  .scr  
 scorpio          cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-scorpio          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpio          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpio          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpio          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+scorpio          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpio          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpio          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpio          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 scorpio68        (none)
 scorpion         (none)
 scorpiona        (none)
@@ -41232,18 +41430,18 @@ scorpionb        (none)
 scorpiongmx      snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 scorpiongmx      quickload        (quik)     .raw  .scr  
 scorpiongmx      cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-scorpiongmx      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpiongmx      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpiongmx      floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpiongmx      floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+scorpiongmx      floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpiongmx      floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpiongmx      floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpiongmx      floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 scorpionmc       (none)
 scorpiontb       snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 scorpiontb       quickload        (quik)     .raw  .scr  
 scorpiontb       cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
-scorpiontb       floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpiontb       floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpiontb       floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-scorpiontb       floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+scorpiontb       floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpiontb       floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpiontb       floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+scorpiontb       floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 scotrsht         (none)
 scp300f          (none)
 scpchess         (none)
@@ -41688,6 +41886,7 @@ sfightiia        (none)
 sfightiib        (none)
 sfiii            cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 sfiii2           cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+sfiii2a          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 sfiii2h          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 sfiii2j          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 sfiii2n          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
@@ -42532,6 +42731,7 @@ smshiloa         (none)
 smsj             cartridge        (cart)     .bin  .sms  .sg   
 smsj             card             (card)     .bin  
 smsjoker         (none)
+smsjokera        (none)
 smskr            cartridge        (cart)     .bin  .sms  .sg   
 smspal           cartridge        (cart)     .bin  .sms  
 smspaln          cartridge        (cart)     .bin  .sms  
@@ -42714,7 +42914,6 @@ sonicpop         (none)
 sonicwi          (none)
 sonicwi2         memcard          (memc)     .neo  
 sonicwi3         memcard          (memc)     .neo  
-sonicwtc         (none)
 sonikfig         (none)
 sonofphx         (none)
 sonoth           (none)
@@ -43413,6 +43612,7 @@ sparkmana        (none)
 sparkz           (none)
 spartanx         (none)
 spartanxtec      (none)
+spasch           (none)
 spatter          (none)
 spattera         (none)
 spawn            (none)
@@ -43489,6 +43689,7 @@ spec2kh          (none)
 spec80k          snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 spec80k          quickload        (quik)     .raw  .scr  
 spec80k          cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
+spec8way         (none)
 specd9           (none)
 specd9105g       (none)
 specforc         (none)
@@ -43506,6 +43707,7 @@ specide          cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap 
 specimx          cassette         (cass)     .wav  .flac .aif  .aiff .rks  
 specimx          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .odi  .cpm  .img  
 specimx          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .odi  .cpm  .img  
+specnext_ks1     snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   .nex  
 specnext_ks1     quickload        (quik)     .raw  .scr  
 specnext_ks1     cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
 specnext_ks1     midiin           (min)      .mid  .syx  
@@ -43513,6 +43715,7 @@ specnext_ks1     midiout1         (mout1)    .mid
 specnext_ks1     midiout2         (mout2)    .mid  
 specnext_ks1     harddisk1        (hard1)    .chd  .hd   .hdv  .2mg  .hdi  
 specnext_ks1     harddisk2        (hard2)    .chd  .hd   .hdv  .2mg  .hdi  
+specnext_ks2     snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   .nex  
 specnext_ks2     quickload        (quik)     .raw  .scr  
 specnext_ks2     cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
 specnext_ks2     midiin           (min)      .mid  .syx  
@@ -43520,6 +43723,7 @@ specnext_ks2     midiout1         (mout1)    .mid
 specnext_ks2     midiout2         (mout2)    .mid  
 specnext_ks2     harddisk1        (hard1)    .chd  .hd   .hdv  .2mg  .hdi  
 specnext_ks2     harddisk2        (hard2)    .chd  .hd   .hdv  .2mg  .hdi  
+specnext_ks3     snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   .nex  
 specnext_ks3     quickload        (quik)     .raw  .scr  
 specnext_ks3     cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
 specnext_ks3     midiin           (min)      .mid  .syx  
@@ -43661,6 +43865,7 @@ spk203us         (none)
 spk205us         (none)
 spk305us         (none)
 spk306us         (none)
+spkings          (none)
 spkrbtl          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 spkrform         (none)
 splasfgt         (none)
@@ -43734,10 +43939,10 @@ sprinter         harddisk1        (hard1)    .chd  .hd   .hdv  .2mg  .hdi
 sprinter         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 sprinter         harddisk2        (hard2)    .chd  .hd   .hdv  .2mg  .hdi  
 sprinter         harddisk3        (hard3)    .chd  .hd   .hdv  .2mg  .hdi  
-sprinter         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-sprinter         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-sprinter         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-sprinter         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+sprinter         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+sprinter         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+sprinter         floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+sprinter         floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 sprk_090         (none)
 sprk_096         (none)
 sprk_103         (none)
@@ -43853,6 +44058,7 @@ ssam88s          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 ssam88s          printout         (prin)     .prn  
 ssanchan         (none)
 ssanguoj         (none)
+ssapphire        (none)
 sscandal         (none)
 sscope           (none)
 sscope2          (none)
@@ -44105,6 +44311,7 @@ stadhr96j2       (none)
 stadhr96k        (none)
 stadhr96u        (none)
 stagger1         (none)
+stakeoff         (none)
 stakwin          memcard          (memc)     .neo  
 stakwin2         memcard          (memc)     .neo  
 stakwindev       memcard          (memc)     .neo  
@@ -44538,6 +44745,7 @@ suntac303        harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi
 suntac6          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 suntac6          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 suntac6          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+suntopw1         (none)
 sup8race         (none)
 supbtime         (none)
 supbtimea        (none)
@@ -44831,6 +45039,7 @@ swhr2v           (none)
 swimmer          (none)
 swimmera         (none)
 swimmerb         (none)
+swing            (none)
 swinggal         (none)
 swingin          (none)
 swipeout         (none)
@@ -44924,6 +45133,9 @@ sy019hi          printout         (prin)     .prn
 sy019s           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 sy019s           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 sy019s           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+sy029c2          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
+sy029c2          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
+sy029c2          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 sy35             (none)
 sy888b           (none)
 sy889            (none)
@@ -44985,9 +45197,15 @@ t1000tl2         printout         (prin)     .prn
 t1000tx          floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 t1000tx          printout         (prin)     .prn  
 t1850            (none)
+t200             printout         (prin)     .prn  
+t200             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .hfe  
+t200             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .hfe  
 t2000sx          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 t2000sx          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 t2000sx          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+t250             printout         (prin)     .prn  
+t250             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .hfe  
+t250             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .hfe  
 t2_l2            (none)
 t2_l3            (none)
 t2_l4            (none)
@@ -45126,6 +45344,7 @@ tandy2khd        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 tandy2khd        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 tandy2khd        printout         (prin)     .prn  
 tandy2khd        harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+tango            (none)
 tangramq         (none)
 tangtang         (none)
 tangtanga        (none)
@@ -45218,6 +45437,7 @@ tbasebal         (none)
 tbatfor          (none)
 tbatman          (none)
 tbatmana         (none)
+tbblue           snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   .nex  
 tbblue           quickload        (quik)     .raw  .scr  
 tbblue           cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
 tbblue           midiin           (min)      .mid  .syx  
@@ -45545,7 +45765,8 @@ tftc_300         (none)
 tftc_302         (none)
 tftc_303         (none)
 tfupdate         cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
-tg100            (none)
+tg100            midiin           (min)      .mid  .syx  
+tg100            midiout          (mout)     .mid  
 tg16             cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
 tg16             cartridge        (cart)     .pce  .bin  
 tgaiden          (none)
@@ -45825,7 +46046,7 @@ tikitalk         (none)
 tiktokmm         (none)
 tiktorch         (none)
 tiktorchnz       (none)
-tim011           floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .img  
+tim011           floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .img  .hfe  
 tim100           (none)
 timaze           (none)
 timber           (none)
@@ -45893,6 +46114,7 @@ tithermos        (none)
 titlef           (none)
 titlefj          (none)
 titlefu          (none)
+tiviboo          (none)
 tjdredd          (none)
 tjpark           (none)
 tjsb             (none)
@@ -46100,6 +46322,7 @@ to9p             cassette         (cass)     .wav  .k7
 to9p             cartridge        (cart)     .m7   .rom  
 to9p             floppydisk       (flop)     .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .fd   .sap  
 to9p             printout         (prin)     .prn  
+tobago           (none)
 todruaga         (none)
 todruagao        (none)
 todruagas        (none)
@@ -46381,7 +46604,6 @@ tpc310           cassette         (cass)     .wav  .flac .aif  .aiff .tap  .cas 
 tpgolf           memcard          (memc)     .neo  
 tpitfight        (none)
 tpkboram         (none)
-tpkborama        (none)
 tpkg2            (none)
 tpoker1          (none)
 tpoker1a         (none)
@@ -46423,6 +46645,8 @@ trapeze          (none)
 travrusa         (none)
 travrusab        (none)
 travrusab2       (none)
+trbsunf1         (none)
+trbsunw1         (none)
 trbwtchs         (none)
 trckydoc         (none)
 trckydoca        (none)
@@ -46705,18 +46929,18 @@ tsconf           snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit 
 tsconf           quickload        (quik)     .raw  .scr  
 tsconf           cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
 tsconf           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
-tsconf           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-tsconf           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-tsconf           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-tsconf           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+tsconf           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+tsconf           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+tsconf           floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+tsconf           floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 tsconf2          snapshot         (dump)     .ach  .frz  .plusd.prg  .sem  .sit  .sna  .snp  .snx  .sp   .spg  .z80  .zx   
 tsconf2          quickload        (quik)     .raw  .scr  
 tsconf2          cassette         (cass)     .wav  .flac .aif  .aiff .tzx  .tap  .blk  
 tsconf2          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
-tsconf2          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-tsconf2          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-tsconf2          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
-tsconf2          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  
+tsconf2          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+tsconf2          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+tsconf2          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
+tsconf2          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .trd  .scl  
 tsddragon        (none)
 tsf2010          (none)
 tsfight2         (none)
@@ -46834,6 +47058,7 @@ turbod           (none)
 turboe           (none)
 turboex          cartridge        (cart)     .bin  
 turbofrc         (none)
+turbofrcj        (none)
 turbofrco        (none)
 turbofrcu        (none)
 turbofrcua       (none)
@@ -46845,7 +47070,6 @@ turbosubc5s      (none)
 turbosubc6       (none)
 turbosubc7       (none)
 turbosubc8       (none)
-turbosun         (none)
 turbotag         (none)
 turfmast         memcard          (memc)     .neo  
 turfwld3         harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -46946,7 +47170,6 @@ twinactn         (none)
 twinadv          (none)
 twinadvk         (none)
 twinbee          (none)
-twinbeeb         (none)
 twinbrat         (none)
 twinbrata        (none)
 twinbratb        (none)
@@ -47168,9 +47391,6 @@ unk198vt         (none)
 unk820501        (none)
 unk960606        (none)
 unk960606b       (none)
-unkalba          (none)
-unkamst          (none)
-unkamsta         (none)
 unkamus          (none)
 unkanyw          (none)
 unkbel           (none)
@@ -47180,6 +47400,7 @@ unkch2           (none)
 unkch3           (none)
 unkch4           (none)
 unkcrane         (none)
+unkdep           (none)
 unkfr004         (none)
 unkfr004a        (none)
 unkfr004b        (none)
@@ -48121,6 +48342,7 @@ visnqust         (none)
 visor            (none)
 visual50         (none)
 vitaminc         (none)
+viva             (none)
 vivdolls         (none)
 vixen            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 vixen            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
@@ -48161,6 +48383,7 @@ vliner53         memcard          (memc)     .neo
 vliner54         memcard          (memc)     .neo  
 vliner6e         memcard          (memc)     .neo  
 vliner7e         memcard          (memc)     .neo  
+vlogo            (none)
 vlsi5            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 vlsi5            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 vlsi5            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -48327,6 +48550,7 @@ vt25in1          (none)
 vt320            (none)
 vt330            (none)
 vt420            (none)
+vt50in1          (none)
 vt52             (none)
 vt520            (none)
 vt62             (none)
@@ -48350,6 +48574,7 @@ vulcanb          (none)
 vulgus           (none)
 vulgusa          (none)
 vulgusj          (none)
+vulkanf2         (none)
 vx600            (none)
 vz200            snapshot         (dump)     .vz   
 vz200            cassette         (cass)     .wav  .flac .aif  .aiff .cas  
@@ -48369,7 +48594,7 @@ waidrive         (none)
 waijockey        (none)
 wakeng           (none)
 wakuwak7         memcard          (memc)     .neo  
-wales210         (none)
+wales210         printout         (prin)     .prn  
 walk386dx        floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 walk386dx        floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .ima  .img  .ufi  .360  .ipf  .xdf  
 walk386dx        harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -48551,6 +48776,7 @@ wcup90           (none)
 wcvol95          (none)
 wcvol95j         (none)
 wcvol95x         (none)
+wcwroses         (none)
 wd_03r           (none)
 wd_048r          (none)
 wd_10f           (none)
@@ -48560,6 +48786,7 @@ wd_11            (none)
 wd_12            (none)
 wd_12g           (none)
 wdun             (none)
+we816            floppydisk       (flop)     .mfi  .dfi  .d64  .g64  .g41  .g71  .d71  
 wecleman         (none)
 weclemana        (none)
 weclemanb        (none)
@@ -48679,6 +48906,8 @@ winka            (none)
 winner           (none)
 winner81         (none)
 winner81b        (none)
+winner81c        (none)
+winner81d        (none)
 winner82         (none)
 winrun           (none)
 winrun91         (none)
@@ -48994,6 +49223,8 @@ wupndowna        (none)
 wupndownb        (none)
 wupndownc        (none)
 wupndownd        (none)
+wurfelf2         (none)
+wurfelf3         (none)
 ww3              (none)
 ww_l2            (none)
 ww_l3            (none)
@@ -49081,8 +49312,18 @@ x1               cartridge        (cart)     .bin  .rom
 x1               cassette         (cass)     .wav  .flac .aif  .aiff .tap  
 x168             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 x168             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-x168             harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 x168             quickload        (quik)     .com  .cpm  
+x1685            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x1685            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x1685            quickload        (quik)     .com  .cpm  
+x168em           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+x168em           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x168em           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x168em           quickload        (quik)     .com  .cpm  
+x168s            floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x168s            floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x168s            harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+x168s            quickload        (quik)     .com  .cpm  
 x180             (none)
 x180ii           (none)
 x1turbo          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .2d   
@@ -49131,14 +49372,27 @@ x68kxvi          floppydisk3      (flop3)    .mfi  .dfi  .mfm  .td0  .imd  .86f 
 x68kxvi          floppydisk4      (flop4)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .xdf  .hdm  .2hd  .dim  
 x68kxvi          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 x68kxvi          cdrom            (cdrm)     .chd  .cue  .toc  .nrg  .gdi  .iso  .cdr  
+x7000            midiin           (min)      .mid  .syx  
+x7000            midiout1         (mout1)    .mid  
+x7000            midiout2         (mout2)    .mid  
+x7000            cassette         (cass)     .wav  .flac .aif  .aiff 
 x80wc            (none)
 x820             floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 x820             floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 x820             quickload        (quik)     .com  .cpm  
 x820ii           floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
 x820ii           floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
-x820ii           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
 x820ii           quickload        (quik)     .com  .cpm  
+x820ii5          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x820ii5          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x820ii5          quickload        (quik)     .com  .cpm  
+x820iilp         floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x820iilp         floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x820iilp         quickload        (quik)     .com  .cpm  
+x820iis          floppydisk1      (flop1)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x820iis          floppydisk2      (flop2)    .mfi  .dfi  .mfm  .td0  .imd  .86f  .d77  .d88  .1dd  .cqm  .cqi  .dsk  
+x820iis          harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
+x820iis          quickload        (quik)     .com  .cpm  
 xavaero          (none)
 xavbaseb         (none)
 xavbasebj        (none)
@@ -49187,6 +49441,7 @@ xegs             floppydisk2      (flop2)    .atr  .dsk  .xfd
 xegs             floppydisk3      (flop3)    .atr  .dsk  .xfd  
 xegs             floppydisk4      (flop4)    .atr  .dsk  .xfd  
 xegs             cartridge        (cart)     .bin  .rom  .car  
+xeno             (none)
 xenon            (none)
 xenonf           (none)
 xenophob         (none)
@@ -49249,6 +49504,7 @@ xmenj            (none)
 xmenja           (none)
 xmenu            (none)
 xmenua           (none)
+xmifeng          (none)
 xmultipl         (none)
 xmultiplm72      (none)
 xmvsf            (none)
@@ -49292,6 +49548,7 @@ xsleenaba        (none)
 xsleenabb        (none)
 xsleenaj         (none)
 xtheball         (none)
+xtianshi         (none)
 xtom3d           (none)
 xtrain           (none)
 xtrial           harddisk         (hard)     .chd  .hd   .hdv  .2mg  .hdi  
@@ -49313,6 +49570,7 @@ xyonix           (none)
 xypdk            (none)
 xypmd            (none)
 xypmda           (none)
+xyxcxysj         (none)
 y301xl           (none)
 y416xl           (none)
 y503iiir         cartridge1       (cart1)    .mx1  .bin  .rom  
