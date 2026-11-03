@@ -117,6 +117,8 @@ def atom_start(dsk):
 def tape_autoboot(data, system=''):
     """Input before/after loading, from the tape header: Acorn UEF (Electron/BBC), Oric, FM-7, Colour Genie, MS-BASIC (D3), Lynx, CoCo/MC-10"""
     if data[:2] == b'\x1f\x8b': data = gzip.decompress(data)
+    if system.startswith(('hec2hr', 'hec2mdhrx', 'hec2mx')):   # Hector HRX/MX menu: 5 = Hector 1 mode, 1 = cassette, then play
+        return "51", ""
     if data[:9] == b'UEF File!' and system.startswith(('electron', 'bbc')):
         return '*TAPE\nCHAIN""\n', ""
     if data[:2] == b'\x66\x55':
