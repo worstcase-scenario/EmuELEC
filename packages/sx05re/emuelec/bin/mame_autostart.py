@@ -32,9 +32,9 @@ def load_map():
     with open(MAPFILE) as f:
         return dict(l.strip().split('=', 1) for l in f if '=' in l and not l.startswith('#'))
 
-# Tape: types pre (slowly, char by char), starts the tape, waits until it stops (or ~end), types post
+# Tape: types pre (slowly, char by char), starts the tape, waits until it stops (or ~end, or the end of the signal), types post
 LUA = """local nk, cas, state, last, still, buf, gap = manager.machine.natkeyboard, nil, 0, -1, 0, %s, 0
-local post = %s
+local post, stop = %s, %s
 for _, c in pairs(manager.machine.cassettes) do cas = c end
 local function typing()
     if buf == "" then return false end
@@ -48,7 +48,7 @@ sub = emu.add_machine_frame_notifier(function()
     elseif state == 1 then
         local p = cas.position
         still = (p == last and p > 0) and still + 1 or 0; last = p
-        if still >= 30 or p >= cas.length - 1 then state = 2; still = 0 end
+        if still >= 30 or p >= cas.length - 1 or (stop > 0 and p >= stop) then state = 2; still = 0 end
     elseif state == 2 then still = still + 1
         if still == 120 then buf = post; state = 3 end
     else sub:unsubscribe() end
@@ -139,14 +139,33 @@ def tape_autoboot(data, system=''):
         name = m.group(1).decode('ascii', 'ignore')
         return (f'MLOAD "{name}"\n', "") if m.group(2) == b'M' else (f'LOAD "{name}"\n', "RUN\n")
     i = data.find(b'\x55\x3c\x00')
-    if i < 0 or len(data) <= i + 12: return None
+    if i < 0 or len(data) <= i + 12:
+        return ("CLOAD\n", "RUN\n") if system.startswith(('alice', 'mc10')) else None   # e.g. .wav: no header to read
     return {0: ("CLOAD\n", "RUN\n"), 2: ("CLOADM:EXEC\n", "")}.get(data[i + 12])
+
+def mc10_first_end(data):
+    """Tape time (s) right after the first file's EOF block, as MAME's alice32 cassette format lays it out
+    (1 s lead, 15 s silence + 128 sync bytes before name blocks and after name/EOF blocks), 0 if not found"""
+    bt = lambda bs: sum(1 / 2400 if b >> i & 1 else 1 / 1200 for b in bs for i in range(8))
+    off, t, last, t55 = 0, 1.0, 0, bt(b'\x55')
+    while True:
+        k = data.find(b'\x55\x3c', off)
+        if k < 0 or k + 4 > len(data): return 0
+        typ, ln = data[k + 2], data[k + 3]
+        blk = data[k + 2:k + 5 + ln]
+        if len(blk) < ln + 3 or sum(blk[:-1]) & 0xff != blk[-1]: off = k + 1; continue
+        sync = len(data[off:k + 1]) - len(data[off:k + 1].lstrip(b'\x55'))
+        t += 15 + 128 * t55 if last in (0, 0xff) or typ == 0 else 4 * sync * t55
+        t += bt(b'\x55\x3c') + bt(blk) + t55
+        if typ == 0xff: return round(t + 1, 1)
+        last, off = typ, k + 5 + ln
 
 def cass_lua(head, system=''):
     """Lua autoboot for tapes; without a recognized command only the tape is started"""
     ab = tape_autoboot(head or b'', system) or ("", "")
     lua = os.path.join(TMPDIR, "autoboot.lua")
-    with open(lua, 'w') as f: f.write(LUA % (json.dumps(ab[0]), json.dumps(ab[1])))
+    stop = mc10_first_end(head) if system.startswith(('alice', 'mc10')) else 0   # type post in the silence after the first file
+    with open(lua, 'w') as f: f.write(LUA % (json.dumps(ab[0]), json.dumps(ab[1]), stop))
     return f'-autoboot_delay 5 -autoboot_script {lua}'
 
 def resolve_cmd(cmd):
