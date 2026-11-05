@@ -32,7 +32,7 @@ def load_map():
     with open(MAPFILE) as f:
         return dict(l.strip().split('=', 1) for l in f if '=' in l and not l.startswith('#'))
 
-# Tape: types pre (slowly, char by char), starts the tape, waits until it stops (or ~end, or the end of the signal),
+# Tape: types pre (slowly, char by char, "~" = 1 s pause), starts the tape, waits until it stops (or ~end, or the end of the signal),
 # inserts and plays the next tape if given, types post
 LUA = """local nk, cas, state, last, still, buf, gap = manager.machine.natkeyboard, nil, 0, -1, 0, %s, 0
 local post, stop, nxt = %s, %s, %s
@@ -40,7 +40,10 @@ for _, c in pairs(manager.machine.cassettes) do cas = c end
 local function typing()
     if buf == "" then return false end
     gap = gap + 1
-    if gap >= 15 and nk.empty then nk:post(buf:sub(1, 1)); buf = buf:sub(2); gap = 0 end
+    if gap >= 15 and nk.empty then
+        if buf:sub(1, 1) == "~" then gap = -45 else nk:post(buf:sub(1, 1)); gap = 0 end
+        buf = buf:sub(2)
+    end
     return true
 end
 sub = emu.add_machine_frame_notifier(function()
@@ -159,6 +162,14 @@ def atom_start(dsk):
 def tape_autoboot(data, system=''):
     """Input before/after loading, from the tape header: Acorn UEF (Electron/BBC), Oric, FM-7, Colour Genie, MS-BASIC (D3), Lynx, CoCo/MC-10"""
     if data[:2] == b'\x1f\x8b': data = gzip.decompress(data)
+    if system.startswith('trs80'):                             # Level II: MEMORY SIZE?, SYSTEM tapes (A5 55 name) or BASIC (A5 D3)
+        i = data.find(b'\xa5')
+        if 0 <= i < 1024 and data[i + 1:i + 2] == b'\x55':
+            return "\n~~SYSTEM\n~" + data[i + 2:i + 8].decode('ascii', 'ignore').strip() + "\n", "/\n"
+        if 0 <= i < 1024 and data[i + 1:i + 4] == b'\xd3' * 3:
+            return "\n~~CLOAD\n", "RUN\n"
+    if system.startswith(('laser', 'vz')):                     # VTech BASIC: CRUN loads and starts
+        return "CRUN\n", ""
     if system.startswith('mz700'):                             # monitor: L loads and starts machine code
         return "L\n", ""
     if system.startswith('mz800'):                             # boot menu: C loads and starts from cassette
@@ -256,7 +267,12 @@ def build_cmd(rom, systems):
         hits.sort(key=lambda n: not BOOT.search(os.path.basename(n)))
         if brief == 'cass': head = z.read(hits[0])
         p6 = system.startswith('pc6001') and brief == 'dump'    # PC-6001 tapes: snapshot device, needs a real file
-        if len(hits) == 1 and not brief.startswith(('flop', 'cass')) and not p6:   # neutral name, avoids softlist match
+        if brief.startswith('cdrm'):                          # CD images: extract all (.cue needs its .bin)
+            out = os.path.join(TMPDIR, "_media")
+            shutil.rmtree(out, ignore_errors=True)
+            z.extractall(out)
+            files = [os.path.join(out, n) for n in hits]
+        elif len(hits) == 1 and not brief.startswith(('flop', 'cass')) and not p6:   # neutral name, avoids softlist match
             files = [os.path.join(TMPDIR, "_media.zip")]
             if os.path.lexists(files[0]): os.remove(files[0])
             os.symlink(rom, files[0])
