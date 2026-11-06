@@ -32,8 +32,8 @@ def load_map():
     with open(MAPFILE) as f:
         return dict(l.strip().split('=', 1) for l in f if '=' in l and not l.startswith('#'))
 
-# Tape: types pre (slowly, char by char, "~" = 1 s pause), starts the tape, waits until it stops (or ~end, or the end of the signal),
-# inserts and plays the next tape if given, types post
+# Tape: types pre (slowly, char by char, "~" = 1 s pause), starts the tape, waits until it stops
+# (or ~end, or the given stop time), inserts and plays the next tape if given, types post
 LUA = """local nk, cas, state, last, still, buf, gap = manager.machine.natkeyboard, nil, 0, -1, 0, %s, 0
 local post, stop, nxt = %s, %s, %s
 for _, c in pairs(manager.machine.cassettes) do cas = c end
@@ -160,7 +160,8 @@ def atom_start(dsk):
     return next((n for n, ex in files if ex == b'\x86\xce'), None)
 
 def tape_autoboot(data, system=''):
-    """Input before/after loading, from the tape header: Acorn UEF (Electron/BBC), Oric, FM-7, Colour Genie, MS-BASIC (D3), Lynx, CoCo/MC-10"""
+    """Input before/after loading: per machine (TRS-80, PHC-25, SPC-1000, Laser/VZ, MZ, Hector) or from the
+    tape header (Acorn UEF, Colour Genie, Oric, FM-7, MS-BASIC, SVI/MSX, Lynx, CoCo/MC-10)"""
     if data[:2] == b'\x1f\x8b': data = gzip.decompress(data)
     if system.startswith('trs80'):                             # Level II: MEMORY SIZE?, SYSTEM tapes (A5 55 name) or BASIC (A5 D3)
         i = data.find(b'\xa5')
@@ -168,6 +169,10 @@ def tape_autoboot(data, system=''):
             return "\n~~SYSTEM\n~" + data[i + 2:i + 8].decode('ascii', 'ignore').strip() + "\n", "/\n"
         if 0 <= i < 1024 and data[i + 1:i + 4] == b'\xd3' * 3:
             return "\n~~CLOAD\n", "RUN\n"
+    if system.startswith('phc25'):                             # "Screen ?" = text mode 1, then CLOAD
+        return "1\n~~CLOAD\n", "RUN\n"
+    if system.startswith('spc1'):                              # IPL: B = BASIC, then LOAD the next tape program
+        return "B~~LOAD\n", "RUN\n"
     if system.startswith(('laser', 'vz')):                     # VTech BASIC: CRUN loads and starts
         return "CRUN\n", ""
     if system.startswith('mz700'):                             # monitor: L loads and starts machine code
@@ -246,6 +251,14 @@ def build_cmd(rom, systems):
     ext = os.path.splitext(rom)[1].lower()
     if system not in systems:
         sys.exit(f"{system} is not a MAME system in listmedia.txt")
+    if ext != ".zip" and not any(ext in x for _, x in systems[system]):
+        with open(rom, 'rb') as f: riff = f.read(12)
+        if riff[:4] == b'RIFF' and riff[8:] == b'WAVE':        # WAV with another extension (e.g. .mti)
+            os.makedirs(TMPDIR, exist_ok=True)
+            link = os.path.join(TMPDIR, os.path.splitext(os.path.basename(rom))[0] + '.wav')
+            if os.path.lexists(link): os.remove(link)
+            os.symlink(rom, link)
+            rom, ext = link, '.wav'
     files, head = [rom], None
     forced = extra.split()[-1] if extra.split() and extra.split()[-1].startswith('-') else None
     if forced:                                                 # map ends with "-<media>": put file there
@@ -310,7 +323,7 @@ def build_cmd(rom, systems):
         extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
     slots = [b for b, x in systems[system] if b.rstrip('0123456789') == brief.rstrip('0123456789') and set(x) == set(exts)]
     args = ' '.join(f'-{b} "{f}"' for b, f in zip(slots or [brief], files))
-    if system.startswith('mz2000') and brief == 'cass' and '-autoboot' not in extra:
+    if system.startswith(('mz2000', 'mz80b')) and brief == 'cass' and '-autoboot' not in extra:
         lua = os.path.join(TMPDIR, "autoboot.lua")                 # IPL: C boots from cassette
         with open(lua, 'w') as f: f.write(SEQ_LUA % '{{1, "C"}, {180, "{PLAY}"}}')   # press PLAY once "Make ready CMT" shows
         extra = f'{extra} -autoboot_delay 3 -autoboot_script {lua}'.strip()
