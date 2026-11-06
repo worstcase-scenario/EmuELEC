@@ -46,6 +46,11 @@ declare -A NINTENDO_LAYOUT_BUTTONS=(
     [start]="ButtonStart" [back]="ButtonSelect" [select]="ButtonSelect"
 )
 
+# SDL_GameControllerAxis enum values
+declare -A SDL_AXIS_ENUM=(
+    [leftx]=0 [lefty]=1 [rightx]=2 [righty]=3
+)
+
 # DuckStation axis names
 declare -A DUCKSTATION_AXES=(
     [leftx]="AxisLeftX" [lefty]="AxisLeftY"
@@ -74,7 +79,7 @@ generate_config() {
     echo "Type = AnalogController"
     echo "AnalogDPadInDigitalMode = true"
     
-    local guide_button=""
+    local guide_raw="" back_raw=""
     
     # Process each mapping element (skip first 2: guid and name)
     for ((i=2; i<${#PARTS[@]}; i++)); do
@@ -100,27 +105,21 @@ generate_config() {
                     echo "$duck_name = Controller${controller_num}/Button${enum_value}"
                 fi
                 
-                # Track guide/back button for hotkeys (prefer back)
-                if [ "$key" = "guide" ]; then
-                    guide_button="$enum_value"
-                    LAST_GUIDE_BUTTON="$enum_value"
-                elif ([ "$key" = "back" ] || [ "$key" = "select" ]) && [ -z "$guide_button" ]; then
-                    guide_button="$enum_value"
-                    LAST_GUIDE_BUTTON="$enum_value"
-                fi
+                # Track guide/back button for the hotkey
+                [ "$key" = "guide" ] && guide_raw="$value"
+                [[ "$key" = "back" || "$key" = "select" ]] && back_raw="$value"
             fi
         
         # Handle axes
         elif [[ "$value" =~ ^a([0-9]+)$ ]]; then
-            local axis_num="${BASH_REMATCH[1]}"
-            
+            # DuckStation reads SDL GameController axes: use the enum, not the raw axis
             if [ "$key" = "lefttrigger" ]; then
-                echo "ButtonL2 = Controller${controller_num}/+Axis${axis_num}"
+                echo "ButtonL2 = Controller${controller_num}/+Axis4"
             elif [ "$key" = "righttrigger" ]; then
-                echo "ButtonR2 = Controller${controller_num}/+Axis${axis_num}"
+                echo "ButtonR2 = Controller${controller_num}/+Axis5"
             else
                 local duck_name="${DUCKSTATION_AXES[$key]}"
-                [ -n "$duck_name" ] && echo "$duck_name = Controller${controller_num}/Axis${axis_num}"
+                [ -n "$duck_name" ] && echo "$duck_name = Controller${controller_num}/Axis${SDL_AXIS_ENUM[$key]}"
             fi
         
         # Handle hats (D-pad)
@@ -133,6 +132,13 @@ generate_config() {
             fi
         fi
     done
+
+    # Hotkey: guide, or back if both share one physical button (SDL reports it as back)
+    if [ -n "$guide_raw" ] && [ "$guide_raw" != "$back_raw" ]; then
+        LAST_GUIDE_BUTTON="${SDL_BUTTON_ENUM[guide]}"
+    elif [ -n "$back_raw" ]; then
+        LAST_GUIDE_BUTTON="${SDL_BUTTON_ENUM[back]}"
+    fi
 
     RUMBLE=$(get_ee_setting ee_rumble_strength)
     [[ -z "${RUMBLE}" ]] && RUMBLE=0
