@@ -97,13 +97,12 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/armsx2SA
   cp bin/armsx2-sdl ${INSTALL}/usr/share/armsx2SA/
   cp -r bin/resources ${INSTALL}/usr/share/armsx2SA/
-  # patches.zip (game fixes) is not in the source tree, upstream CI fetches it
-  curl -fL -o ${INSTALL}/usr/share/armsx2SA/resources/patches.zip \
-    https://github.com/isztldav/pcsx2_patches/releases/latest/download/patches.zip
+  # patches.zip (game fixes) is not built, the source ships it for the mobile ports
+  cp ${PKG_BUILD}/platforms/android/app/src/main/assets/resources/patches.zip ${INSTALL}/usr/share/armsx2SA/resources/
 
   mkdir -p ${INSTALL}/usr/bin
-  cp ${PKG_DIR}/scripts/armsx2start.sh ${INSTALL}/usr/bin/
-  chmod +x ${INSTALL}/usr/bin/armsx2start.sh
+  cp ${PKG_DIR}/scripts/armsx2start.sh ${PKG_DIR}/scripts/set_armsx2_joy.sh ${INSTALL}/usr/bin/
+  chmod +x ${INSTALL}/usr/bin/armsx2start.sh ${INSTALL}/usr/bin/set_armsx2_joy.sh
 
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/armsx2
   cp ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/armsx2/
