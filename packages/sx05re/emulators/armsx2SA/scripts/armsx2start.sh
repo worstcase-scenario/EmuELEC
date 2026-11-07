@@ -33,4 +33,7 @@ if [ "${ROM##*.}" = "cue" ]; then
     [ -n "${BIN}" ] && ROM="$(dirname "${ROM}")/${BIN}"
 fi
 
+# Controller bindings from the connected pads (disable with armsx2_auto_gamepad=0)
+[ "$(get_ee_setting armsx2_auto_gamepad)" != "0" ] && set_armsx2_joy.sh
+
 /usr/share/armsx2SA/armsx2-sdl "${ROM}"

@@ -1,0 +1,13 @@
+--- a/src/memu/win_fb.c
++++ b/src/memu/win_fb.c
+@@ -168,6 +168,10 @@
+ 	__u32 clr   =  win_fb_component (col.r, &vinfo.red )
+ 		|  win_fb_component (col.g, &vinfo.green )
+ 		|  win_fb_component (col.b, &vinfo.blue );
++	/* DRM fbdev scans out ARGB even if transp is reported empty: set all non-RGB bits (opaque alpha) */
++	if ( vinfo.bits_per_pixel == 32 )
++		clr  |=  ~( win_fb_component (0xff, &vinfo.red ) | win_fb_component (0xff, &vinfo.green )
++			| win_fb_component (0xff, &vinfo.blue ) );
+ 	return   clr;
+ 	}
+ 
