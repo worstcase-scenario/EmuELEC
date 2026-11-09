@@ -191,15 +191,16 @@ dolphin_hat() {
   return 0
 }
 
+# GameCube by position: A south, B west, X east, Y north
 declare -A GC_DOLPHIN_BUTTONS=(
   [dpleft]="D-Pad/Left"
   [dpright]="D-Pad/Right"
   [dpup]="D-Pad/Up"
   [dpdown]="D-Pad/Down"
-  [x]="Buttons/X"
+  [x]="Buttons/B"
   [y]="Buttons/Y"
   [a]="Buttons/A"
-  [b]="Buttons/B"
+  [b]="Buttons/X"
   [lefttrigger]="Triggers/L"
   [righttrigger]="Triggers/R"
   [start]="Buttons/Start"
@@ -212,10 +213,10 @@ declare -A WII_DOLPHIN_BUTTONS=(
   [dpright]="D-Pad/Right"
   [dpup]="D-Pad/Up"
   [dpdown]="D-Pad/Down"
-  [x]="Buttons/X"
-  [y]="Buttons/Y"
-  [a]="Buttons/A"
-  [b]="Buttons/B"
+  [x]="Buttons/Y"
+  [y]="Buttons/X"
+  [a]="Buttons/B"
+  [b]="Buttons/A"
   [leftshoulder]="Triggers/L"
   [rightshoulder]="Triggers/R"
   [back]="Buttons/-"
@@ -229,17 +230,17 @@ declare -A WII_DOLPHIN_BUTTONS=(
 
 BTN_SWAP_XY=$(get_ee_setting dolphin_joy_swap_xy)
 if [[ "${BTN_SWAP_XY}" == "1" ]]; then
-  GC_DOLPHIN_BUTTONS[x]="Buttons/Y"
+  GC_DOLPHIN_BUTTONS[b]="Buttons/Y"
   GC_DOLPHIN_BUTTONS[y]="Buttons/X"
-  WII_DOLPHIN_BUTTONS[x]="Buttons/Y"
-  WII_DOLPHIN_BUTTONS[y]="Buttons/X"
+  WII_DOLPHIN_BUTTONS[x]="Buttons/X"
+  WII_DOLPHIN_BUTTONS[y]="Buttons/Y"
 fi
 BTN_SWAP_AB=$(get_ee_setting dolphin_joy_swap_ab)
 if [[ "${BTN_SWAP_AB}" == "1" ]]; then
   GC_DOLPHIN_BUTTONS[a]="Buttons/B"
-  GC_DOLPHIN_BUTTONS[b]="Buttons/A"
-  WII_DOLPHIN_BUTTONS[a]="Buttons/B"
-  WII_DOLPHIN_BUTTONS[b]="Buttons/A"
+  GC_DOLPHIN_BUTTONS[x]="Buttons/A"
+  WII_DOLPHIN_BUTTONS[a]="Buttons/A"
+  WII_DOLPHIN_BUTTONS[b]="Buttons/B"
 fi
 
 declare -A WII_DOLPHIN_STICKS=(

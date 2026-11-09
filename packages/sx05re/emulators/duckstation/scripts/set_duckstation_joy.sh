@@ -72,7 +72,7 @@ generate_config() {
     
     # Choose button mapping based on controller type
     local -n BUTTON_MAP
-        BUTTON_MAP=NINTENDO_LAYOUT_BUTTONS
+        BUTTON_MAP=DUCKSTATION_BUTTONS
 #        BUTTON_MAP=DUCKSTATION_BUTTONS
     
     echo "[Controller${controller_order}]"

@@ -79,6 +79,11 @@ while pgrep -x /usr/bin/retroarch >/dev/null; do
     sleep 1
 done
 
+# Use the image's SDL mapping generator, then rewrite old Nintendo-style mappings once
+mkdir -p /storage/.config/emulationstation/scripts/configscripts
+cp -f /usr/config/emulationstation/scripts/configscripts/gamecontrollerdb.sh /storage/.config/emulationstation/scripts/configscripts/
+gamecontrollerdb_positional.sh
+
 # We look for themes
 umount /emuelec/themes > /dev/null 2>&1
 mkdir -p /emuelec/themes > /dev/null 2>&1
