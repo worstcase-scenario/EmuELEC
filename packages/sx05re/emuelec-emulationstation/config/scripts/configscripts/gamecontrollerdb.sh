@@ -32,17 +32,19 @@ function map_gamecontrollerdb_joystick() {
         right)
             keys=("dpright")
             ;;
+        # ES asks for the Nintendo layout (a = east, x = north),
+        # SDL mappings are positional (a = south, x = west)
         a)
-            keys=("a")
-            ;;
-        b)
             keys=("b")
             ;;
+        b)
+            keys=("a")
+            ;;
         x)
-            keys=("x")
+            keys=("y")
             ;;
         y)
-            keys=("y")
+            keys=("x")
             ;;
         leftshoulder)
             keys=("leftshoulder")

@@ -27,10 +27,10 @@ declare -A FLYCAST_D_INDEXES=(
 )
 
 declare -A FLYCAST_D_BUTTONS=(
-  [x]="btn_y"
-  [y]="btn_x"
-  [a]="btn_b"
-  [b]="btn_a"
+  [x]="btn_x"
+  [y]="btn_y"
+  [a]="btn_a"
+  [b]="btn_b"
   [leftshoulder]="btn_c"
   [rightshoulder]="btn_d"
   [lefttrigger]="btn_trigger_left"
@@ -51,14 +51,14 @@ declare -A FLYCAST_D_BUTTONS=(
 
 BTN_SWAP_XY=$(get_ee_setting flycast_joy_swap_xy)
 if [[ "${BTN_SWAP_XY}" == "1" ]]; then
-  FLYCAST_D_BUTTONS[x]="btn_x"
-  FLYCAST_D_BUTTONS[y]="btn_y"
+  FLYCAST_D_BUTTONS[x]="btn_y"
+  FLYCAST_D_BUTTONS[y]="btn_x"
 fi
 
 BTN_SWAP_AB=$(get_ee_setting flycast_joy_swap_ab)
 if [[ "${BTN_SWAP_AB}" == "1" ]]; then
-  FLYCAST_D_BUTTONS[a]="btn_a"
-  FLYCAST_D_BUTTONS[b]="btn_b"
+  FLYCAST_D_BUTTONS[a]="btn_b"
+  FLYCAST_D_BUTTONS[b]="btn_a"
 fi
 
 declare -A STICK_DIRECTIONS=(

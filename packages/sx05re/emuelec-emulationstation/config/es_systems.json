@@ -130,6 +130,17 @@
               "name": "FbneoSA"
             }
           ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
+            }
+          ]
         }
       ]
     },
@@ -183,6 +194,17 @@
           "cores": [
             {
               "name": "FbneoSA"
+            }
+          ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
             }
           ]
         }
@@ -335,6 +357,17 @@
             {
               "name": "mame",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
             }
           ]
         }
@@ -735,6 +768,17 @@
               "name": "FbneoSA"
             }
           ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
+            }
+          ]
         }
       ]
     },
@@ -789,6 +833,17 @@
               "name": "FbneoSA"
             }
           ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
+            }
+          ]
         }
       ]
     },
@@ -841,6 +896,17 @@
           "cores": [
             {
               "name": "FbneoSA"
+            }
+          ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
             }
           ]
         }
@@ -1401,6 +1467,17 @@
           "cores": [
             {
               "name": "FbneoSA"
+            }
+          ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
             }
           ]
         }
@@ -2987,6 +3064,17 @@
           "cores": [
             {
               "name": "FbneoSA"
+            }
+          ]
+        },
+        {
+          "name": "MAMESA",
+          "cores": [
+            {
+              "name": "mamesa"
+            },
+            {
+              "name": "mamesa-gles"
             }
           ]
         }

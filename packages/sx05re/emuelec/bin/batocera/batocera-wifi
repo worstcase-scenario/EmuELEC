@@ -22,7 +22,7 @@ do_list() {
 }
 
 do_scanlist() {
-    connmanctl scan wifi >/dev/null 2>/dev/null
+    timeout 10 connmanctl scan wifi >/dev/null 2>&1
     do_list
 }
 

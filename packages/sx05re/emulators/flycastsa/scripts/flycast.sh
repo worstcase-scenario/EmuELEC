@@ -15,5 +15,6 @@ if [[ "${AUTOGP}" != "0" ]]; then
   set_flycast_joy.sh
 fi
 flycastcheevos.sh
-# Windowed 640x480 makes SDL kmsdrm fail to set the video mode (black screen)
-flycast -config window:fullscreen=yes "${1}"
+# Window size must match the display mode, otherwise kmsdrm shows a black screen
+read -r W H <<< "$(get_resolution)"
+flycast -config window:fullscreen=yes -config window:width="${W:-1920}" -config window:height="${H:-1080}" "${1}"

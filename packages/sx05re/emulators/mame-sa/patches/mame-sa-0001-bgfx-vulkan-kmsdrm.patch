@@ -1,0 +1,111 @@
+diff --git a/3rdparty/bgfx/src/renderer_vk.cpp b/3rdparty/bgfx/src/renderer_vk.cpp
+index 8b2c6cd..6a64c0b 100644
+--- a/3rdparty/bgfx/src/renderer_vk.cpp
++++ b/3rdparty/bgfx/src/renderer_vk.cpp
+@@ -17,6 +17,8 @@
+ #	import <Metal/Metal.h>
+ #endif // BX_PLATFORM_OSX
+ 
++namespace bgfx { bool (*g_vkSurfaceHook)(void *, void *, void *) = NULL; }
++
+ namespace bgfx { namespace vk
+ {
+ 	static char s_viewName[BGFX_CONFIG_MAX_VIEWS][BGFX_CONFIG_MAX_VIEW_NAME];
+@@ -349,6 +351,7 @@ VK_IMPORT_DEVICE
+ 			KHR_wayland_surface,
+ 			KHR_xlib_surface,
+ 			KHR_xcb_surface,
++			KHR_display,
+ #	elif BX_PLATFORM_WINDOWS
+ 			KHR_win32_surface,
+ #	elif BX_PLATFORM_OSX
+@@ -385,6 +388,7 @@ VK_IMPORT_DEVICE
+ 		{ VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,    1, false, false, true,                                                          Layer::Count },
+ 		{ VK_KHR_XLIB_SURFACE_EXTENSION_NAME,       1, false, false, true,                                                          Layer::Count },
+ 		{ VK_KHR_XCB_SURFACE_EXTENSION_NAME,        1, false, false, true,                                                          Layer::Count },
++		{ VK_KHR_DISPLAY_EXTENSION_NAME,            1, false, false, true,                                                          Layer::Count },
+ #	elif BX_PLATFORM_WINDOWS
+ 		{ VK_KHR_WIN32_SURFACE_EXTENSION_NAME,      1, false, false, true,                                                          Layer::Count },
+ #	elif BX_PLATFORM_OSX
+@@ -6788,7 +6792,11 @@ VK_DESTROY
+ 		}
+ #elif BX_PLATFORM_LINUX
+ 		{
+-			if (g_platformData.type == bgfx::NativeWindowHandleType::Wayland)
++			if (NULL != g_vkSurfaceHook)
++			{
++				result = g_vkSurfaceHook(m_nwh, instance, &m_surface) ? VK_SUCCESS : VK_ERROR_INITIALIZATION_FAILED;
++			}
++			else if (g_platformData.type == bgfx::NativeWindowHandleType::Wayland)
+ 			{
+ 				BGFX_FATAL(s_extension[Extension::KHR_wayland_surface].m_supported, Fatal::UnableToInitialize, VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME " not supported");
+ 				BGFX_FATAL(NULL != vkCreateWaylandSurfaceKHR, Fatal::UnableToInitialize, "vkCreateWaylandSurfaceKHR == 0");
+@@ -6934,7 +6942,7 @@ VK_DESTROY
+ 			return VK_ERROR_INITIALIZATION_FAILED;
+ 		}
+ 
+-		const uint32_t swapBufferCount = bx::clamp<uint32_t>(m_resolution.numBackBuffers, minSwapBufferCount, maxSwapBufferCount);
++		const uint32_t swapBufferCount = maxSwapBufferCount;
+ 
+ 		const VkColorSpaceKHR surfaceColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+ 
+diff --git a/scripts/src/3rdparty.lua b/scripts/src/3rdparty.lua
+index 2d0cfe3..1cbffbb 100755
+--- a/scripts/src/3rdparty.lua
++++ b/scripts/src/3rdparty.lua
+@@ -1536,6 +1536,7 @@ end
+ 			defines {
+ 				"BGFX_CONFIG_RENDERER_OPENGLES=1",
+ 				"BGFX_CONFIG_RENDERER_OPENGL=0",
++				"BGFX_CONFIG_RENDERER_VULKAN=1",
+ 			}
+ 		end
+ 		if _OPTIONS["USE_WAYLAND"]=="1" then
+diff --git a/src/osd/modules/render/drawbgfx.cpp b/src/osd/modules/render/drawbgfx.cpp
+index d649d08..73fff90 100644
+--- a/src/osd/modules/render/drawbgfx.cpp
++++ b/src/osd/modules/render/drawbgfx.cpp
+@@ -151,6 +151,11 @@ inline renderer_bgfx::parent_module_holder::~parent_module_holder()
+ //  OSD MODULE
+ //============================================================
+ 
++#if defined(SDL_VIDEO_DRIVER_KMSDRM)
++#include <SDL2/SDL_vulkan.h>
++namespace bgfx { extern bool (*g_vkSurfaceHook)(void *, void *, void *); }
++#endif
++
+ namespace osd {
+ 
+ namespace {
+@@ -498,6 +503,16 @@ bool video_bgfx::set_platform_data(bgfx::PlatformData &platform_data, osd_window
+ 		platform_data.ndt = nullptr;
+ 		platform_data.nwh = wmi.info.android.window;
+ 		break;
++#endif
++#if defined(SDL_VIDEO_DRIVER_KMSDRM)
++	case SDL_SYSWM_KMSDRM:
++		platform_data.ndt = nullptr;
++		platform_data.nwh = dynamic_cast<sdl_window_info const &>(window).platform_window();
++		bgfx::g_vkSurfaceHook = [] (void *nwh, void *instance, void *surface) -> bool
++		{
++			return SDL_Vulkan_CreateSurface((SDL_Window *)nwh, (VkInstance)instance, (VkSurfaceKHR *)surface);
++		};
++		break;
+ #endif
+ 	default:
+ 		osd_printf_error("BGFX: Unsupported SDL window manager type %u\n", wmi.subsystem);
+diff --git a/src/osd/sdl/window.cpp b/src/osd/sdl/window.cpp
+index 845e994..3e8b20a 100644
+--- a/src/osd/sdl/window.cpp
++++ b/src/osd/sdl/window.cpp
+@@ -835,6 +835,10 @@ int sdl_window_info::complete_create()
+ 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+ 		m_extra_flags = SDL_WINDOW_OPENGL;
+ 	}
++	else if (!strcmp(downcast<sdl_options &>(machine().options()).video(), "bgfx") && !SDL_strcasecmp(SDL_GetCurrentVideoDriver(), "kmsdrm"))
++	{
++		m_extra_flags = SDL_WINDOW_VULKAN;
++	}
+ 	else
+ 	{
+ 		m_extra_flags = 0;

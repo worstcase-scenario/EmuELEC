@@ -47,6 +47,8 @@ if [ "$(wc -c < "$1")" -lt $((1 * 1024)) ]; then
 else
     flycastdojo -config network:GGPO=no -config dojo:PlayerName=${PLAYER} "$1"
 fi
+RET=$?
 
-kill $VK_PID
+kill $VK_PID 2>/dev/null
+exit $RET
 
