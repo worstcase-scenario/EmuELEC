@@ -5,8 +5,11 @@
 
 . /etc/profile
 
-virtual_keyboard &
-VK_PID=$!
+# KMSDRM (Amlogic-no) allows only one program on the display: no on-screen keyboard there
+if ! grep -q '^COREELEC_DEVICE="Amlogic-no"' /etc/os-release; then
+    virtual_keyboard &
+    VK_PID=$!
+fi
 
 LOCAL_DATA="/storage/roms/bios/dc_dojo"
 LOCAL_HOME="/storage/.local/share/flycast-dojo"
@@ -49,6 +52,6 @@ else
 fi
 RET=$?
 
-kill $VK_PID 2>/dev/null
+[ -n "$VK_PID" ] && kill $VK_PID 2>/dev/null
 exit $RET
 
