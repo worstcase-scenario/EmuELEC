@@ -228,19 +228,31 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} duckstation.sh "${ROMNAME}"'
         fi
                 ;;
-        "mame"|"arcade"|"cps1"|"cps2"|"cps3")
+        "mame"|"arcade"|"cps1"|"cps2"|"cps3"|"pgm2")
                 if [ "${EMU}" = "AdvanceMame" ]; then
             set_kill_keys "advmame" 3
             RUNTHIS='${TBASH} advmame.sh "${PLATFORM}" "${ROMNAME}"'
                 elif [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
             RUNTHIS='fbneo.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "mamesa" ]; then
+            set_kill_keys "mame-sa"
+            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "mamesa-gles" ]; then
+            set_kill_keys "mame-sa"
+            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}" gles'
                 fi
                 ;;
         "fbn"|"neogeo")
         if [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
             RUNTHIS='fbneo.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "mamesa" ]; then
+            set_kill_keys "mame-sa"
+            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "mamesa-gles" ]; then
+            set_kill_keys "mame-sa"
+            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}" gles'
                 fi
                 ;;
         "nds")
