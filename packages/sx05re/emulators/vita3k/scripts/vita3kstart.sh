@@ -17,12 +17,18 @@ export XDG_CACHE_HOME="/storage/roms/psvita/.vita3k/cache"
 export XDG_DATA_HOME="/storage/roms/psvita/.vita3k"
 unset XDG_DATA_DIRS
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-# new config: skip the setup wizard (not usable with a gamepad); face buttons
-# rotated like the ARMSX2 config, EmuELEC's SDL mapping swaps South/East, West/North
+# new config: skip the setup wizard (not usable with a gamepad)
 # memory-mapping disabled: double-buffer write tracking causes flicker on kernel 5.15
 # psn-signed-in: games assume PSN sign-in (offline), skips "not online" dialogs
 CFG="$XDG_CONFIG_HOME/Vita3K/config.yml"
-[ -f "$CFG" ] || { mkdir -p "${CFG%/*}"; printf 'initial-setup: true\ncontroller-binds: [1, 0, 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]\nmemory-mapping: disabled\npsn-signed-in: 1\n' > "$CFG"; }
+[ -f "$CFG" ] || { mkdir -p "${CFG%/*}"; printf 'initial-setup: true\nmemory-mapping: disabled\npsn-signed-in: 1\n' > "$CFG"; }
+# SDL mappings are positional now: drop the old rotated face button default
+awk 'function flush() { if (k != "") { if (v != " 1 0 3 2 4 5 6 7 8 9 10 11 12 13 14") printf "%s", k; k = ""; v = "" } }
+     k != "" && /^  - [0-9]+$/ { k = k $0 "\n"; v = v " " $2; next }
+     { flush() }
+     /^controller-binds:$/ { k = $0 "\n"; next }
+     $0 != "controller-binds: [1, 0, 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]" { print }
+     END { flush() }' "$CFG" > "$CFG.tmp" && mv "$CFG.tmp" "$CFG"
 # install firmware on first start; second try covers the upstream first-run crash
 PUP="/storage/roms/bios/PSVUPDAT.PUP"
 FW="$XDG_DATA_HOME/Vita3K/Vita3K/vs0"
