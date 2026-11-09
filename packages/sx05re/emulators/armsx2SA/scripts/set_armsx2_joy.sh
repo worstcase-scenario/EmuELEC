@@ -12,14 +12,6 @@ INI="/storage/.config/ARMSX2/inis/PCSX2.ini"
 mapfile -t GUIDS < <(gamepad_info 2>/dev/null | grep -oE '^[0-9a-f]{32}' | head -n4)
 ORDER=($(jc_get_order_indexes 4 "${GUIDS[@]}"))
 
-# Face buttons per SDL layout (Cross = South); armsx2_swap_face=1 swaps South/East
-# and West/North for pads whose EmuELEC mapping is Nintendo-style
-if [ "$(get_ee_setting armsx2_swap_face)" = "1" ]; then
-    F=(FaceWest FaceSouth FaceEast FaceNorth)
-else
-    F=(FaceNorth FaceEast FaceSouth FaceWest)
-fi
-
 pad() {
     local s="SDL-$1"
     cat <<END
@@ -28,10 +20,10 @@ Up = ${s}/DPadUp
 Right = ${s}/DPadRight
 Down = ${s}/DPadDown
 Left = ${s}/DPadLeft
-Triangle = ${s}/${F[0]}
-Circle = ${s}/${F[1]}
-Cross = ${s}/${F[2]}
-Square = ${s}/${F[3]}
+Triangle = ${s}/FaceNorth
+Circle = ${s}/FaceEast
+Cross = ${s}/FaceSouth
+Square = ${s}/FaceWest
 Select = ${s}/Back
 Start = ${s}/Start
 L1 = ${s}/LeftShoulder
