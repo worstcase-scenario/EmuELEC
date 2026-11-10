@@ -101,7 +101,6 @@ EOF
 	    fi
 
 	    connmanctl enable wifi || exit 1
-	    timeout 10 connmanctl scan wifi >/dev/null 2>&1
             exit 0
         fi
   	if [[ "$mode" =~ "start" ]]; then
@@ -112,7 +111,6 @@ EOF
                 fi
             fi
 	    connmanctl enable wifi || exit 1
-	    timeout 10 connmanctl scan wifi >/dev/null 2>&1
 	    exit 0
         fi
         if [[ "$mode" == "disable" ]]; then
