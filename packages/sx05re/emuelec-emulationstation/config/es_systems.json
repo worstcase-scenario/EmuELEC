@@ -6347,6 +6347,31 @@
 	]
 	},
     {
+      "name": "steamlink",
+      "fullname": "Steam Link",
+      "manufacturer": "Valve",
+      "release": "2018",
+      "hardware": "streaming",
+      "path": "/usr/share/steamlink",
+      "platform": "steamlink",
+      "theme": "steamlink",
+      "command": "default",
+      "extensions": [
+        ".steamlink"
+      ],
+      "emulators": [
+        {
+          "name": "steamlink",
+          "cores": [
+            {
+              "name": "steamlink",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "bk",
       "fullname": "Electronika",
       "path": "/storage/roms/bk",

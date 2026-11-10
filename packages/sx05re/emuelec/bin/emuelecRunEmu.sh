@@ -338,6 +338,12 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} dreammstart.sh "${ROMNAME}"'
                 fi
                 ;;	
+		"steamlink")
+                if [ "${EMU}" = "steamlink" ]; then
+				set_kill_keys "shell"
+				RUNTHIS='${TBASH} steamlinkstart.sh'
+                fi
+                ;;
 		"msx"|"msx2"|"msx2+"|"msxturbor")
 				if [ "${EMU}" = "openmsx" ]; then
 				set_kill_keys "openmsx"
