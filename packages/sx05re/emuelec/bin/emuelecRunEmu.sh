@@ -160,6 +160,12 @@ if [[ "${ROMNAME,,}" == *.bighard ]]; then
     set_kill_keys "biginstinct"
     RUNTHIS='${TBASH} biginstinctstart.sh "${ROMNAME}"'
 
+# Model 2 sets known to sm2-emu run on the standalone emulator from arcade/mame (too slow in MAME)
+elif [[ "${PLATFORM}" == "arcade" || "${PLATFORM}" == "mame" ]] && \
+     grep -q "<game name=\"${BASEROMNAME%.*}\"" /usr/share/sm2emuSA/games.xml 2>/dev/null; then
+    set_kill_keys "sm2-emu"
+    RUNTHIS='${TBASH} sm2emustart.sh "${ROMNAME}"'
+
 elif [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
 GPTOKEYB=$(get_ee_setting "gptokeyb" "${PLATFORM}" "${BASEROMNAME}")
