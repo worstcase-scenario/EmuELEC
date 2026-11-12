@@ -13,8 +13,9 @@ mkdir -p "${CONF_DIR}/inis" "${BIOS_DIR}"
 # Full default INI on first start (a partial one would be reset by the emulator)
 [ -f "${CONF_DIR}/inis/PCSX2.ini" ] || cp "${DEF_DIR}/PCSX2.ini" "${CONF_DIR}/inis/"
 
-# Find a PS2 BIOS (4 MB) in BIOS_DIR, else copy one from /storage/roms/bios
-is_ps2bios() { [ -f "$1" ] && [ "$(wc -c < "$1")" -eq 4194304 ]; }
+# Find a PS2 BIOS (4 MB with a ROMDIR table, other 4 MB ROMs like 64DD_IPL.bin
+# don't have one) in BIOS_DIR, else copy one from /storage/roms/bios
+is_ps2bios() { [ -f "$1" ] && [ "$(wc -c < "$1")" -eq 4194304 ] && head -c 16384 "$1" | grep -q ROMDIR; }
 BIOS=""
 for f in "${BIOS_DIR}"/*; do is_ps2bios "$f" && { BIOS="$f"; break; }; done
 if [ -z "${BIOS}" ]; then
