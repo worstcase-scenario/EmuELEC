@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./Steam Link.steamlink</path>
+		<name>Steam Link</name>
+		<image>./steamlink.png</image>
+		<desc>Stream games from a computer running Steam. Both devices must be on the same network, and Steam has to be running and signed in on the computer. On first start Steam Link is downloaded from Valve, so a network connection is required.</desc>
+		<developer>Valve</developer>
+		<publisher>Valve</publisher>
+		<genre>Streaming</genre>
+		<releasedate>20181114T000000</releasedate>
+	</game>
+</gameList>

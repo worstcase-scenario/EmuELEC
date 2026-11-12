@@ -26,4 +26,5 @@ makeinstall_target() {
   # entry for the EmulationStation system
   mkdir -p ${INSTALL}/usr/share/steamlink
   touch "${INSTALL}/usr/share/steamlink/Steam Link.steamlink"
+  cp -f ${PKG_DIR}/config/gamelist.xml ${PKG_DIR}/config/steamlink.png ${INSTALL}/usr/share/steamlink/
 }
