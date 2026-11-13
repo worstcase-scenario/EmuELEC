@@ -6124,6 +6124,14 @@
               "default": true
             }
           ]
+        },
+        {
+          "name": "azahar-sa",
+          "cores": [
+            {
+              "name": "azahar-sa"
+            }
+          ]
         }
       ]
     },
@@ -6374,7 +6382,7 @@
 	}
 	]
 	},
-	{
+	    {
       "name": "3ds",
       "fullname": "Nintendo 3DS",
       "manufacturer": "Nintendo",
@@ -6403,6 +6411,14 @@
             {
               "name": "azahar",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "azahar-sa",
+          "cores": [
+            {
+              "name": "azahar-sa"
             }
           ]
         }

@@ -338,6 +338,12 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} start_touchhle.sh "${ROMNAME}"'
                 fi
                 ;;	
+		"3ds")
+                if [ "${EMU}" = "azahar-sa" ]; then
+				set_kill_keys "azahar"
+				RUNTHIS='${TBASH} azaharstart.sh "${ROMNAME}"'
+                fi
+                ;;
 		"dreamm")
                 if [ "${EMU}" = "dreamm" ]; then
 				set_kill_keys "dreamm"

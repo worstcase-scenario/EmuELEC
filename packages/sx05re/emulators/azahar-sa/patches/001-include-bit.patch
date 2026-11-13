@@ -1,0 +1,24 @@
+diff --git a/src/video_core/pica/packed_attribute.h b/src/video_core/pica/packed_attribute.h
+index 7c8028e..88ddff7 100644
+--- a/src/video_core/pica/packed_attribute.h
++++ b/src/video_core/pica/packed_attribute.h
+@@ -4,6 +4,7 @@
+ 
+ #pragma once
+ 
++#include <bit>
+ #include <boost/serialization/binary_object.hpp>
+ 
+ #include "common/vector_math.h"
+diff --git a/src/video_core/shader/generator/pica_fs_config.h b/src/video_core/shader/generator/pica_fs_config.h
+index 736880a..94df55a 100644
+--- a/src/video_core/shader/generator/pica_fs_config.h
++++ b/src/video_core/shader/generator/pica_fs_config.h
+@@ -4,6 +4,7 @@
+ 
+ #pragma once
+ 
++#include <bit>
+ #include "common/hash.h"
+ #include "video_core/pica/regs_internal.h"
+ #include "video_core/shader/generator/profile.h"

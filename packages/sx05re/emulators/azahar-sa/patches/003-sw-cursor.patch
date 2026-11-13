@@ -1,0 +1,72 @@
+diff --git a/src/citra_sdl/emu_window/emu_window_sdl2.cpp b/src/citra_sdl/emu_window/emu_window_sdl2.cpp
+index a84e386..ffb4baa 100644
+--- a/src/citra_sdl/emu_window/emu_window_sdl2.cpp
++++ b/src/citra_sdl/emu_window/emu_window_sdl2.cpp
+@@ -7,6 +7,7 @@
+ #include <string>
+ #define SDL_MAIN_HANDLED
+ #include <SDL.h>
++#include "common/sw_cursor.h"
+ #include "citra_sdl/emu_window/emu_window_sdl2.h"
+ #include "common/logging/log.h"
+ #include "common/scm_rev.h"
+@@ -17,6 +18,8 @@
+ #include "network/network.h"
+ 
+ void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
++    Common::sw_cursor_x = x;
++    Common::sw_cursor_y = y;
+     TouchMoved((unsigned)std::max(x, 0), (unsigned)std::max(y, 0));
+     InputCommon::GetMotionEmu()->Tilt(x, y);
+ }
+diff --git a/src/common/sw_cursor.h b/src/common/sw_cursor.h
+new file mode 100644
+index 0000000..cd113bd
+--- /dev/null
++++ b/src/common/sw_cursor.h
+@@ -0,0 +1,10 @@
++// Licensed under GPLv2 or any later version
++
++#pragma once
++
++#include <atomic>
++
++namespace Common {
++inline std::atomic<int> sw_cursor_x{-1};
++inline std::atomic<int> sw_cursor_y{-1};
++} // namespace Common
+diff --git a/src/video_core/renderer_vulkan/renderer_vulkan.cpp b/src/video_core/renderer_vulkan/renderer_vulkan.cpp
+index 0b04b0b..0913e19 100644
+--- a/src/video_core/renderer_vulkan/renderer_vulkan.cpp
++++ b/src/video_core/renderer_vulkan/renderer_vulkan.cpp
+@@ -2,6 +2,7 @@
+ // Licensed under GPLv2 or any later version
+ // Refer to the license.txt file included.
+ 
++#include "common/sw_cursor.h"
+ #include "common/assert.h"
+ #include "common/logging/log.h"
+ #include "common/memory_detect.h"
+@@ -909,6 +910,22 @@ void RendererVulkan::DrawScreens(Frame* frame, const Layout::FramebufferLayout&
+         }
+     }
+ 
++    const int cx = Common::sw_cursor_x, cy = Common::sw_cursor_y;
++    if (cx >= 0 && cy >= 0 && cx + 12 <= static_cast<int>(layout.width) &&
++        cy + 12 <= static_cast<int>(layout.height)) {
++        scheduler.Record([cx, cy](vk::CommandBuffer cmdbuf) {
++            const auto clear = [&](int o, int s, float c) {
++                const vk::ClearAttachment att{vk::ImageAspectFlagBits::eColor, 0,
++                                              vk::ClearColorValue{std::array{c, c, c, 1.0f}}};
++                const vk::ClearRect rect{{{cx + o, cy + o}, {static_cast<u32>(s), static_cast<u32>(s)}},
++                                         0, 1};
++                cmdbuf.clearAttachments(att, rect);
++            };
++            clear(0, 12, 0.0f);
++            clear(2, 8, 1.0f);
++        });
++    }
++
+     scheduler.Record([](vk::CommandBuffer cmdbuf) { cmdbuf.endRenderPass(); });
+ }
+ 

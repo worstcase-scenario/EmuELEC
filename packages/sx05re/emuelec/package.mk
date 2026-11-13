@@ -70,6 +70,11 @@ if [ "${ARCH}" == "aarch64" ]; then
   fi
 fi
 
+# Vulkan-only standalone emulators
+if [ "${DEVICE}" == "Amlogic-no" ]; then
+	PKG_DEPENDS_TARGET+=" azahar-sa"
+fi
+
 # We make sure MAME is the last package from EE to be built.
 if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
 	PKG_DEPENDS_TARGET+=" mame"
