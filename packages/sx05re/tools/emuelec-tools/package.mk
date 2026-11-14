@@ -71,6 +71,10 @@ if [ "${PROJECT}" == "Amlogic-ce" ]; then
                       PKG_DEPENDS_TARGET+=" CoreELEC-Debug-Scripts"
 fi
 
+if [ "${DEVICE}" == "Amlogic-no" ]; then
+  PKG_DEPENDS_TARGET+=" kmsgrab"
+fi
+
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
 	  
   #we disable some tools that are not working HH
