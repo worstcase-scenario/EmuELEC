@@ -48,9 +48,10 @@ right_analog_left = mouse_movement_left
 right_analog_right = mouse_movement_right
 
 # Pointer speed and feel
-mouse_scale = 1000
+mouse_scale = 2048
 mouse_delay = 16
-right_analog_deadzone = 16000
+deadzone_x = 4000
+deadzone_y = 4000
 
 # Mouse buttons
 r1 = mouse_left
