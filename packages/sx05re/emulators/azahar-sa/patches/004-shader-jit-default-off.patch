@@ -1,0 +1,26 @@
+diff --git a/src/citra_sdl/default_ini.h b/src/citra_sdl/default_ini.h
+index 4c97dbb..59979a4 100644
+--- a/src/citra_sdl/default_ini.h
++++ b/src/citra_sdl/default_ini.h
+@@ -115,7 +115,7 @@ use_hw_shader =
+ shaders_accurate_mul =
+ 
+ # Whether to use the Just-In-Time (JIT) compiler for shader emulation
+-# 0: Interpreter (slow), 1 (default): JIT (fast)
++# 0 (default): Interpreter (slow), 1: JIT (fast, crashes some games on arm64)
+ use_shader_jit =
+ 
+ # Forces VSync on the display thread. Usually doesn't impact performance, but on some drivers it can
+diff --git a/src/common/settings.h b/src/common/settings.h
+index 709ba0c..3c0899f 100644
+--- a/src/common/settings.h
++++ b/src/common/settings.h
+@@ -522,7 +522,7 @@ struct Values {
+ #endif
+     SwitchableSetting<bool> use_display_refresh_rate_detection{
+         true, "use_display_refresh_rate_detection"};
+-    Setting<bool> use_shader_jit{true, "use_shader_jit"};
++    Setting<bool> use_shader_jit{false, "use_shader_jit"};
+     SwitchableSetting<u32, true> resolution_factor{1, 0, 10, "resolution_factor"};
+     SwitchableSetting<double, true> frame_limit{100, 0, 1000, "frame_limit"};
+     SwitchableSetting<double, true> turbo_limit{200, 0, 1000, "turbo_limit"};
