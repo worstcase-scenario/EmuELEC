@@ -26,6 +26,7 @@ LAUNCH_MODE="games"
 APP_RUN=""
 DEVICE_CODE=""
 UID_DEVICE=""
+UID_FILE=0
 CLASSIC_NGAGE=0
 CLEANUP_DONE=0
 
@@ -98,6 +99,13 @@ device_installed() {
   local dev="$1"
   [ -z "${dev}" ] && return 1
   grep -qi "^${dev}:" "${EKA_CONFIG_DIR}/data/devices.yml" 2>/dev/null
+}
+
+find_device_for_uid() {
+  local dev
+  for dev in $(grep -o '^[^ #][^:]*' "${EKA_CONFIG_DIR}/data/devices.yml"); do
+    "${EKA_EXE}" --device "${dev}" --listapp 2>/dev/null | grep -qi "(UID: ${APP_UID})" && { echo "${dev}"; return; }
+  done
 }
 
 set_active_device() {
@@ -373,9 +381,17 @@ if [ -n "${ROMFILE}" ]; then
         if [ -n "${APP_UID}" ]; then
           case "${APP_UID}" in 0x*|0X*) ;; *) APP_UID="0x${APP_UID}" ;; esac
           LAUNCH_MODE="uid"
+          UID_FILE=1
           log "UID launcher: ${APP_UID}"
           [ -n "${UID_DEVICE}" ] && log "UID device hint: ${UID_DEVICE}"
         fi
+        ;;
+      mpn|MPN)
+        mkdir -p "${EKA_E_DIR}/data/mp/f0001092"
+        cp -f "${ROMFILE}" "${EKA_E_DIR}/data/mp/f0001092/mophungamesload.mpn"
+        APP_UID="0xf0001092"
+        LAUNCH_MODE="uid"
+        log "Mophun game: ${ROMFILE}"
         ;;
     esac
   elif [ -d "${ROMFILE}" ]; then
@@ -421,6 +437,11 @@ if [ -n "${ROMFILE}" ]; then
   fi
 fi
 
+if [ -n "${ROMFILE}" ] && [ "${LAUNCH_MODE}" = "games" ]; then
+  log "ERROR: Nothing to launch (file missing or invalid): ${ROMFILE}"
+  exit 0
+fi
+
 # gptokeyb
 killall -9 gptokeyb 2>/dev/null
 gptokeyb 1 eka2l1_sdl2 -c "${EKA_GPTK}" &
@@ -439,6 +460,20 @@ if [ -n "${UID_DEVICE}" ] && device_installed "${UID_DEVICE}"; then
 elif [ -n "${LAST_DEVICE}" ] && device_installed "${LAST_DEVICE}"; then
   DEVICE_CODE="${LAST_DEVICE}"
   log "Device from cache: ${DEVICE_CODE}"
+elif [ "${LAUNCH_MODE}" = "games_app" ] && device_installed "${EKA_DEVICE_NGAGE2}"; then
+  DEVICE_CODE="${EKA_DEVICE_NGAGE2}"
+  log "Device default (N-Gage 2.0): ${DEVICE_CODE}"
+elif [ "${LAUNCH_MODE}" = "classic" ] && device_installed "${EKA_DEVICE_NGAGE1}"; then
+  DEVICE_CODE="${EKA_DEVICE_NGAGE1}"
+  log "Device default (N-Gage): ${DEVICE_CODE}"
+elif [ "${LAUNCH_MODE}" = "classic" ] && device_installed "${EKA_DEVICE_NGAGE1_ALT}"; then
+  DEVICE_CODE="${EKA_DEVICE_NGAGE1_ALT}"
+  log "Device default (N-Gage): ${DEVICE_CODE}"
+elif [ "${LAUNCH_MODE}" = "uid" ] && DEVICE_CODE="$(find_device_for_uid)" && [ -n "${DEVICE_CODE}" ]; then
+  log "Device found for UID ${APP_UID}: ${DEVICE_CODE}"
+elif [ "${LAUNCH_MODE}" = "uid" ]; then
+  log "ERROR: App ${APP_UID} not installed on any device"
+  exit 0
 else
   select_device_dialog ""
   DEVICE_CODE="$(cat "${SELECTED_DEVICE_FILE}" 2>/dev/null)"
@@ -478,7 +513,7 @@ if [ "${LAUNCH_MODE}" = "games_app" ]; then
 
 # 2. Standard Handling for specific Games (Successful exit)
 elif [ "${EKA_EXIT}" = "0" ]; then
-  if [ "${LAUNCH_MODE}" = "uid" ] && [ -f "${ROMFILE}" ]; then
+  if [ "${UID_FILE}" = "1" ]; then
     if [ "${DEVICE_CODE}" != "${UID_DEVICE}" ]; then
       log "Updating .uid file with working device: ${DEVICE_CODE}"
       FIRST_LINE=$(sed -n '1p' "${ROMFILE}")
@@ -493,7 +528,7 @@ elif [ "${EKA_EXIT}" = "0" ]; then
 else
   log "Crash detected (Exit: ${EKA_EXIT}). Clearing cache."
   cache_delete "${CKEY}"
-  if [ "${LAUNCH_MODE}" = "uid" ] && [ -f "${ROMFILE}" ]; then
+  if [ "${UID_FILE}" = "1" ]; then
     log "Clearing .uid hint due to crash."
     FIRST_LINE=$(sed -n '1p' "${ROMFILE}")
     echo "${FIRST_LINE}" > "${ROMFILE}"

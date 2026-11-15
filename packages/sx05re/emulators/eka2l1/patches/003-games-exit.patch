@@ -1,0 +1,49 @@
+--- a/src/emu/sdl2/src/main.cpp
++++ b/src/emu/sdl2/src/main.cpp
+@@ -760,23 +760,37 @@
+                 epoc::apa::command_line cmd;
+                 cmd.launch_cmd_ = epoc::apa::command_create;
+                 emu->app_exited.store(false);
+-                svr->launch_app(reg, cmd, nullptr, [emu](kernel::process *pr) {
+-                    if (!pr) return;
+-                    std::thread([emu, pr]() {
++                kernel::uid tid = 0;
++                if (svr->launch_app(reg, cmd, &tid, nullptr)) {
++                    std::thread([emu, kern, tid]() {
++                        std::string last;
+                         while (!emu->should_emu_quit.load()) {
+-                            if (pr->get_exit_type() != kernel::entity_exit_type::pending) {
+-                                emu->app_exited.store(true);
+-                                break;
++                            kernel::thread *dt = kern->get_by_id<kernel::thread>(tid);
++                            kernel::process *dp = dt ? dt->owning_process() : nullptr;
++                            std::string now;
++                            if (dp) {
++                                std::vector<kernel::process *> list = dp->get_child_processes();
++                                list.insert(list.begin(), dp);
++                                for (kernel::process *p : list) {
++                                    kernel::thread *pt = p->get_primary_thread();
++                                    now += fmt::format(" [{} exit={} threads={} primary={}]", p->name(),
++                                        static_cast<int>(p->get_exit_type()), p->get_thread_count(),
++                                        pt ? static_cast<int>(pt->current_state()) : -1);
++                                }
++                            }
++                            if (now != last) {
++                                LOG_INFO(FRONTEND_CMDLINE, "EXITDBG{}", now);
++                                last = now;
+                             }
+-                            kernel::thread *thr = pr->get_primary_thread();
+-                            if (thr && static_cast<int>(thr->current_state()) == 4) {
++                            kernel::thread *thr = kern->get_by_id<kernel::thread>(tid);
++                            if (!thr || (thr->get_exit_type() != kernel::entity_exit_type::pending)) {
+                                 emu->app_exited.store(true);
+                                 break;
+                             }
+                             std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                         }
+                     }).detach();
+-                });
++                }
+                 emu->app_launch_from_command_line = true;
+                 return true;
+             }

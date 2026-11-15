@@ -1,0 +1,12 @@
+--- a/src/emu/sdl2/src/main.cpp
++++ b/src/emu/sdl2/src/main.cpp
+@@ -1670,7 +1670,8 @@
+     state.window->button_pressed = eka2l1::sdl::on_key_press;
+     state.window->button_released = eka2l1::sdl::on_key_release;
+ 
+-    state.window->init("EKA2L1", eka2l1::vec2(800, 600), eka2l1::drivers::emu_window_flag_maximum_size);
++    state.window->init("EKA2L1", eka2l1::vec2(800, 600),
++        eka2l1::drivers::emu_window_flag_maximum_size | eka2l1::drivers::emu_window_flag_fullscreen);
+     state.window->set_userdata(&state);
+     state.window->close_hook = [](void *userdata) {
+         auto *s = reinterpret_cast<eka2l1::sdl::emulator_state *>(userdata);

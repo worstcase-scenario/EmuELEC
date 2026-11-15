@@ -4,6 +4,8 @@
 # THIS FILE HAS BEEN CREATED BY CLAUDE.AI
 
 import os, glob, sys, time, subprocess, shutil, re, mmap, zlib, base64, json, select as _select
+import xml.etree.ElementTree as ET
+import urllib.request
 from typing import List, Optional, Tuple
 from evdev import InputDevice, list_devices, ecodes as e
 
@@ -448,11 +450,11 @@ def back_exit_dialog(title: str, message: str) -> str:
 # ---------------------------------------------------------------------------
 # Command line editor (fbdev version)
 # ---------------------------------------------------------------------------
-def select_multiple_from_list(title: str, items: List[str], info: str = "") -> Optional[List[int]]:
+def select_multiple_from_list(title: str, items: List[str], info: str = "", preselect: bool = True) -> Optional[List[int]]:
     """Checkbox list — A toggles, last item confirms."""
     if not items:
         return []
-    checked = set(range(len(items)))
+    checked = set(range(len(items))) if preselect else set()
     cursor = 0
     while True:
         labels = [f"{'[x]' if i in checked else '[ ]'} {items[i]}" for i in range(len(items))]
@@ -538,7 +540,9 @@ def run_eka(args: List[str], timeout: int = 120) -> int:
     cmd = [EKA_EXE] + args
     log("Running: " + " ".join(cmd))
     try:
-        result = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout)
+        with open(EKA_LOG, "a") as lf:
+            result = subprocess.run(cmd, cwd=EKA_CONFIG, timeout=timeout,
+                                    stdout=lf, stderr=subprocess.STDOUT)
         return result.returncode
     except subprocess.TimeoutExpired:
         log("Process timed out")
@@ -607,6 +611,18 @@ def get_current_device_index() -> Optional[int]:
     except Exception as ex:
         log(f"Failed to read config.yml: {ex}")
 
+    return None
+
+
+def get_current_device_code() -> Optional[str]:
+    idx = get_current_device_index()
+    if idx is None:
+        return None
+    _, output = run_eka_capture(["--listdevices"])
+    for i, desc in parse_listdevices_output(output):
+        m = re.search(r'\(([^()]+)\)\s*$', desc)
+        if i == idx and m:
+            return m.group(1)
     return None
 
 
@@ -1292,6 +1308,7 @@ def show_generated_uid_list(created_entries: List[Tuple[str, str, str]], out_dir
 def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[Tuple[str, str, str]]:
     created_entries: List[Tuple[str, str, str]] = []
     os.makedirs(out_dir, exist_ok=True)
+    device = get_current_device_code()
 
     for name, uid in selected_apps:
         safe_name = sanitize_uid_name(name)
@@ -1301,7 +1318,7 @@ def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[
 
         try:
             with open(target, 'w', encoding='utf-8') as f:
-                f.write(uid + '\n')
+                f.write(uid + '\n' + (device + '\n' if device else ''))
             log(f'Created UID launcher: {target} -> {uid}')
             created_entries.append((name, uid, os.path.basename(target)))
         except Exception as ex:
@@ -1363,6 +1380,17 @@ def create_uid_gamelist():
         lines.append('\t\t<video>./media/videos/ngage.mp4</video>')
         lines.append('\t</game>')
 
+    if os.path.exists(out_file):
+        try:
+            for g in ET.parse(out_file).getroot().findall("game"):
+                if (g.findtext("path") or "").lower().endswith(".mpn"):
+                    g.tail = None
+                    lines.append("\t" + ET.tostring(g, encoding="unicode").strip())
+        except Exception as ex:
+            log(f"Could not read existing gamelist.xml: {ex}")
+            ok_dialog("Error", f"Could not read existing gamelist.xml,\nnothing was changed:\n{ex}")
+            return
+
     lines.append('</gameList>')
 
     try:
@@ -1379,6 +1407,277 @@ def create_uid_gamelist():
         f"UID files: {len(uid_files)}\n"
         f"Output:\n{out_file}"
     )
+
+
+def install_ngage2():
+    src_dir = choose_directory_interactive("N-Gage 2.0: Select Directory", EKA_ROMS_DIR)
+    files = sorted((os.path.join(r, n) for r, _, fs in os.walk(src_dir)
+                    for n in fs if n.lower().endswith(".n-gage")), key=str.lower)
+    if not files:
+        ok_dialog("Error", f"No .n-gage files found in:\n{src_dir}")
+        return
+    sel = select_multiple_from_list("Select N-Gage 2.0 Games",
+                                    [get_relative_path(p, src_dir) for p in files], preselect=False)
+    if not sel:
+        return
+
+    dst_dir = os.path.join(EKA_CONFIG, "data", "drives", "e", "n-gage")
+    os.makedirs(dst_dir, exist_ok=True)
+    copied = fail = 0
+    for pos, i in enumerate(sel, start=1):
+        progress_screen(f"Copying {pos}/{len(sel)}", os.path.basename(files[i]))
+        try:
+            shutil.copy2(files[i], dst_dir)
+            copied += 1
+            log(f"Copied N-Gage 2.0 game: {files[i]} -> {dst_dir}")
+        except Exception as ex:
+            fail += 1
+            log(f"Copy failed: {files[i]}: {ex}")
+
+    ok_dialog("Done", f"Copied: {copied}\nFailed: {fail}\n\n"
+                      f"Start the N-Gage 2.0 launcher (games.symbian)\nto finish the installation.")
+
+
+def add_gamelist_entries(files: List[str]) -> None:
+    gl = os.path.join(EKA_ROMS_DIR, "gamelist.xml")
+    if os.path.exists(gl):
+        tree = ET.parse(gl)
+        root = tree.getroot()
+    else:
+        root = ET.Element("gameList")
+        tree = ET.ElementTree(root)
+    known = {g.findtext("path") for g in root.findall("game")}
+    for p in files:
+        base = os.path.basename(p)
+        if f"./{base}" in known:
+            continue
+        name = os.path.splitext(base)[0]
+        g = ET.SubElement(root, "game")
+        ET.SubElement(g, "path").text = f"./{base}"
+        ET.SubElement(g, "name").text = name
+        ET.SubElement(g, "desc").text = name
+        ET.SubElement(g, "image").text = "./media/images/ngage.png"
+        ET.SubElement(g, "video").text = "./media/videos/ngage.mp4"
+    ET.indent(tree, space="\t")
+    tree.write(gl, encoding="utf-8", xml_declaration=True)
+
+
+def install_mophun():
+    src_dir = choose_directory_interactive("Mophun: Select Directory", EKA_ROMS_DIR)
+    sis = data_dir = None
+    mpns = []
+    for r, ds, fs in os.walk(src_dir):
+        for d in ds:
+            if d.lower() == "f0001092" and data_dir is None:
+                data_dir = os.path.join(r, d)
+        for n in fs:
+            p = os.path.join(r, n)
+            if n.lower().endswith(".sis") and "mophun" in n.lower() and sis is None:
+                sis = p
+            elif n.lower().endswith(".mpn") and n.lower() != "mophungamesload.mpn":
+                mpns.append(p)
+    mpns.sort(key=str.lower)
+
+    # 1. Loader (.sis), only if not installed yet
+    _, out = run_eka_capture(["--listpkg"])
+    if "0xf0001092" not in out.lower():
+        if not sis:
+            ok_dialog("Error", f"Mophun loader not installed and no\nmophun*.sis found in:\n{src_dir}")
+            return
+        progress_screen("Installing Mophun loader", os.path.basename(sis))
+        if not eka_success(run_eka(["--install", sis])):
+            ok_dialog("Error", f"Loader installation failed.\n\nSee log: {EKA_LOG}")
+            return
+        log(f"Mophun loader installed: {sis}")
+
+    # 2. Data folder
+    dst_data = os.path.join(EKA_CONFIG, "data", "drives", "e", "data", "mp", "f0001092")
+    if data_dir:
+        progress_screen("Copying Mophun data", data_dir)
+        shutil.copytree(data_dir, dst_data, dirs_exist_ok=True)
+        log(f"Mophun data copied: {data_dir} -> {dst_data}")
+    elif not os.path.isdir(dst_data):
+        ok_dialog("Error", f"Mophun data folder (f0001092) not found in:\n{src_dir}")
+        return
+
+    # 3. Games
+    if not mpns:
+        ok_dialog("Done", "Mophun loader ready.\nNo .mpn games found to add.")
+        return
+    sel = select_multiple_from_list("Select Mophun Games",
+                                    [get_relative_path(p, src_dir) for p in mpns], preselect=False)
+    if not sel:
+        return
+    copied = fail = 0
+    added = []
+    for pos, i in enumerate(sel, start=1):
+        progress_screen(f"Copying {pos}/{len(sel)}", os.path.basename(mpns[i]))
+        dst = os.path.join(EKA_ROMS_DIR, os.path.basename(mpns[i]))
+        try:
+            if os.path.abspath(mpns[i]) != os.path.abspath(dst):
+                shutil.copy2(mpns[i], dst)
+            copied += 1
+            added.append(dst)
+            log(f"Mophun game added: {dst}")
+        except Exception as ex:
+            fail += 1
+            log(f"Copy failed: {mpns[i]}: {ex}")
+
+    try:
+        add_gamelist_entries(added)
+    except Exception as ex:
+        log(f"gamelist.xml update failed: {ex}")
+        ok_dialog("Error", f"Games copied, but gamelist.xml update failed:\n{ex}")
+        return
+
+    ok_dialog("Done", f"Added: {copied}\nFailed: {fail}\n\nRestart ES to see the new entries.")
+
+
+WOLPHUN_DEVICES = ("RM-409", "RM-356", "RM-320")   # Symbian 9.2+: 5320, 5800, N95
+
+
+def ensure_wolphun_device() -> Optional[str]:
+    """Return a Symbian 9.2+ device code, switching to it if needed."""
+    _, output = run_eka_capture(["--listdevices"])
+    devices = {}
+    for i, desc in parse_listdevices_output(output):
+        m = re.search(r'\(([^()]+)\)\s*$', desc)
+        if m:
+            devices[m.group(1)] = (i, desc)
+    current = get_current_device_index()
+    for code in WOLPHUN_DEVICES:
+        if code in devices and devices[code][0] == current:
+            return code
+    for code in WOLPHUN_DEVICES:
+        if code in devices:
+            set_device_index(devices[code][0])
+            log(f"Switched device for wolphun: {devices[code][1]}")
+            ok_dialog("Info", f"wolphun needs a Symbian 9.2+ device.\n\nSwitched to:\n{devices[code][1]}")
+            return code
+    ok_dialog("Error", "wolphun needs a Symbian 9.2+ device\n(Nokia 5320, 5800 or N95).\n\n"
+                       "Install one of these firmwares first.")
+    return None
+
+
+WOLPHUN_URL = ("https://raw.githubusercontent.com/jamisson2006/wolphun-a-Mophun-emulator/"
+               "main/symbian/bin/wolphun_fp1.sisx")
+
+
+def install_wolphun():
+    device = ensure_wolphun_device()
+    if not device:
+        return
+    _, out = run_eka_capture(["--listpkg"])
+    if "0xa0000180" in out.lower():
+        ok_dialog("Info", "wolphun is already installed.")
+        return
+    sis = "/tmp/wolphun_fp1.sisx"
+    progress_screen("Downloading wolphun", WOLPHUN_URL)
+    try:
+        urllib.request.urlretrieve(WOLPHUN_URL, sis)
+    except Exception as ex:
+        log(f"wolphun download failed: {ex}")
+        ok_dialog("Error", f"Download failed:\n{ex}")
+        return
+    progress_screen("Installing wolphun", os.path.basename(sis))
+    ok = eka_success(run_eka(["--install", sis]))
+    os.remove(sis)
+    if not ok:
+        ok_dialog("Error", f"wolphun installation failed.\n\nSee log: {EKA_LOG}")
+        return
+    log("wolphun installed")
+
+    uid_file = os.path.join(EKA_ROMS_DIR, "wolphun.uid")
+    with open(uid_file, "w") as fh:
+        fh.write(f"0xa0000180\n{device}\n")
+    add_gamelist_entries([uid_file])
+    ok_dialog("Done", "wolphun installed.\n\nRestart ES to see the new entry.")
+
+
+def install_wolphun_games():
+    src_dir = choose_directory_interactive("wolphun: Select Directory", EKA_ROMS_DIR)
+    mpns = sorted((os.path.join(r, n) for r, _, fs in os.walk(src_dir)
+                   for n in fs if n.lower().endswith(".mpn")), key=str.lower)
+    if not mpns:
+        ok_dialog("Error", f"No .mpn files found in:\n{src_dir}")
+        return
+    sel = select_multiple_from_list("Select wolphun Games",
+                                    [get_relative_path(p, src_dir) for p in mpns], preselect=False)
+    if not sel:
+        return
+
+    dst_dir = os.path.join(EKA_CONFIG, "data", "drives", "e", "mophun")
+    os.makedirs(dst_dir, exist_ok=True)
+    copied = fail = 0
+    for pos, i in enumerate(sel, start=1):
+        name = os.path.basename(mpns[i]).lower()
+        progress_screen(f"Copying {pos}/{len(sel)}", name)
+        try:
+            shutil.copy2(mpns[i], os.path.join(dst_dir, name))
+            copied += 1
+            log(f"wolphun game added: {name}")
+        except Exception as ex:
+            fail += 1
+            log(f"Copy failed: {mpns[i]}: {ex}")
+
+    ok_dialog("Done", f"Copied: {copied}\nFailed: {fail}\n\nStart wolphun and use Options > Open game.")
+
+
+def get_installed_packages() -> List[Tuple[str, str]]:
+    progress_screen("Loading Package List", "Querying eka2l1...")
+    ret, output = run_eka_capture(["--listpkg"])
+    pkgs = []
+    for line in output.splitlines():
+        m = re.match(r'^(0x[0-9a-fA-F]+)\s*:\s*(.*)$', line.strip())
+        if m:
+            pkgs.append((m.group(2).strip() or m.group(1), m.group(1).lower()))
+    if not pkgs:
+        ok_dialog("Error", f"No installed packages found.\n\nSee log: {EKA_LOG}")
+    return sorted(pkgs, key=lambda p: p[0].lower())
+
+
+def show_installed_sis():
+    pkgs = get_installed_packages()
+    if pkgs:
+        select_from_list("Installed Games and Apps", [f"{n} ({u})" for n, u in pkgs],
+                         f"Installed packages: {len(pkgs)}\n\nPress B to go back.")
+
+
+def uninstall_sis():
+    pkgs = get_installed_packages()
+    if not pkgs:
+        return
+
+    sel = select_multiple_from_list("Uninstall: Select Packages",
+                                    [f"{n} ({u})" for n, u in pkgs], preselect=False)
+    if not sel:
+        return
+    chosen = [pkgs[i] for i in sel]
+    if not confirm_dialog("Confirm", f"Uninstall {len(chosen)} package(s)?", default_yes=False):
+        return
+
+    removed = fail = launchers = 0
+    for pos, (name, uid) in enumerate(chosen, start=1):
+        progress_screen(f"Uninstalling {pos}/{len(chosen)}", name)
+        if run_eka(["--uninstall", uid]) == 0:
+            removed += 1
+            log(f"Uninstalled: {name} ({uid})")
+            for uf in glob.glob(os.path.join(EKA_ROMS_DIR, "**", "*.uid"), recursive=True):
+                try:
+                    with open(uf, encoding="utf-8") as fh:
+                        if int(fh.readline().strip(), 16) != int(uid, 16):
+                            continue
+                    os.remove(uf)
+                    launchers += 1
+                    log(f"Removed UID launcher: {uf}")
+                except Exception:
+                    pass
+        else:
+            fail += 1
+            log(f"Uninstall failed: {name} ({uid})")
+
+    ok_dialog("Done", f"Uninstalled: {removed}\nFailed: {fail}\n"
+                      f"UID launchers removed: {launchers}\n\nSee log: {EKA_LOG}")
 
 
 def create_uid_launchers():
@@ -1436,7 +1735,8 @@ def create_uid_launchers():
             selected_indexes = select_multiple_from_list(
                 'Select Apps For UID',
                 app_options,
-                f'Output: {out_dir}\n\nToggle apps with A, then press Y to create.'
+                f'Output: {out_dir}\n\nToggle apps with A, then press Y to create.',
+                preselect=False
             )
         except GoBack:
             return
@@ -1730,6 +2030,12 @@ def main():
                         "Import pre-configured devices-collection",
                         "Install firmware (.rpkg + .rom)",
                         "Install games and apps (.sis/.sisx)",
+                        "Install N-Gage 2.0 games (.n-gage)",
+                        "Setup Mophun loader and games (.mpn)",
+                        "Install wolphun (Mophun emulator)",
+                        "Install games for wolphun (.mpn)",
+                        "Show installed games and apps",
+                        "Uninstall games and apps",
                         "Create UID launcher-files from installed games and apps (.uid)",
                         "Create gamelist.xml from .uid launcher-files",
                         "Show / change current device",
@@ -1739,7 +2045,7 @@ def main():
                     "What would you like to do?"
                 )
 
-                if idx is None or idx == 8:
+                if idx is None or idx == 14:
                     break
                 if idx == 0:
                     try:
@@ -1763,20 +2069,50 @@ def main():
                         continue
                 elif idx == 4:
                     try:
-                        create_uid_launchers()
+                        install_ngage2()
                     except GoBack:
                         continue
                 elif idx == 5:
                     try:
-                        create_uid_gamelist()
+                        install_mophun()
                     except GoBack:
                         continue
                 elif idx == 6:
                     try:
-                        change_device()
+                        install_wolphun()
                     except GoBack:
                         continue
                 elif idx == 7:
+                    try:
+                        install_wolphun_games()
+                    except GoBack:
+                        continue
+                elif idx == 8:
+                    try:
+                        show_installed_sis()
+                    except GoBack:
+                        continue
+                elif idx == 9:
+                    try:
+                        uninstall_sis()
+                    except GoBack:
+                        continue
+                elif idx == 10:
+                    try:
+                        create_uid_launchers()
+                    except GoBack:
+                        continue
+                elif idx == 11:
+                    try:
+                        create_uid_gamelist()
+                    except GoBack:
+                        continue
+                elif idx == 12:
+                    try:
+                        change_device()
+                    except GoBack:
+                        continue
+                elif idx == 13:
                     try:
                         convert_device_paths_to_lowercase()
                     except GoBack:
