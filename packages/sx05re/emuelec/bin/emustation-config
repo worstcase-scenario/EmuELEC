@@ -174,7 +174,7 @@ ESDIR="/storage/.config/emulationstation"
 OLDCFG="${ESDIR}/es_systems.cfg.${BUILDATE}.bak"
 CFG="${ESDIR}/es_systems.cfg"
 
-if [[ "${CVER}" != "${NVER}" ]]; then
+if [[ "${CVER}" != "${NVER}" ]] || [[ "$(cat /storage/.config/EE_BUILDATE 2>/dev/null)" != "${BUILDATE}" ]]; then
     #mv "/storage/.config/emuelec/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml.${BUILDATE}.bak"
     #cp -rf "/usr/bin/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml"
     
@@ -185,6 +185,7 @@ if [[ "${CVER}" != "${NVER}" ]]; then
     cp -f "/usr/config/emulationstation/es_systems.cfg" "${CFG}"
 
     echo "${NVER}" > /storage/.config/EE_VERSION
+    echo "${BUILDATE}" > /storage/.config/EE_BUILDATE
 (
 
  if ! grep -q '<name>nds</name>' "${CFG}"; then
