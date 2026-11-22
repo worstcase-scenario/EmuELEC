@@ -80,6 +80,14 @@ PLATFORM="${PLATFORM%% *}"  # until a space is found
 CORE="${arguments##*--core=}"  # read from --core= onwards
 CORE="${CORE%% *}"  # until a space is found
 
+# Core suffix -malisx2: use the malisx2 Vulkan driver instead of the Mali blob
+if [[ "${CORE}" == *-malisx2 ]]; then
+    CORE="${CORE%-malisx2}"
+    export VK_DRIVER_FILES=/usr/lib/malisx2/malisx2_icd.aarch64.json
+    export VK_ICD_FILENAMES=${VK_DRIVER_FILES}
+    unset VK_ADD_DRIVER_FILES
+fi
+
 EMULATOR="${arguments##*--emulator=}"  # read from --emulator= onwards
 EMULATOR="${EMULATOR%% *}"  # until a space is found
 
@@ -159,6 +167,15 @@ echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
 if [[ "${ROMNAME,,}" == *.bighard ]]; then
     set_kill_keys "biginstinct"
     RUNTHIS='${TBASH} biginstinctstart.sh "${ROMNAME}"'
+
+# MAME standalone, for every system that offers it in es_systems
+elif [ "${EMU}" = "mamesa" ]; then
+    set_kill_keys "mame-sa"
+    RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}"'
+
+elif [ "${EMU}" = "mamesa-gles" ]; then
+    set_kill_keys "mame-sa"
+    RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}" gles'
 
 # Model 2 sets known to sm2-emu run on the standalone emulator from arcade/mame (too slow in MAME)
 elif [[ "${PLATFORM}" == "arcade" || "${PLATFORM}" == "mame" ]] && \
@@ -241,24 +258,12 @@ case ${PLATFORM} in
                 elif [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
             RUNTHIS='fbneo.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "mamesa" ]; then
-            set_kill_keys "mame-sa"
-            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "mamesa-gles" ]; then
-            set_kill_keys "mame-sa"
-            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}" gles'
                 fi
                 ;;
         "fbn"|"neogeo")
         if [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
             RUNTHIS='fbneo.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "mamesa" ]; then
-            set_kill_keys "mame-sa"
-            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "mamesa-gles" ]; then
-            set_kill_keys "mame-sa"
-            RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}" gles'
                 fi
                 ;;
         "nds")
@@ -740,7 +745,7 @@ fi
 
 # These emus do not like to be killed by gptokeyb
 case "${EMU}" in
-    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+    "dolphin" | "mamesa" | "mamesa-gles" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
         ret_error="0"
         ;;
 esac

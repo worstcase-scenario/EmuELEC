@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="armsx2SA"
-PKG_VERSION="bed5204ace14a5d7494db9b6bef7b1e42f87cd72"
+PKG_VERSION="5e61613fd9815b824d77d70c5165c3a83e5acb24"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/ARMSX2/ARMSX2"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain llvm:host zlib curl fontconfig systemd dbus"
+PKG_DEPENDS_TARGET="toolchain llvm:host zlib curl fontconfig systemd dbus malisx2"
 PKG_LONGDESC="ARMSX2 - PlayStation 2 emulator for ARM64 (standalone SDL3 frontend, Vulkan via VK_KHR_display)"
 PKG_TOOLCHAIN="cmake"
 

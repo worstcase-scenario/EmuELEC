@@ -7,7 +7,7 @@ PKG_ARCH="aarch64"
 PKG_LICENSE="GPL-2.0-or-later"
 PKG_SITE="https://github.com/Vita3K/Vita3K"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain boost openssl curl libdrm alsa-lib dbus vulkan-headers vulkan-loader"
+PKG_DEPENDS_TARGET="toolchain boost openssl curl libdrm alsa-lib dbus vulkan-headers vulkan-loader malisx2"
 PKG_LONGDESC="Vita3K PS Vita emulator (SDL3/ImGui frontend, Vulkan)"
 PKG_TOOLCHAIN="cmake"
 

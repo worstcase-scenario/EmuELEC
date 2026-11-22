@@ -138,6 +138,9 @@
               "name": "mamesa"
             },
             {
+              "name": "mamesa-malisx2"
+            },
+            {
               "name": "mamesa-gles"
             }
           ]
@@ -202,6 +205,9 @@
           "cores": [
             {
               "name": "mamesa"
+            },
+            {
+              "name": "mamesa-malisx2"
             },
             {
               "name": "mamesa-gles"
@@ -365,6 +371,9 @@
           "cores": [
             {
               "name": "mamesa"
+            },
+            {
+              "name": "mamesa-malisx2"
             },
             {
               "name": "mamesa-gles"
@@ -776,6 +785,9 @@
               "name": "mamesa"
             },
             {
+              "name": "mamesa-malisx2"
+            },
+            {
               "name": "mamesa-gles"
             }
           ]
@@ -841,6 +853,9 @@
               "name": "mamesa"
             },
             {
+              "name": "mamesa-malisx2"
+            },
+            {
               "name": "mamesa-gles"
             }
           ]
@@ -904,6 +919,9 @@
           "cores": [
             {
               "name": "mamesa"
+            },
+            {
+              "name": "mamesa-malisx2"
             },
             {
               "name": "mamesa-gles"
@@ -1475,6 +1493,9 @@
           "cores": [
             {
               "name": "mamesa"
+            },
+            {
+              "name": "mamesa-malisx2"
             },
             {
               "name": "mamesa-gles"
@@ -3074,6 +3095,9 @@
               "name": "mamesa"
             },
             {
+              "name": "mamesa-malisx2"
+            },
+            {
               "name": "mamesa-gles"
             }
           ]
@@ -3817,6 +3841,9 @@
           "cores": [
             {
               "name": "sm2emuSA"
+            },
+            {
+              "name": "sm2emuSA-malisx2"
             }
           ]
         }
@@ -4178,6 +4205,9 @@
             {
               "name": "armsx2SA",
               "default": true
+            },
+            {
+              "name": "armsx2SA-malisx2"
             }
           ]
         }
@@ -4232,6 +4262,9 @@
             {
               "name": "vita3k",
               "default": true
+            },
+            {
+              "name": "vita3k-malisx2"
             }
           ]
         }
