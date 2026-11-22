@@ -6,6 +6,7 @@
 import os, glob, sys, time, subprocess, shutil, re, mmap, zlib, base64, json, select as _select
 import xml.etree.ElementTree as ET
 import urllib.request
+import unicodedata
 from typing import List, Optional, Tuple
 from evdev import InputDevice, list_devices, ecodes as e
 
@@ -60,7 +61,8 @@ def _map_event(event, last_hat_x, last_hat_y):
         if code == e.BTN_DPAD_DOWN:  return 'down', last_hat_x, last_hat_y
         if code == e.BTN_DPAD_LEFT:  return 'left', last_hat_x, last_hat_y
         if code == e.BTN_DPAD_RIGHT: return 'right',last_hat_x, last_hat_y
-        if code in (e.BTN_SOUTH, e.BTN_START): return 'a', last_hat_x, last_hat_y
+        if code == e.BTN_SOUTH:  return 'a',      last_hat_x, last_hat_y
+        if code == e.BTN_START:  return 'start',  last_hat_x, last_hat_y
         if code == e.BTN_EAST:   return 'b',      last_hat_x, last_hat_y
         if code == e.BTN_NORTH:  return 'y',      last_hat_x, last_hat_y
         if code == e.BTN_WEST:   return 'x',      last_hat_x, last_hat_y
@@ -380,7 +382,8 @@ def draw_screen(title: str, items: List[str], selected: int, offset: int,
     fb_flip()
     return list_rows
 
-def select_from_list(title: str, items: List[str], info: str = "", initial_selected: int = 0) -> Optional[int]:
+def select_from_list(title: str, items: List[str], info: str = "", initial_selected: int = 0,
+                     start_index: Optional[int] = None, y_index: Optional[int] = None) -> Optional[int]:
     if not items: return None
     total = len(items)
     selected = max(0, min(initial_selected, total - 1))
@@ -404,7 +407,9 @@ def select_from_list(title: str, items: List[str], info: str = "", initial_selec
             selected = max(0, selected - cur_list_rows)
         elif key == 'right':
             selected = min(total - 1, selected + cur_list_rows)
-        elif key == 'a': return selected
+        elif key == 'start' and start_index is not None: return start_index
+        elif key == 'y' and y_index is not None: return y_index
+        elif key in ('a', 'start'): return selected
         elif key == 'b': raise GoBack()
 
 def _simple_dialog(title: str, message: str, options: List[str], selected_init: int = 0) -> int:
@@ -432,7 +437,7 @@ def _simple_dialog(title: str, message: str, options: List[str], selected_init: 
         key = controller.wait_for_input()
         if key == 'select': raise UserQuit()
         elif key in ('up', 'down'): selected = 1 - selected if len(options) == 2 else (selected - 1 if key == 'up' else selected + 1) % len(options)
-        elif key == 'a': return selected
+        elif key in ('a', 'start'): return selected
         elif key == 'b': return -1
 
 def confirm_dialog(title: str, message: str, default_yes: bool = True) -> bool:
@@ -451,7 +456,7 @@ def back_exit_dialog(title: str, message: str) -> str:
 # Command line editor (fbdev version)
 # ---------------------------------------------------------------------------
 def select_multiple_from_list(title: str, items: List[str], info: str = "", preselect: bool = True) -> Optional[List[int]]:
-    """Checkbox list — A toggles, last item confirms."""
+    """Checkbox list — A toggles, Y selects all/none, START (or last item) confirms."""
     if not items:
         return []
     checked = set(range(len(items))) if preselect else set()
@@ -460,10 +465,14 @@ def select_multiple_from_list(title: str, items: List[str], info: str = "", pres
         labels = [f"{'[x]' if i in checked else '[ ]'} {items[i]}" for i in range(len(items))]
         labels.append('--- CONFIRM SELECTION ---')
         n_chk = len(checked)
-        full_info = info + f"\nSelected: {n_chk}/{len(items)}  A:Toggle  Last item:Confirm"
-        choice = select_from_list(title, labels, full_info, initial_selected=cursor)
+        full_info = info + f"\nSelected: {n_chk}/{len(items)}  A:Toggle  Y:All/None  START:Confirm"
+        choice = select_from_list(title, labels, full_info, initial_selected=cursor,
+                                  start_index=len(items), y_index=len(items) + 1)
         if choice is None:
             raise GoBack()
+        if choice == len(items) + 1:
+            checked = set() if len(checked) == len(items) else set(range(len(items)))
+            continue
         cursor = choice
         if choice == len(items):
             return sorted(checked)
@@ -515,7 +524,7 @@ def choose_directory_interactive(prompt, start_dir='/storage/roms'):
                 selected = max(0, selected - LIST_ROWS)
             elif key == 'right':
                 selected = min(nav_total - 1, selected + LIST_ROWS)
-            elif key == 'a': break
+            elif key in ('a', 'start'): break
             elif key == 'b': raise GoBack()
 
         sel = nav[selected]
@@ -1310,7 +1319,23 @@ def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[
     os.makedirs(out_dir, exist_ok=True)
     device = get_current_device_code()
 
+    # N-Gage devices first (E: is shared, so a game is often listed on other devices too)
+    _, out = run_eka_capture(["--listdevices"])
+    installed = {m.group(1) for _, d in parse_listdevices_output(out)
+                 for m in [re.search(r'\(([^()]+)\)\s*$', d)] if m}
+    ngage_uids = {}
+    for code in ("NEM-4", "RH-29"):
+        if code in installed and code != device:
+            progress_screen("Checking N-Gage apps", code)
+            _, out = run_eka_capture(["--device", code, "--listapp"])
+            for _, u in parse_listapp_output(out):
+                ngage_uids.setdefault(u, code)
+        elif code == device:
+            for _, u in selected_apps:
+                ngage_uids.setdefault(u, code)
+
     for name, uid in selected_apps:
+        dev = ngage_uids.get(uid, device)
         safe_name = sanitize_uid_name(name)
         target = os.path.join(out_dir, f'{safe_name}.uid')
         if os.path.exists(target):
@@ -1318,7 +1343,7 @@ def write_uid_files(selected_apps: List[Tuple[str, str]], out_dir: str) -> List[
 
         try:
             with open(target, 'w', encoding='utf-8') as f:
-                f.write(uid + '\n' + (device + '\n' if device else ''))
+                f.write(uid + '\n' + (dev + '\n' if dev else ''))
             log(f'Created UID launcher: {target} -> {uid}')
             created_entries.append((name, uid, os.path.basename(target)))
         except Exception as ex:
@@ -1462,6 +1487,20 @@ def add_gamelist_entries(files: List[str]) -> None:
     tree.write(gl, encoding="utf-8", xml_declaration=True)
 
 
+def remove_gamelist_entries(files: List[str]) -> None:
+    gl = os.path.join(EKA_ROMS_DIR, "gamelist.xml")
+    if not files or not os.path.exists(gl):
+        return
+    paths = {"./" + os.path.relpath(f, EKA_ROMS_DIR) for f in files}
+    tree = ET.parse(gl)
+    root = tree.getroot()
+    for g in root.findall("game"):
+        if g.findtext("path") in paths:
+            root.remove(g)
+    ET.indent(tree, space="\t")
+    tree.write(gl, encoding="utf-8", xml_declaration=True)
+
+
 def install_mophun():
     src_dir = choose_directory_interactive("Mophun: Select Directory", EKA_ROMS_DIR)
     sis = data_dir = None
@@ -1594,6 +1633,13 @@ def install_wolphun():
     ok_dialog("Done", "wolphun installed.\n\nRestart ES to see the new entry.")
 
 
+def eka_safe_name(name: str) -> str:
+    """Lowercase ASCII file name: eka2l1 hides mixed-case files and crashes apps on non-ASCII names."""
+    name = name.translate(str.maketrans({"\u2019": "'", "\u2018": "'", "\u2013": "-", "\u2014": "-"}))
+    name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    return name.lower()
+
+
 def install_wolphun_games():
     src_dir = choose_directory_interactive("wolphun: Select Directory", EKA_ROMS_DIR)
     mpns = sorted((os.path.join(r, n) for r, _, fs in os.walk(src_dir)
@@ -1610,7 +1656,7 @@ def install_wolphun_games():
     os.makedirs(dst_dir, exist_ok=True)
     copied = fail = 0
     for pos, i in enumerate(sel, start=1):
-        name = os.path.basename(mpns[i]).lower()
+        name = eka_safe_name(os.path.basename(mpns[i]))
         progress_screen(f"Copying {pos}/{len(sel)}", name)
         try:
             shutil.copy2(mpns[i], os.path.join(dst_dir, name))
@@ -1621,6 +1667,31 @@ def install_wolphun_games():
             log(f"Copy failed: {mpns[i]}: {ex}")
 
     ok_dialog("Done", f"Copied: {copied}\nFailed: {fail}\n\nStart wolphun and use Options > Open game.")
+
+
+def remove_wolphun_games():
+    drives = os.path.join(EKA_CONFIG, "data", "drives")
+    dirs = [os.path.join(drives, "e", "mophun"), os.path.join(drives, "c", "data", "mophun")]
+    files = sorted((os.path.join(d, n) for d in dirs if os.path.isdir(d)
+                    for n in os.listdir(d) if n.lower().endswith(".mpn")), key=str.lower)
+    if not files:
+        ok_dialog("Info", "No wolphun games found.")
+        return
+    sel = select_multiple_from_list("Remove wolphun Games",
+                                    [os.path.relpath(f, drives) for f in files], preselect=False)
+    if not sel:
+        return
+    if not confirm_dialog("Confirm", f"Delete {len(sel)} game(s)?", default_yes=False):
+        return
+    removed = 0
+    for i in sel:
+        try:
+            os.remove(files[i])
+            removed += 1
+            log(f"wolphun game removed: {files[i]}")
+        except Exception as ex:
+            log(f"Remove failed: {files[i]}: {ex}")
+    ok_dialog("Done", f"Removed: {removed}/{len(sel)}")
 
 
 def get_installed_packages() -> List[Tuple[str, str]]:
@@ -1656,7 +1727,8 @@ def uninstall_sis():
     if not confirm_dialog("Confirm", f"Uninstall {len(chosen)} package(s)?", default_yes=False):
         return
 
-    removed = fail = launchers = 0
+    removed = fail = 0
+    launchers = []
     for pos, (name, uid) in enumerate(chosen, start=1):
         progress_screen(f"Uninstalling {pos}/{len(chosen)}", name)
         if run_eka(["--uninstall", uid]) == 0:
@@ -1668,7 +1740,7 @@ def uninstall_sis():
                         if int(fh.readline().strip(), 16) != int(uid, 16):
                             continue
                     os.remove(uf)
-                    launchers += 1
+                    launchers.append(uf)
                     log(f"Removed UID launcher: {uf}")
                 except Exception:
                     pass
@@ -1676,8 +1748,13 @@ def uninstall_sis():
             fail += 1
             log(f"Uninstall failed: {name} ({uid})")
 
+    try:
+        remove_gamelist_entries(launchers)
+    except Exception as ex:
+        log(f"gamelist.xml update failed: {ex}")
+
     ok_dialog("Done", f"Uninstalled: {removed}\nFailed: {fail}\n"
-                      f"UID launchers removed: {launchers}\n\nSee log: {EKA_LOG}")
+                      f"UID launchers removed: {len(launchers)}\n\nSee log: {EKA_LOG}")
 
 
 def create_uid_launchers():
@@ -1735,7 +1812,7 @@ def create_uid_launchers():
             selected_indexes = select_multiple_from_list(
                 'Select Apps For UID',
                 app_options,
-                f'Output: {out_dir}\n\nToggle apps with A, then press Y to create.',
+                f'Output: {out_dir}\n\nToggle apps with A, then press START to create.',
                 preselect=False
             )
         except GoBack:
@@ -2034,6 +2111,7 @@ def main():
                         "Setup Mophun loader and games (.mpn)",
                         "Install wolphun (Mophun emulator)",
                         "Install games for wolphun (.mpn)",
+                        "Remove games for wolphun",
                         "Show installed games and apps",
                         "Uninstall games and apps",
                         "Create UID launcher-files from installed games and apps (.uid)",
@@ -2045,7 +2123,7 @@ def main():
                     "What would you like to do?"
                 )
 
-                if idx is None or idx == 14:
+                if idx is None or idx == 15:
                     break
                 if idx == 0:
                     try:
@@ -2089,30 +2167,35 @@ def main():
                         continue
                 elif idx == 8:
                     try:
-                        show_installed_sis()
+                        remove_wolphun_games()
                     except GoBack:
                         continue
                 elif idx == 9:
                     try:
-                        uninstall_sis()
+                        show_installed_sis()
                     except GoBack:
                         continue
                 elif idx == 10:
                     try:
-                        create_uid_launchers()
+                        uninstall_sis()
                     except GoBack:
                         continue
                 elif idx == 11:
                     try:
-                        create_uid_gamelist()
+                        create_uid_launchers()
                     except GoBack:
                         continue
                 elif idx == 12:
                     try:
-                        change_device()
+                        create_uid_gamelist()
                     except GoBack:
                         continue
                 elif idx == 13:
+                    try:
+                        change_device()
+                    except GoBack:
+                        continue
+                elif idx == 14:
                     try:
                         convert_device_paths_to_lowercase()
                     except GoBack:
