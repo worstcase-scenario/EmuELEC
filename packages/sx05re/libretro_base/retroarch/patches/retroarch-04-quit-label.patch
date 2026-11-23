@@ -1,0 +1,25 @@
+diff --git a/menu/cbs/menu_cbs_sublabel.c b/menu/cbs/menu_cbs_sublabel.c
+index 661015f798..e2304a13eb 100644
+--- a/menu/cbs/menu_cbs_sublabel.c
++++ b/menu/cbs/menu_cbs_sublabel.c
+@@ -453,7 +453,7 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_menu_show_core_manager_steam,  MENU_
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_eject_disc,                    MENU_ENUM_SUBLABEL_EJECT_DISC)
+ #endif
+ #ifdef HAVE_LAKKA
+-DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_quit_retroarch,                MENU_ENUM_SUBLABEL_RESTART_RETROARCH)
++DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_quit_retroarch,                MENU_ENUM_SUBLABEL_QUIT_RETROARCH)
+ #else
+ 
+ /*DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_quit_retroarch,                MENU_ENUM_SUBLABEL_QUIT_RETROARCH)*/
+diff --git a/settings/settings_def_quit_restart.h b/settings/settings_def_quit_restart.h
+index dbba5e1437..9e03beafd1 100644
+--- a/settings/settings_def_quit_restart.h
++++ b/settings/settings_def_quit_restart.h
+@@ -6,6 +6,6 @@
+ 
+ /* Row referencing QUIT_RETROARCH; strings owned by another def file. */
+ #if !defined(SETTINGS_DEF_STRINGS_PASS) && !defined(SETTINGS_DEF_CONFIG_PASS) && !defined(SETTINGS_DEF_ENUM_PASS)
+-SDESC_ACTION_ROW_LV(QUIT_RETROARCH, RESTART_RETROARCH,
++SDESC_ACTION_ROW_LV(QUIT_RETROARCH, QUIT_RETROARCH,
+                      SD_FLAG_NONE, SDX_OK_NULL, NULL, CMD_EVENT_QUIT)
+ #endif

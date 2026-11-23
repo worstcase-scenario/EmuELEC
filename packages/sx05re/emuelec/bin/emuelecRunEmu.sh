@@ -325,6 +325,12 @@ case ${PLATFORM} in
 				if [ "${EMU}" = "keisho" ]; then
 				set_kill_keys "keisho"
 				RUNTHIS='${TBASH} keishostart.sh "${ROMNAME}"'
+				elif [ "${EMU}" = "keisho-gles" ]; then
+				set_kill_keys "keisho"
+				RUNTHIS='${TBASH} keishostart.sh "${ROMNAME}" opengl'
+				elif [ "${EMU}" = "keisho-sw" ]; then
+				set_kill_keys "keisho"
+				RUNTHIS='${TBASH} keishostart.sh "${ROMNAME}" software'
 				fi
 				;;
 		"psvita")

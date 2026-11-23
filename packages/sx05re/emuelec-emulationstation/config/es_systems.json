@@ -3835,7 +3835,10 @@
               "default": true
             },
             {
-              "name": "keisho-malisx2"
+              "name": "keisho-gles"
+            },
+            {
+              "name": "keisho-sw"
             }
           ]
         }
@@ -3872,7 +3875,10 @@
               "name": "keisho"
             },
             {
-              "name": "keisho-malisx2"
+              "name": "keisho-gles"
+            },
+            {
+              "name": "keisho-sw"
             }
           ]
         }
@@ -3901,7 +3907,10 @@
               "default": true
             },
             {
-              "name": "keisho-malisx2"
+              "name": "keisho-gles"
+            },
+            {
+              "name": "keisho-sw"
             }
           ]
         }

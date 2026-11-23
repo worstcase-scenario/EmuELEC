@@ -11,7 +11,7 @@ sed -i 's/^key_exit = Escape$/key_exit =/' "${INI}"
 
 # Mali output has alpha < 1 -> make osd0 opaque (2 = None), restore after
 modetest -M meson -w 31:"pixel blend mode":2 >/dev/null 2>&1
-cd /usr/share/keisho && ./keisho --fullscreen --graphics-backend vulkan "${1}"
+cd /usr/share/keisho && ./keisho --fullscreen --graphics-backend "${2:-vulkan}" "${1}"
 RC=$?
 modetest -M meson -w 31:"pixel blend mode":0 >/dev/null 2>&1
 exit $RC
