@@ -1,6 +1,6 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -2,8 +2,8 @@
+@@ -2,8 +2,8 @@ DEBUG=0
  PERF_TEST=0
  HAVE_SHARED_CONTEXT=0
  WITH_CRC=brumme
@@ -10,17 +10,17 @@
 +HAVE_OPENGL=0
  HAVE_VULKAN_DEBUG=0
  GLIDEN64=0
- GLIDEN64CORE=0
-@@ -11,7 +11,7 @@
- HAVE_RSP_DUMP=0
- HAVE_RDP_DUMP=0
+ GLIDEN64ES=0
+@@ -13,7 +13,7 @@ HAVE_GLIDE64=1
+ HAVE_GLIDEN64=1
+ HAVE_GLN64=1
  HAVE_RICE=1
--HAVE_PARALLEL=0
-+HAVE_PARALLEL=1
- HAVE_PARALLEL_RSP=0
+-HAVE_PARALLEL?=0
++HAVE_PARALLEL?=1
+ HAVE_PARALLEL_RSP?=0
+ HAVE_THR_AL?=1
  STATIC_LINKING=0
- WANT_LLVM_OVERRIDE=0
-@@ -229,25 +229,24 @@
+@@ -264,25 +264,24 @@ ifneq (,$(findstring unix,$(platform)))
        LDFLAGS += -static-libgcc -static-libstdc++
     endif
  
@@ -58,10 +58,10 @@
     # Generic ARM
 -   ifneq (,$(findstring armv,$(platform)))
 +   else ifneq (,$(findstring armv,$(platform)))
-       CPUFLAGS += -DNO_ASM -DARM -D__arm__ -DARM_ASM -DNOSSE
+       CPUFLAGS += -DNO_ASM -DARM -D__arm__ -DARM_ASM -DNOSSE -DARM_FIX
        WITH_DYNAREC=arm
        ifneq (,$(findstring neon,$(platform)))
-@@ -268,6 +267,15 @@
+@@ -302,6 +301,15 @@ else ifneq (,$(findstring imx6,$(platform)))
     PLATFORM_EXT := unix
     WITH_DYNAREC=arm
     HAVE_NEON=1

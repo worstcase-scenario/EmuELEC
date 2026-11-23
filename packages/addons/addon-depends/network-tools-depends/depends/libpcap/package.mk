@@ -26,6 +26,8 @@ pre_configure_target() {
 # When cross-compiling, configure can't set linux version
 # forcing it
   sed -i -e 's/ac_cv_linux_vers=unknown/ac_cv_linux_vers=2/' ../configure
+# -fpic limits the GOT to 32 KB on aarch64: large shared objects linking the static lib overflow it
+  sed -i -e 's/PIC_OPT=-fpic/PIC_OPT=-fPIC/' ../configure
 }
 
 post_makeinstall_target() {

@@ -2,7 +2,7 @@
 # Tsugaru FM Towns emulator - standalone CUI with SDL2 backend (KMSDRM/mali)
 
 PKG_NAME="tsugaru"
-PKG_VERSION="0e31cb4065fd5b7888cb6c13d19f358925f9366e"
+PKG_VERSION="1ca4ec4f05cc55458e0d4a7a661559af9b068529"
 PKG_ARCH="any"
 PKG_LICENSE="BSD-3"
 PKG_SITE="https://github.com/captainys/TOWNSEMU"

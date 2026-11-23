@@ -1,18 +1,60 @@
---- ./retroarch.c	2017-07-26 23:59:01.195225618 -0500
-+++ ./retroarch.c	2017-08-14 01:58:07.722644341 -0500
-@@ -49,6 +49,7 @@
- #include <setjmp.h>
+diff --git a/configuration.c b/configuration.c
+--- a/configuration.c
++++ b/configuration.c
+@@ -117,7 +117,7 @@ void android_app_set_window_settings(bool notch_write_over,
+  * populate_settings_array.  They are used so each populate function
+  * can do a single exact-size malloc instead of the old
+  * sizeof(struct)/sizeof(placeholder) over-estimate. */
+-#define SETTINGS_BOOL_COUNT_MAX   512
++#define SETTINGS_BOOL_COUNT_MAX   516
+ #define SETTINGS_INT_COUNT_MAX     64
+ #define SETTINGS_UINT_COUNT_MAX   320
+ #define SETTINGS_FLOAT_COUNT_MAX  128
+@@ -2973,6 +2973,13 @@ static struct config_bool_setting *populate_settings_bool(
+    if (!tmp)
+       return NULL;
+ 
++   /* emuelec */
++   SETTING_BOOL("emuelec_exit_to_kodi",           &settings->bools.emuelec_exit_to_kodi, true, false, false);
++   SETTING_BOOL("video_oga_vertical_enable",      &settings->bools.video_oga_vertical_enable, true, false, false);
++   SETTING_BOOL("video_ogs_vertical_enable",      &settings->bools.video_ogs_vertical_enable, true, false, false);
++   SETTING_BOOL("cheevos_unsupported_notification",      &settings->bools.cheevos_unsupported_notification, true, false, false);
++   /* emuelec */
++
+    SETTING_BOOL("accessibility_enable",          &settings->bools.accessibility_enable, true, DEFAULT_ACCESSIBILITY_ENABLE, false);
+    SETTING_BOOL("load_dummy_on_core_shutdown",   &settings->bools.load_dummy_on_core_shutdown, true, DEFAULT_LOAD_DUMMY_ON_CORE_SHUTDOWN, false);
+ #if defined(__WINRT__) || defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+diff --git a/configuration.h b/configuration.h
+--- a/configuration.h
++++ b/configuration.h
+@@ -708,6 +708,12 @@ typedef struct settings
+    struct
+    {
+       bool placeholder;
++
++      /* emuelec */
++      bool emuelec_exit_to_kodi;
++      bool video_oga_vertical_enable;
++      bool video_ogs_vertical_enable;
++      bool cheevos_unsupported_notification;
+       bool video_screen_xr_visible[RETRO_VIDEO_VIEWS_MAX];
+       bool video_openxr_menu_placed;
+ #ifdef HAVE_VIDEO_WINDOWS
+diff --git a/retroarch.c b/retroarch.c
+--- a/retroarch.c
++++ b/retroarch.c
+@@ -60,6 +60,7 @@
+ #include <ctype.h>
  #include <math.h>
  #include <locale.h>
 +#include <fcntl.h>
  
  #include <boolean.h>
  #include <clamping.h>
-@@ -3962,9 +3963,30 @@
-          }
+@@ -4797,9 +4798,30 @@ bool command_event(enum event_command cmd, void *data)
+ #endif
           break;
        case CMD_EVENT_QUIT:
--         if (!retroarch_main_quit())
 + {
 +     /* Exit Back to Kodi if the option exists on the cfg file*/
 +      settings_t *settings      = config_get_ptr();
@@ -33,40 +75,10 @@
 +      } }
 +      /* if it doesn't exist then just exit */
 +
-+ if (!retroarch_main_quit())
+          if (!retroarch_main_quit_staged())
              return false;
           break;
 + }
        case CMD_EVENT_CHEEVOS_HARDCORE_MODE_TOGGLE:
  #ifdef HAVE_CHEEVOS
-          rcheevos_toggle_hardcore_mode();
-
---- ./configuration.h	2017-08-14 02:20:37.546187576 -0500
-+++ ./configuration.h	2017-08-14 02:20:46.390236188 -0500
-@@ -47,6 +47,11 @@
-    {
-       bool placeholder;
- 
-+      /* emuelec */
-+      bool emuelec_exit_to_kodi;
-+      bool video_oga_vertical_enable;
-+      bool video_ogs_vertical_enable;
-+      bool cheevos_unsupported_notification;
-       /* Video */
-       bool video_fullscreen;
-       bool video_windowed_fullscreen;
---- ./configuration.c	2017-08-18 06:30:31.000000000 -0500
-+++ ./configuration.c	2017-08-23 01:24:28.009570267 -0500
-@@ -1329,6 +1329,12 @@
- {
-    struct config_bool_setting  *tmp    = (struct config_bool_setting*)calloc(1, (*size + 1) * sizeof(struct config_bool_setting));
-    unsigned count                      = 0;
-+   /* emuelec */
-+   SETTING_BOOL("emuelec_exit_to_kodi",           &settings->bools.emuelec_exit_to_kodi, true, false, false);
-+   SETTING_BOOL("video_oga_vertical_enable",      &settings->bools.video_oga_vertical_enable, true, false, false);
-+   SETTING_BOOL("video_ogs_vertical_enable",      &settings->bools.video_ogs_vertical_enable, true, false, false);
-+   SETTING_BOOL("cheevos_unsupported_notification",      &settings->bools.cheevos_unsupported_notification, true, false, false);
-+   /* emuelec */
- 
-    SETTING_BOOL("accessibility_enable", &settings->bools.accessibility_enable, true, DEFAULT_ACCESSIBILITY_ENABLE, false);
-    SETTING_BOOL("driver_switch_enable", &settings->bools.driver_switch_enable, true, DEFAULT_DRIVER_SWITCH_ENABLE, false);
+          rcheevos_toggle_hardcore_paused();

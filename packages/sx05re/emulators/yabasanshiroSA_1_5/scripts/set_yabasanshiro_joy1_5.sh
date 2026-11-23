@@ -7,7 +7,7 @@
 . /etc/profile
 
 # Configure ADVMAME players based on ES settings
-CONFIG_DIR="/storage/roms/saturn/yabasanshiro1_5"
+CONFIG_DIR="${1:-/storage/roms/saturn/yabasanshiro1_5}"
 CONFIG="${CONFIG_DIR}/keymapv2.json"
 
 CONFIG_TMP=/tmp/jc/yabasan.tmp

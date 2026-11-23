@@ -2,7 +2,7 @@
 # Copyright (C) 2022-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="fbneoSA"
-PKG_VERSION="47f12dd9296d4297b1d3daec3e91c4d3d2c0f80a"
+PKG_VERSION="ee4e99fd6baa2dcfad82a70d8313d92293a7fcf4"
 PKG_ARCH="aarch64"
 PKG_LICENSE="Custom"
 PKG_SITE="https://github.com/finalburnneo/FBNeo"
@@ -12,13 +12,12 @@ PKG_LONGDESC="https://github.com/finalburnneo/FBNeo/blob/master/src/license.txt"
 GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="make"
 
-PKG_MAKE_OPTS_TARGET=" sdl2 RELEASEBUILD=1"
-
 pre_configure_target() {
-sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" makefile.sdl2
-sed -i "s|objdir	= obj/|objdir	= ${PKG_BUILD}/obj/|" makefile.sdl2
-sed -i "s|srcdir	= src/|srcdir	= ${PKG_BUILD}/src/|" makefile.sdl2
-sed -i "s|CC	= gcc|#CC	= gcc|" makefile.sdl2
+PKG_MAKE_OPTS_TARGET=" -C ${PKG_BUILD} sdl2 RELEASEBUILD=1"
+sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" ${PKG_BUILD}/makefile.sdl2
+sed -i "s|objdir	= obj/|objdir	= ${PKG_BUILD}/obj/|" ${PKG_BUILD}/makefile.sdl2
+sed -i "s|srcdir	= src/|srcdir	= ${PKG_BUILD}/src/|" ${PKG_BUILD}/makefile.sdl2
+sed -i "s|CC	= gcc|#CC	= gcc|" ${PKG_BUILD}/makefile.sdl2
 export LDFLAGS+=" -L$(get_install_dir gl4es)/usr/lib"
 unset MAKELEVEL
 }

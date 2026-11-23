@@ -1,7 +1,7 @@
 --- a/pcsx2/GS/Renderers/Vulkan/GSDeviceVK.cpp
 +++ b/pcsx2/GS/Renderers/Vulkan/GSDeviceVK.cpp
-@@ -6400,6 +6400,8 @@
- 	gpb.AddDynamicState(VK_DYNAMIC_STATE_LINE_WIDTH);
+@@ -7020,6 +7020,8 @@ bool GSDeviceVK::CompilePresentPipelines()
+ 	AddCachedDynamicState(gpb);
  	gpb.SetNoCullRasterizationState();
  	gpb.SetNoBlendingState();
 +	// Keep the cleared alpha of 1: display planes that blend per-pixel would hide frames with PS2 alpha 0

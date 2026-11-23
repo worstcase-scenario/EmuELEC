@@ -2,7 +2,7 @@
 # Copyright (C) 2020-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="dolphinSA"
-PKG_VERSION="048e6306b82b183d061ee33c4ee32d5e76f3f09a"
+PKG_VERSION="a76221bc3109da6147d7e22b941c64712103dd6e"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/dolphin-emu/dolphin"
@@ -24,6 +24,7 @@ PKG_CMAKE_OPTS_TARGET=" -DENABLE_LTO=OFF \
                         -DUSE_DISCORD_PRESENCE=OFF \
                         -DENABLE_QT=OFF \
                         -DENABLE_TESTS=OFF \
+                        -DCARGO_BIN=OFF \
                         -DCMAKE_BUILD_TYPE=Release"
 
 

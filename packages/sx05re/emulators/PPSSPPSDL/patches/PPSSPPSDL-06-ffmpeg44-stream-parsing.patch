@@ -1,0 +1,11 @@
+--- a/Core/HW/MediaEngine.cpp
++++ b/Core/HW/MediaEngine.cpp
+@@ -432,7 +432,7 @@ bool MediaEngine::addVideoStream(int streamNum, int streamId) {
+ #endif
+ #if LIBAVFORMAT_VERSION_MAJOR >= 59
+ 			avpriv_stream_set_need_parsing(stream, AVSTREAM_PARSE_FULL);
+-#else
++#elif LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(57, 33, 100)
+ 			stream->request_probe = 0;
+ 			stream->need_parsing = AVSTREAM_PARSE_FULL;
+ #endif

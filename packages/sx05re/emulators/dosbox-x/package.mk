@@ -5,10 +5,8 @@ PKG_NAME="dosbox-x"
 
 if [[ "${DEVICE}" == "Amlogic-old" ]]; then
 PKG_VERSION="286e859e08b60a04c0b4c2bc952432122c957a9c"
-PKG_SHA256="1a44710e38b05f67e76da74f46bbea4bb8b73ed4a28044575dfa24765bc65d7c"
 else
-PKG_VERSION="5e7f129f43683a0dd5a797d29b962a429d9bd0a7"
-PKG_SHA256="edf31acd6310157a6617f9f25e2c99a39f40bcdffa6da3aeb78a0ed3db5655dc"
+PKG_VERSION="322a07a2eae3f1253ac41440becea94229c5b6ff"
 fi
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/joncampbell123/dosbox-x"

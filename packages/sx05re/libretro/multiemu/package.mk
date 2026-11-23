@@ -2,8 +2,7 @@
 # Copyright (C) 2019 Trond Haugland (trondah@gmail.com)
 
 PKG_NAME="multiemu"
-PKG_VERSION="61743c76180f1ad454227ed1be0261a071d37d67"
-PKG_SHA256="cf61595e30235758f1598f575a075db243f9d32d1fb8994679a812d59b936917"
+PKG_VERSION="5f5a07748ce5c239c4118463ce8e6473743d4859"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mame"
@@ -48,7 +47,7 @@ PKG_MAKE_OPTS_TARGET="REGENIE=1 \
 
 export ARCHOPTS="-D__aarch64__ -DASMJIT_BUILD_X86"
 
-sed -i "s/-static-libstdc++//g" scripts/genie.lua
+sed -i "s/-static-libstdc++//g" ${PKG_BUILD}/scripts/genie.lua
 
 unset ARCH
 unset DISTRO
@@ -57,12 +56,12 @@ unset PROJECT
 }
 
 make_target() {
-  make $PKG_MAKE_OPTS_TARGET OVERRIDE_CC=$CC OVERRIDE_CXX=$CXX OVERRIDE_LD=$LD AR=$AR $MAKEFLAGS -j5
+  make -C ${PKG_BUILD} $PKG_MAKE_OPTS_TARGET OVERRIDE_CC=$CC OVERRIDE_CXX=$CXX OVERRIDE_LD=$LD AR=$AR $MAKEFLAGS -j5
 }
 
 makeinstall_target() {
   mkdir -p $INSTALL/usr/lib/libretro
-  cp *.so $INSTALL/usr/lib/libretro/
+  cp ${PKG_BUILD}/*.so $INSTALL/usr/lib/libretro/
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/multiemu
   cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/multiemu
   cp -rf $PKG_BUILD/hash/fmtowns_cd.xml ${INSTALL}/usr/config/emuelec/configs/multiemu/hash

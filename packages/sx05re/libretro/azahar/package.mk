@@ -2,8 +2,8 @@
 # Copyright (C) 2026-present worstcase-scenario (https://github.com/worstcase-scenario)
 
 PKG_NAME="azahar"
-PKG_VERSION="2126.1"
-PKG_SHA256="7bea6d8aec905e10ffcf7ceaf558a231a21ce008ad40d193ff9fb247b1ccf9cb"
+PKG_VERSION="2126.2"
+PKG_SHA256="85c8b56fac703df04720125044b8ff887997911858a6cde545dfb1107ba4cd26"
 PKG_LICENSE="GPLv2+"
 PKG_SITE="https://github.com/azahar-emu/azahar"
 PKG_URL="${PKG_SITE}/releases/download/${PKG_VERSION}/azahar-unified-source-${PKG_VERSION}.tar.xz"

@@ -19,36 +19,23 @@
 ################################################################################
 
 PKG_NAME="hatari"
-PKG_VERSION="7008194d3f951a157997f67a820578f56f7feee0"
-PKG_SHA256="05f9da703fb5030aa5424e53a35d9b310d183b3b48aa777504e796c88fdd3da2"
+PKG_VERSION="4edc56f4e2add886ed5406854d12f95fdfdf67b6"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/hatari"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_TARGET="toolchain zlib"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="New rebasing of Hatari based on Mercurial upstream. Tries to be a shallow fork for easy upstreaming later on."
 PKG_LONGDESC="New rebasing of Hatari based on Mercurial upstream. Tries to be a shallow fork for easy upstreaming later on."
 
 PKG_IS_ADDON="no"
-PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
-PKG_USE_CMAKE="no"
-
-configure_target() {
-  :
-}
-
-make_target() {
-  if [ "${ARCH}" == "arm" ]; then
-    CFLAGS="${CFLAGS} -DNO_ASM -DARM -D__arm__ -DARM_ASM -DNOSSE -DARM_HARDFP"
-  fi
-  make -C .. -f Makefile.libretro
-}
+PKG_TOOLCHAIN="cmake"
+PKG_CMAKE_OPTS_TARGET="-DENABLE_LIBRETRO=ON -DENABLE_HATARI=OFF -DENABLE_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp ../hatari_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp src/hatari_libretro.so ${INSTALL}/usr/lib/libretro/
 }

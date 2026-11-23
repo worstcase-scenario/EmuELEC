@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="geartowns"
-PKG_VERSION="25c830432fea472e71e41ef3cd2ed79c985ef609"
+PKG_VERSION="88f4fa628bb9434afb56442e8b1c149b76e33a78"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/drhelius/Geartowns"
 PKG_URL="${PKG_SITE}.git"

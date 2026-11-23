@@ -2,8 +2,7 @@
 # Copyright (C) 2024-present Team EmuELEC (https://emuelec.org)
 
 PKG_NAME="beetle-saturn"
-PKG_VERSION="ccba5265f60f8e64a1984c9d14d383606193ea6a"
-PKG_SHA256="f6d23a233a4b66038d20ba13f7b13666bab258478d9e62a4ebfac6dd8eefe2d8"
+PKG_VERSION="5231aa238ff2bf61b1ed88775711b71692c8e37c"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"

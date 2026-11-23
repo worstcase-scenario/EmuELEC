@@ -1,5 +1,4 @@
 diff --git a/advance/linux/vfb.c b/advance/linux/vfb.c
-index c25bca05..7886f78c 100644
 --- a/advance/linux/vfb.c
 +++ b/advance/linux/vfb.c
 @@ -1707,7 +1707,7 @@ static adv_error fb_wait_vsync_ext(void)
@@ -73,11 +72,10 @@ index c25bca05..7886f78c 100644
  			++fb_state.wait_error;
  			if (fb_state.wait_error > WAIT_ERROR_MAX)
  				fb_state.wait = fb_wait_none;
-diff --git a/src/mame.c b/src/mame.c
-index 2d7eb97a..b37f5924 100644
---- a/src/mame.c
-+++ b/src/mame.c
-@@ -229,6 +229,7 @@ const char *memory_region_names[REGION_MAX] =
+diff --git a/mame/mame.c b/mame/mame.c
+--- a/mame/mame.c
++++ b/mame/mame.c
+@@ -228,6 +228,7 @@ const char *memory_region_names[REGION_MAX] =
  	"REGION_PLDS"
  };
  
@@ -85,7 +83,7 @@ index 2d7eb97a..b37f5924 100644
  
  /***************************************************************************
      PROTOTYPES
-@@ -303,6 +304,14 @@ int run_game(int game)
+@@ -307,6 +308,14 @@ int run_game(int game)
  			/* then finish setting up our local machine */
  			init_machine();
  
@@ -100,11 +98,10 @@ index 2d7eb97a..b37f5924 100644
  			/* load the configuration settings and NVRAM */
  			settingsloaded = config_load_settings();
  			nvram_load();
-diff --git a/src/mame.h b/src/mame.h
-index 2b920a1b..a47751a8 100644
---- a/src/mame.h
-+++ b/src/mame.h
-@@ -182,6 +182,13 @@ struct ImageFile
+diff --git a/mame/mame.h b/mame/mame.h
+--- a/mame/mame.h
++++ b/mame/mame.h
+@@ -181,6 +181,13 @@ struct ImageFile
  };
  #endif /* MESS */
  

@@ -1,5 +1,4 @@
-diff --git a/src/externals/connect_fssimplewindow/CMakeLists.txt b/src/externals/connect_fssimplewindow/CMakeLists.txt
-index 451bf1aa..dffe5f01 100644
+
 --- a/src/externals/connect_fssimplewindow/CMakeLists.txt
 +++ b/src/externals/connect_fssimplewindow/CMakeLists.txt
 @@ -1,15 +1,19 @@
@@ -30,8 +29,7 @@ index 451bf1aa..dffe5f01 100644
 +if(UNIX)
  	target_link_libraries(${TARGET_NAME} yssimplesound_linux_alsa)
  endif()
-diff --git a/src/externals/connect_fssimplewindow/fssimplewindow_connection.cpp b/src/externals/connect_fssimplewindow/fssimplewindow_connection.cpp
-index 93ff5dbd..6f05d163 100644
+
 --- a/src/externals/connect_fssimplewindow/fssimplewindow_connection.cpp
 +++ b/src/externals/connect_fssimplewindow/fssimplewindow_connection.cpp
 @@ -24,6 +24,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -79,7 +77,7 @@ index 93ff5dbd..6f05d163 100644
  }
  
  /* virtual */ std::vector <std::string> FsSimpleWindowConnection::MakeDefaultKeyMappingText(void) const
-@@ -1586,97 +1591,78 @@ void FsSimpleWindowConnection::PauseKeyPressed(void)
+@@ -1591,97 +1596,78 @@ void FsSimpleWindowConnection::ShowMouseCursor(bool show)
  
  void FsSimpleWindowConnection::WindowConnection::Start(void)
  {
@@ -227,7 +225,7 @@ index 93ff5dbd..6f05d163 100644
  
  	// Make initial status bitmap
  	Put16x16Invert(0,15,CD_IDLE);
-@@ -1689,7 +1675,6 @@ void FsSimpleWindowConnection::WindowConnection::Start(void)
+@@ -1694,7 +1680,6 @@ void FsSimpleWindowConnection::WindowConnection::Start(void)
  		Put16x16Invert(48+16*hdd,15,HDD_IDLE);
  	}
  
@@ -235,7 +233,7 @@ index 93ff5dbd..6f05d163 100644
  	if(true!=winThrEx.gamePadInitialized)
  	{
  		YsGamePadInitialize();
-@@ -1708,54 +1693,281 @@ void FsSimpleWindowConnection::WindowConnection::Start(void)
+@@ -1713,54 +1698,281 @@ void FsSimpleWindowConnection::WindowConnection::Start(void)
  }
  void FsSimpleWindowConnection::WindowConnection::Stop(void)
  {
@@ -545,7 +543,7 @@ index 93ff5dbd..6f05d163 100644
  
  		winThrEx.primary.mouseMoveXY[0]+=mx-diffMouseXY[0];
  		winThrEx.primary.mouseMoveXY[1]+=my-diffMouseXY[1];
-@@ -1777,7 +1989,10 @@ void FsSimpleWindowConnection::WindowConnection::Interval(void)
+@@ -1782,7 +1994,10 @@ void FsSimpleWindowConnection::WindowConnection::Interval(void)
  			diffMouseXY[0]=cx;
  			diffMouseXY[1]=cy;
  
@@ -557,14 +555,14 @@ index 93ff5dbd..6f05d163 100644
  		}
  	}
  
-@@ -1787,16 +2002,9 @@ void FsSimpleWindowConnection::WindowConnection::Interval(void)
+@@ -1791,16 +2006,9 @@ void FsSimpleWindowConnection::WindowConnection::Interval(void)
+ 	{
  		std::lock_guard <std::mutex> lock(deviceStateLock);
  
- 		bool mouseCursorVisible=(true!=shared.differentialMouseIntegration && true==shared.showMouseCursor);
--		if(mouseCursorVisible!=(FsIsMouseCursorVisible()!=0))
-+		if(mouseCursorVisible!=(SDL_ENABLE==SDL_ShowCursor(SDL_QUERY)))
+-		if(shared.showMouseCursor!=(FsIsMouseCursorVisible()!=0))
++		if(shared.showMouseCursor!=(SDL_ENABLE==SDL_ShowCursor(SDL_QUERY)))
  		{
--			if(true==mouseCursorVisible)
+-			if(true==shared.showMouseCursor)
 -			{
 -				FsShowMouseCursor(1);
 -			}
@@ -572,11 +570,11 @@ index 93ff5dbd..6f05d163 100644
 -			{
 -				FsShowMouseCursor(0);
 -			}
-+			SDL_ShowCursor(true==mouseCursorVisible ? SDL_ENABLE : SDL_DISABLE);
++			SDL_ShowCursor(true==shared.showMouseCursor ? SDL_ENABLE : SDL_DISABLE);
  		}
  
  		winThr.VMClosed=shared.VMClosedFromVMThread;
-@@ -1813,8 +2021,13 @@ void FsSimpleWindowConnection::WindowConnection::Interval(void)
+@@ -1817,8 +2025,13 @@ void FsSimpleWindowConnection::WindowConnection::Interval(void)
  */
  void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
  {
@@ -591,7 +589,7 @@ index 93ff5dbd..6f05d163 100644
  
  	if(0==winThr.mostRecentImage.wid || 0==winThr.mostRecentImage.hei)
  	{
-@@ -1856,8 +2069,11 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
+@@ -1860,8 +2073,11 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
  
  	UpdateStatusBitmap();
  
@@ -605,7 +603,7 @@ index 93ff5dbd..6f05d163 100644
  
  	auto lowerRightIcon=shared.lowerRightIcon;
  
-@@ -1875,77 +2091,77 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
+@@ -1879,77 +2095,77 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
  	renderingLock.unlock();
  	// }
  
@@ -730,7 +728,7 @@ index 93ff5dbd..6f05d163 100644
  	}
  
  	if(true==rocketRangerSpecial)
-@@ -1963,40 +2179,40 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
+@@ -1967,40 +2183,40 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
  		//           On  Off                On  Off
  		int t=rocketRangerTiming;
  
@@ -788,7 +786,7 @@ index 93ff5dbd..6f05d163 100644
  	}
  }
  
-@@ -2123,52 +2339,40 @@ void FsSimpleWindowConnection::WindowConnection::UpdateStatusBitmapRocketRangerS
+@@ -2127,52 +2343,40 @@ void FsSimpleWindowConnection::WindowConnection::UpdateStatusBitmapRocketRangerS
  	}
  }
  
@@ -871,8 +869,7 @@ index 93ff5dbd..6f05d163 100644
  }
  
  ////////////////////////////////////////////////////////////////
-diff --git a/src/externals/connect_fssimplewindow/fssimplewindow_connection.h b/src/externals/connect_fssimplewindow/fssimplewindow_connection.h
-index ecb82c12..e2aa63e3 100644
+
 --- a/src/externals/connect_fssimplewindow/fssimplewindow_connection.h
 +++ b/src/externals/connect_fssimplewindow/fssimplewindow_connection.h
 @@ -37,7 +37,11 @@ So, my best decision is to use streaming mode in macOS, which should work perfec
@@ -899,7 +896,7 @@ index ecb82c12..e2aa63e3 100644
  		}
  	};
  	class DeviceAndEvent
-@@ -178,12 +184,16 @@ public:
+@@ -180,12 +186,16 @@ public:
  		//       If the guest has not consumed previous mouse movement, add the motion instead of overwrite.
  
  

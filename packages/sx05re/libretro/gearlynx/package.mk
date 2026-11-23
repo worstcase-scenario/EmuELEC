@@ -19,8 +19,7 @@
 ################################################################################
 
 PKG_NAME="gearlynx"
-PKG_VERSION="9dbb7449d4e35a9240f7091de8856fb9156def48"
-PKG_SHA256="9621f641bddb58a29d5fcb8ba17c1fe2143d3f921e279be5c208b92ebcafe7d2"
+PKG_VERSION="9eeedb442843fd378c7298c8c4936fa52b303158"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv3"

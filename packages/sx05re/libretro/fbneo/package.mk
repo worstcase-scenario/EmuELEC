@@ -2,8 +2,7 @@
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="fbneo"
-PKG_VERSION="9a5899faba4d0c67d5f4cf56bcd5633d9e6e061d"
-PKG_SHA256="f1fa098ae7f14f0ca652611a5a9a563b21702599760fa4afa153a8848578999f"
+PKG_VERSION="3f0de7fefbb7cc4b46e832647215cbe41eaf37b0"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="Non-commercial"
@@ -17,9 +16,9 @@ PKG_TOOLCHAIN="make"
 
 
 pre_configure_target() {
-sed -i "s|LDFLAGS += -static-libgcc -static-libstdc++|LDFLAGS += -static-libgcc|"  ./src/burner/libretro/Makefile
+sed -i "s|LDFLAGS += -static-libgcc -static-libstdc++|LDFLAGS += -static-libgcc|"  ${PKG_BUILD}/src/burner/libretro/Makefile
 
-PKG_MAKE_OPTS_TARGET=" -C ./src/burner/libretro USE_CYCLONE=0 profile=performance"
+PKG_MAKE_OPTS_TARGET=" -C ${PKG_BUILD}/src/burner/libretro USE_CYCLONE=0 profile=performance"
 
 if [[ "${TARGET_FPU}" =~ "neon" ]]; then
 	PKG_MAKE_OPTS_TARGET+=" HAVE_NEON=1"

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="armsx2"
-PKG_VERSION="091a8b3e1bce77352549a2b862f2c21770a515e2"
+PKG_VERSION="c9b6e89f34779cd6e0d47a919cde54a161f8b525"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/ARMSX2/ARMSX2"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"

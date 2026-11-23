@@ -19,8 +19,7 @@
 ################################################################################
 
 PKG_NAME="mgba"
-PKG_VERSION="c758314a639aa0066e7b65a8341448181b73c804"
-PKG_SHA256="2cb97ada9b75d23ef4838fb2c1b52335bf0bba867f98d790d4ec2cf4d3b9e050"
+PKG_VERSION="7a12d6d4b9acb14c0ae62c9166b6a2f3d08007f6"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="MPLv2.0"
@@ -33,17 +32,14 @@ PKG_SHORTDESC="mGBA Game Boy Advance Emulator"
 PKG_LONGDESC="mGBA is a new emulator for running Game Boy Advance games. It aims to be faster and more accurate than many existing Game Boy Advance emulators, as well as adding features that other emulators lack."
 
 PKG_IS_ADDON="no"
-PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
-PKG_USE_CMAKE="no"
+PKG_TOOLCHAIN="cmake"
+PKG_CMAKE_OPTS_TARGET="-DBUILD_LIBRETRO=ON -DBUILD_QT=OFF -DBUILD_SDL=OFF -DBUILD_SHARED=OFF -DBUILD_STATIC=OFF \
+                       -DUSE_FFMPEG=OFF -DUSE_EDITLINE=OFF -DUSE_ELF=OFF -DUSE_LUA=OFF -DUSE_DISCORD_RPC=OFF \
+                       -DUSE_SQLITE3=OFF -DUSE_LIBZIP=OFF -DUSE_MINIZIP=OFF -DUSE_PNG=OFF -DUSE_ZLIB=OFF -DUSE_LZMA=OFF \
+                       -DUSE_EPOXY=OFF -DBUILD_GL=OFF -DBUILD_GLES2=OFF -DBUILD_GLES3=OFF -DCMAKE_BUILD_TYPE=Release"
 
 make_target() {
-  cd ${PKG_BUILD}
-  if [[ "${ARCH}" =~ "arm" ]]; then
-    make -f Makefile.libretro platform=unix-armv HAVE_NEON=1
-  else
-    make -f Makefile.libretro
-  fi
+  ninja ${NINJA_OPTS} mgba_libretro
 }
 
 makeinstall_target() {
