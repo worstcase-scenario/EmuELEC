@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-PKG_NAME="sm2emuSA"
-PKG_VERSION="4c290c558afaaa85956fa2364971c92cfde707cf"
+PKG_NAME="keisho"
+PKG_VERSION="d7c7dd885bcf46bfc67c30ce70fa6fedb0866168"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/dmanlfc/sm2-emu"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain shaderc:host vulkan-headers vulkan-loader ${OPENGLES} libdrm alsa-lib systemd fontconfig"
-PKG_LONGDESC="SM2-Emu - Sega Model 2 emulator (standalone, SDL3, Vulkan and OpenGL ES)"
+PKG_DEPENDS_TARGET="toolchain shaderc:host vulkan-headers vulkan-loader ${OPENGLES} libdrm alsa-lib systemd fontconfig SDL3"
+PKG_LONGDESC="Keisho (formerly SM2-Emu) - Sega Model 1, 2 and 3 emulator (standalone, SDL3, Vulkan and OpenGL ES)"
 PKG_TOOLCHAIN="cmake"
 GET_HANDLER_SUPPORT="git"
 
@@ -15,10 +15,6 @@ PKG_CMAKE_OPTS_TARGET="-DSM2_BUILD_VULKAN=ON \
                        -DSM2_BUILD_OPENGL_DESKTOP=OFF \
                        -DSM2_BUILD_OPENGL_ES=ON \
                        -DSM2_GLSLC=${TOOLCHAIN}/bin/glslc \
-                       -DSDL_UNIX_CONSOLE_BUILD=ON \
-                       -DSDL_X11=OFF \
-                       -DSDL_WAYLAND=OFF \
-                       -DSDL_KMSDRM=ON \
                        -DCMAKE_BUILD_TYPE=Release"
 
 # m68kmake is an ExternalProject built for the host, but it inherits the
@@ -28,8 +24,8 @@ pre_configure_target() {
 }
 
 makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/share/sm2emuSA ${INSTALL}/usr/bin
-  cp bin/sm2-emu ${PKG_BUILD}/data/games.xml ${INSTALL}/usr/share/sm2emuSA
-  cp -r ${PKG_BUILD}/data/lang ${INSTALL}/usr/share/sm2emuSA
-  cp ${PKG_DIR}/scripts/sm2emustart.sh ${INSTALL}/usr/bin
+  mkdir -p ${INSTALL}/usr/share/keisho ${INSTALL}/usr/bin
+  cp bin/keisho ${PKG_BUILD}/data/games.xml ${INSTALL}/usr/share/keisho
+  cp -r ${PKG_BUILD}/data/lang ${INSTALL}/usr/share/keisho
+  cp ${PKG_DIR}/scripts/keishostart.sh ${INSTALL}/usr/bin
 }

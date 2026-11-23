@@ -1,0 +1,127 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5cf130b..9c1104e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -11,7 +11,7 @@ endif ()
+ # Vulkan support is excluded from macOS as the system doesn't support it natively.
+ # Metal is the preferred backend on that platform.
+ if (NOT APPLE)
+-    find_package(Vulkan COMPONENTS SPIRV-Tools)
++    find_package(Vulkan)
+ endif ()
+ 
+ include(cmake/CMakeRC.cmake)
+diff --git a/apps/ymir-sdl3/CMakeLists.txt b/apps/ymir-sdl3/CMakeLists.txt
+index def8dbc..21fd46a 100644
+--- a/apps/ymir-sdl3/CMakeLists.txt
++++ b/apps/ymir-sdl3/CMakeLists.txt
+@@ -534,7 +534,7 @@ endif()
+ find_package(cereal CONFIG REQUIRED)
+ find_package(cxxopts CONFIG REQUIRED)
+ find_package(date CONFIG REQUIRED)
+-find_package(OpenSSL CONFIG REQUIRED)
++find_package(OpenSSL REQUIRED)
+ find_package(CURL REQUIRED)
+ find_package(rtmidi CONFIG REQUIRED)
+ find_package(tomlplusplus CONFIG REQUIRED)
+@@ -559,7 +559,7 @@ target_link_libraries(ymir-sdl3 PRIVATE
+     lz4::lz4
+     discord-rpc
+     RtMidi::rtmidi
+-    CURL::libcurl_static
++    CURL::libcurl
+     stb::stb
+     dr_libs::dr_libs
+ )
+diff --git a/apps/ymir-sdl3/src/app/ui/windows/about_window.cpp b/apps/ymir-sdl3/src/app/ui/windows/about_window.cpp
+index 044a8fc..2d512dd 100644
+--- a/apps/ymir-sdl3/src/app/ui/windows/about_window.cpp
++++ b/apps/ymir-sdl3/src/app/ui/windows/about_window.cpp
+@@ -27,9 +27,6 @@ CMRC_DECLARE(Ymir_sdl3_rc);
+ #include <dr_libs/dr_mp3.h>
+ #include <fmt/format.h>
+ #include <lz4.h>
+-#include <nghttp2/nghttp2ver.h>
+-#include <nghttp3/version.h>
+-#include <ngtcp2/version.h>
+ #include <nlohmann/json.hpp>
+ #include <openssl/opensslv.h>
+ #include <rtmidi/RtMidi.h>
+@@ -39,8 +36,6 @@ CMRC_DECLARE(Ymir_sdl3_rc);
+ #include <zlib.h>
+ #include <zstd.h>
+ 
+-#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+-#include <miniz/miniz.h>
+ 
+ #define _STR_IMPL(x) #x
+ #define _STR(x) _STR_IMPL(x)
+@@ -130,12 +125,8 @@ static const struct {
+     {.name = "lz4",                           .version = LZ4_VERSION_STRING,         .license = licenseBSD2,          .repoURL = "https://github.com/lz4/lz4",                     .licenseURL = "https://github.com/lz4/lz4/blob/dev/lib/LICENSE",                        .homeURL = "https://lz4.org/",},
+     {.name = "lzma",                          .version = LZMA_VERSION,               .license = licensePublicDomain,                                                                                                                                                       .homeURL = "https://www.7-zip.org/sdk.html",},
+     {.name = "mio",                           .version = MIO_VERSION,                .license = licenseMIT,           .repoURL = "https://github.com/StrikerX3/mio",               .licenseURL = "https://github.com/StrikerX3/mio/blob/master/LICENSE"},
+-    {.name = "miniz",                         .version = MZ_VERSION,                 .license = licenseMIT,           .repoURL = "https://github.com/richgel999/miniz",            .licenseURL = "https://github.com/richgel999/miniz/blob/master/LICENSE"},
+     {.name = "moodycamel::\nConcurrentQueue", .version = "\n" MC_CONCQUEUE_VERSION,  .license = licenseBSD2,          .repoURL = "https://github.com/cameron314/concurrentqueue",  .licenseURL = "https://github.com/cameron314/concurrentqueue/blob/master/LICENSE.md"},
+     {.name = "Neargye/semver",                .version = SEMVER_VERSION,             .license = licenseMIT,           .repoURL = "https://github.com/Neargye/semver",              .licenseURL = "https://github.com/Neargye/semver/blob/master/LICENSE"},
+-    {.name = "nghttp2",                       .version = NGHTTP2_VERSION,            .license = licenseMIT,           .repoURL = "https://github.com/nghttp2/nghttp2",             .licenseURL = "https://github.com/nghttp2/nghttp2/blob/master/COPYING",                 .homeURL = "https://nghttp2.org/"},
+-    {.name = "nghttp3",                       .version = NGHTTP3_VERSION,            .license = licenseMIT,           .repoURL = "https://github.com/ngtcp2/nghttp3",              .licenseURL = "https://github.com/ngtcp2/nghttp3/blob/main/COPYING",                    .homeURL = "https://nghttp2.org/nghttp3/"},
+-    {.name = "ngtcp2",                        .version = NGTCP2_VERSION,             .license = licenseMIT,           .repoURL = "https://github.com/ngtcp2/ngtcp2",               .licenseURL = "https://github.com/ngtcp2/ngtcp2/blob/main/COPYING",                     .homeURL = "https://nghttp2.org/ngtcp2/"},
+     {.name = "nlohmann/json",                 .version = NLOHMANN_JSON_VERSION,      .license = licenseMIT,           .repoURL = "https://github.com/nlohmann/json",               .licenseURL = "https://github.com/nlohmann/json/blob/develop/LICENSE.MIT",              .homeURL = "https://json.nlohmann.me/"},
+     {.name = "OpenSSL",                       .version = OPENSSL_FULL_VERSION_STR,   .license = licenseApache2_0,     .repoURL = "https://github.com/openssl/openssl",             .licenseURL = "https://github.com/openssl/openssl/blob/master/LICENSE.txt",             .homeURL = "https://www.openssl.org/"},
+     {.name = "RtMidi",                        .version = RTMIDI_VERSION,             .license = licenseMITRtMidi,     .repoURL = "https://github.com/thestk/rtmidi",               .licenseURL = "https://github.com/thestk/rtmidi/blob/master/LICENSE"},
+diff --git a/apps/ymir-sdl3/src/app/update_checker.cpp b/apps/ymir-sdl3/src/app/update_checker.cpp
+index a927938..5565fde 100644
+--- a/apps/ymir-sdl3/src/app/update_checker.cpp
++++ b/apps/ymir-sdl3/src/app/update_checker.cpp
+@@ -48,7 +48,6 @@ UpdateChecker::UpdateChecker() {
+     m_headerList = curl_slist_append(m_headerList, "Accept: application/vnd.github+json");
+     m_headerList = curl_slist_append(m_headerList, "X-GitHub-Api-Version: 2022-11-28");
+     curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, 1L);
+-    curl_easy_setopt(m_curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
+     curl_easy_setopt(m_curl, CURLOPT_USERAGENT, "ymir-libcurl-agent/" Ymir_VERSION);
+     curl_easy_setopt(m_curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+     curl_easy_setopt(
+diff --git a/libs/ymir-core/CMakeLists.txt b/libs/ymir-core/CMakeLists.txt
+index daa78a3..e7a6ed5 100644
+--- a/libs/ymir-core/CMakeLists.txt
++++ b/libs/ymir-core/CMakeLists.txt
+@@ -567,7 +567,6 @@ if (Vulkan_FOUND)
+     message(STATUS "Adding Vulkan to ymir-core")
+     target_link_libraries(ymir-core PRIVATE
+         Vulkan::Vulkan
+-        Vulkan::SPIRV-Tools
+     )
+ endif ()
+ 
+diff --git a/vendor/CMakeLists.txt b/vendor/CMakeLists.txt
+index 1f64d96..0a0578d 100644
+--- a/vendor/CMakeLists.txt
++++ b/vendor/CMakeLists.txt
+@@ -78,7 +78,7 @@ if (NOT Ymir_LIBRARY_ONLY)
+     # - Unable to configure libdecor support for Wayland
+     # - Must be added BEFORE dear ImGui
+     message(STATUS "==> SDL3")
+-    add_subdirectory(SDL3 EXCLUDE_FROM_ALL)
++    find_package(SDL3 CONFIG REQUIRED GLOBAL)
+ 
+     # dear ImGui - https://github.com/ocornut/imgui
+     # - Using the docking branch
+diff --git a/vendor/libchdr/CMakeLists.txt b/vendor/libchdr/CMakeLists.txt
+index d857562..e2315e0 100644
+--- a/vendor/libchdr/CMakeLists.txt
++++ b/vendor/libchdr/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-if (Ymir_LIBRARY_ONLY)
++if (TRUE) # EmuELEC: bundled miniz and zstd
+     add_subdirectory(libchdr/deps/miniz-3.1.2 EXCLUDE_FROM_ALL)
+     add_subdirectory(libchdr/deps/zstd-1.5.7 EXCLUDE_FROM_ALL)
+ else ()
+@@ -29,7 +29,7 @@ add_library(chdr-static STATIC
+ )
+ target_include_directories(chdr-static PRIVATE ${CHDR_INCLUDES} PUBLIC libchdr/include)
+ target_link_libraries(chdr-static PRIVATE chdr-lzma)
+-if (Ymir_LIBRARY_ONLY)
++if (TRUE) # EmuELEC: bundled miniz and zstd
+     target_link_libraries(chdr-static PRIVATE zstd miniz)
+ else ()
+     target_link_libraries(chdr-static PRIVATE zstd::libzstd_static ZLIB::ZLIB miniz::miniz)

@@ -3813,6 +3813,35 @@
       ]
     },
     {
+      "name": "model1",
+      "fullname": "Sega Model 1",
+      "manufacturer": "Sega",
+      "release": "1992",
+      "hardware": "arcade",
+      "path": "/storage/roms/model1",
+      "platform": "model1",
+      "theme": "model1",
+      "command": "default",
+      "extensions": [
+        ".7z",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "keisho",
+          "cores": [
+            {
+              "name": "keisho",
+              "default": true
+            },
+            {
+              "name": "keisho-malisx2"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "model2",
       "fullname": "Sega Model 2",
       "manufacturer": "Sega",
@@ -3837,13 +3866,42 @@
           ]
         },
         {
-          "name": "sm2emuSA",
+          "name": "keisho",
           "cores": [
             {
-              "name": "sm2emuSA"
+              "name": "keisho"
             },
             {
-              "name": "sm2emuSA-malisx2"
+              "name": "keisho-malisx2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "model3",
+      "fullname": "Sega Model 3",
+      "manufacturer": "Sega",
+      "release": "1996",
+      "hardware": "arcade",
+      "path": "/storage/roms/model3",
+      "platform": "model3",
+      "theme": "model3",
+      "command": "default",
+      "extensions": [
+        ".7z",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "keisho",
+          "cores": [
+            {
+              "name": "keisho",
+              "default": true
+            },
+            {
+              "name": "keisho-malisx2"
             }
           ]
         }
@@ -3950,6 +4008,20 @@
             {
               "name": "yabasanshiroSA1_5",
               "default": true
+            },
+            {
+              "name": "yabasanshiroSA_pirry"
+            },
+            {
+              "name": "yabasanshiroSA_pirryvk"
+            }
+          ]
+        },
+        {
+          "name": "ymir",
+          "cores": [
+            {
+              "name": "ymir"
             }
           ]
         }

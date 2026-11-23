@@ -177,11 +177,11 @@ elif [ "${EMU}" = "mamesa-gles" ]; then
     set_kill_keys "mame-sa"
     RUNTHIS='${TBASH} mamesastart.sh "${ROMNAME}" gles'
 
-# Model 2 sets known to sm2-emu run on the standalone emulator from arcade/mame (too slow in MAME)
+# Model 1/2/3 sets known to Keisho run on the standalone emulator from arcade/mame (too slow in MAME)
 elif [[ "${PLATFORM}" == "arcade" || "${PLATFORM}" == "mame" ]] && \
-     grep -q "<game name=\"${BASEROMNAME%.*}\"" /usr/share/sm2emuSA/games.xml 2>/dev/null; then
-    set_kill_keys "sm2-emu"
-    RUNTHIS='${TBASH} sm2emustart.sh "${ROMNAME}"'
+     grep -q "<game name=\"${BASEROMNAME%.*}\"" /usr/share/keisho/games.xml 2>/dev/null; then
+    set_kill_keys "keisho"
+    RUNTHIS='${TBASH} keishostart.sh "${ROMNAME}"'
 
 elif [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
@@ -321,10 +321,10 @@ case ${PLATFORM} in
 				RUNTHIS='${TBASH} armsx2start.sh "${ROMNAME}"'
 				fi
 				;;
-		"model2")
-				if [ "${EMU}" = "sm2emuSA" ]; then
-				set_kill_keys "sm2-emu"
-				RUNTHIS='${TBASH} sm2emustart.sh "${ROMNAME}"'
+		"model1"|"model2"|"model3")
+				if [ "${EMU}" = "keisho" ]; then
+				set_kill_keys "keisho"
+				RUNTHIS='${TBASH} keishostart.sh "${ROMNAME}"'
 				fi
 				;;
 		"psvita")
@@ -495,6 +495,15 @@ case ${PLATFORM} in
         elif [ "${EMU}" = "yabasanshiroSA1_5" ]; then
 		        set_kill_keys "yabasanshiro1_5"
             	RUNTHIS='yabasanshiro1_5.sh "${ROMNAME}"'
+        elif [ "${EMU}" = "yabasanshiroSA_pirry" ]; then
+            set_kill_keys "yabasanshiro_pirry"
+            RUNTHIS='yabasanshiro_pirry.sh "${ROMNAME}"'
+        elif [ "${EMU}" = "yabasanshiroSA_pirryvk" ]; then
+            set_kill_keys "yabasanshiro_pirryvk"
+            RUNTHIS='yabasanshiro_pirry.sh "${ROMNAME}" vk'
+        elif [ "${EMU}" = "ymir" ]; then
+            set_kill_keys "ymir-sdl3"
+            RUNTHIS='${TBASH} ymirstart.sh "${ROMNAME}"'
         fi
         ;;
 		"macintosh")
@@ -745,7 +754,7 @@ fi
 
 # These emus do not like to be killed by gptokeyb
 case "${EMU}" in
-    "dolphin" | "mamesa" | "mamesa-gles" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+    "dolphin" | "mamesa" | "mamesa-gles" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | "yabasanshiroSA_pirry" | "yabasanshiroSA_pirryvk" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
         ret_error="0"
         ;;
 esac

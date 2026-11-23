@@ -7,7 +7,8 @@ PKG_LICENSE="Apache-2.0"
 PKG_SITE="https://github.com/google/shaderc"
 PKG_URL="${PKG_SITE}/archive/v${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_HOST="toolchain:host Python3:host glslang:host"
-PKG_LONGDESC="glslc GLSL to SPIR-V compiler (host tool)"
+PKG_DEPENDS_TARGET="toolchain Python3:host glslang:host"
+PKG_LONGDESC="glslc GLSL to SPIR-V compiler (host tool), static libshaderc for target"
 PKG_TOOLCHAIN="cmake"
 
 # v2023.2 matches the glslang/spirv-tools/spirv-headers versions in the tree.
@@ -17,9 +18,13 @@ pre_configure_host() {
   sed -i "s/ OGLCompiler//; s/ HLSL//" ${PKG_BUILD}/glslc/CMakeLists.txt ${PKG_BUILD}/libshaderc/CMakeLists.txt ${PKG_BUILD}/libshaderc_util/CMakeLists.txt
   # spirv-tools in the tree needs C++17
   sed -i "s/set (CMAKE_CXX_STANDARD 11)/set (CMAKE_CXX_STANDARD 17)/" ${PKG_BUILD}/CMakeLists.txt
-  cp -R $(get_build_dir glslang) ${PKG_BUILD}/third_party/glslang
-  cp -R $(get_build_dir spirv-tools) ${PKG_BUILD}/third_party/spirv-tools
-  cp -R $(get_build_dir spirv-headers) ${PKG_BUILD}/third_party/spirv-headers
+  for d in glslang spirv-tools spirv-headers; do
+    [ -d ${PKG_BUILD}/third_party/${d} ] || cp -R $(get_build_dir ${d}) ${PKG_BUILD}/third_party/${d}
+  done
+}
+
+pre_configure_target() {
+  pre_configure_host
 }
 
 PKG_CMAKE_OPTS_HOST="-DSHADERC_SKIP_TESTS=ON \
@@ -31,6 +36,8 @@ PKG_CMAKE_OPTS_HOST="-DSHADERC_SKIP_TESTS=ON \
                      -DSKIP_GLSLANG_INSTALL=ON \
                      -DCMAKE_BUILD_TYPE=Release"
 
+PKG_CMAKE_OPTS_TARGET="${PKG_CMAKE_OPTS_HOST}"
+
 make_host() {
   ninja ${NINJA_OPTS} glslc_exe
 }
@@ -38,4 +45,14 @@ make_host() {
 makeinstall_host() {
   mkdir -p ${TOOLCHAIN}/bin
   cp glslc/glslc ${TOOLCHAIN}/bin
+}
+
+make_target() {
+  ninja ${NINJA_OPTS} shaderc_combined_genfile
+}
+
+makeinstall_target() {
+  mkdir -p ${SYSROOT_PREFIX}/usr/lib ${SYSROOT_PREFIX}/usr/include
+  cp libshaderc/libshaderc_combined.a ${SYSROOT_PREFIX}/usr/lib
+  cp -R ${PKG_BUILD}/libshaderc/include/shaderc ${SYSROOT_PREFIX}/usr/include
 }
