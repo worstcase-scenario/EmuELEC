@@ -1,136 +1,55 @@
---- a/src/osdep/retroarch.cpp
-+++ b/src/osdep/retroarch.cpp
-@@ -71,7 +71,22 @@
- 
- 		if (param[0] != 'h') // check it isn't some kind of hat starting 'h' (so if D-pad uses buttons)
- 		{
--			button = abs(std::stoi(param));
-+			try
-+			{
-+				button = abs(std::stoi(param));
-+			}
-+			catch (const std::invalid_argument& e)
-+			{
-+				write_log("Invalid argument in stoi for param='%s' in setting='%s' (line: %s)", 
-+				param.c_str(), find_setting.c_str(), line.c_str());
-+				button = -1; // fallback
-+			}
-+			catch (const std::out_of_range& e)
-+			{
-+				write_log("Out of range in stoi for param='%s' in setting='%s' (line: %s)", 
-+				param.c_str(), find_setting.c_str(), line.c_str());
-+				button = -1;
-+			}
- 		}
- 
- 		if (option == find_setting)
+diff --git a/src/osdep/amiberry_input.cpp b/src/osdep/amiberry_input.cpp
+index f68d58a..b97acee 100644
 --- a/src/osdep/amiberry_input.cpp
 +++ b/src/osdep/amiberry_input.cpp
---- <unnamed>
-+++ <unnamed>
-@@ -1,6 +1,8 @@
- #include <cstdio>
- #include <cstring>
+@@ -3,6 +3,7 @@
  #include <cstdlib>
+ #include <algorithm>
+ #include <cctype>
 +#include <fstream>
-+#include <sstream>
- 
- #include "sysdeps.h"
- #include "options.h"
-@@ -1073,6 +1075,54 @@
- 	return num_joystick;
+ #include <limits>
+ #include <string>
+ #include <vector>
+@@ -1681,6 +1682,23 @@ void sync_controller_shortcuts(didata* did)
+ 	did->mapping.vkbd_button = button_index(vkbd_button);
  }
  
-+std::string get_udev_name_from_proc(SDL_Joystick* joystick)
++// EmuELEC: RetroArch autoconfig files are named after the udev device name,
++// which can differ from the SDL joystick name
++static std::string get_udev_name(const std::string& path)
 +{
-+	const char* joystick_path = SDL_JoystickPath(joystick);
-+	if (joystick_path == nullptr)
-+		return "";
-+	
-+	// Extract the event number from the path (e.g., "/dev/input/event5" -> "event5")
-+	const char* last_slash = strrchr(joystick_path, '/');
-+	if (last_slash == nullptr)
-+		return "";
-+	
-+	std::string event_name = std::string(last_slash + 1);
-+	
-+	// Parse /proc/bus/input/devices to find the matching device
-+	std::ifstream devices_file("/proc/bus/input/devices");
-+	if (!devices_file.is_open())
-+		return "";
-+	
-+	std::string line;
-+	std::string current_name;
-+	bool found_device = false;
-+	
-+	while (std::getline(devices_file, line))
++	const auto event = " " + path.substr(path.rfind('/') + 1) + " ";
++	std::ifstream devices("/proc/bus/input/devices");
++	std::string line, name;
++	while (std::getline(devices, line))
 +	{
-+		// Look for Name line (e.g., N: Name="Microsoft X-Box 360 pad")
-+		if (line.substr(0, 3) == "N: ")
-+		{
-+			size_t start = line.find('"');
-+			size_t end = line.rfind('"');
-+			if (start != std::string::npos && end != std::string::npos && end > start)
-+				current_name = line.substr(start + 1, end - start - 1);
-+		}
-+		// Look for Handlers line containing our event device
-+		else if (line.substr(0, 3) == "H: " && line.find(event_name) != std::string::npos)
-+		{
-+			found_device = true;
-+			break;
-+		}
-+		// Empty line indicates new device section
-+		else if (line.empty())
-+		{
-+			current_name.clear();
-+		}
++		if (line.rfind("N: Name=\"", 0) == 0 && line.size() > 10)
++			name = line.substr(9, line.size() - 10);
++		else if (line.rfind("H: Handlers=", 0) == 0 && (" " + line.substr(12) + " ").find(event) != std::string::npos)
++			return name;
 +	}
-+	
-+	return found_device ? current_name : "";
++	return {};
 +}
 +
- // Helper functions
- void open_as_game_controller(struct didata* did, const int i)
+ void setup_mapping(didata* did, const std::string& controllers, const int id)
  {
-@@ -1098,6 +1148,9 @@
- 		did->joystick_name.assign(SDL_JoystickNameForIndex(i));
- 	else
- 		did->joystick_name = "";
-+
-+	// Get UDEV name from /proc/bus/input/devices
-+	did->udev_name = get_udev_name_from_proc(did->joystick);
- 
- 	if (!did->controller_name.empty())
- 		did->name = did->controller_name;
-@@ -1210,8 +1263,19 @@
+ 	std::string retroarch_config_file;
+@@ -1693,7 +1711,17 @@ void setup_mapping(didata* did, const std::string& controllers, const int id)
  	}
  
  	const std::string retroarch_file = get_retroarch_file();
 -	const bool retroarch_config_exists = !retroarch_config_file.empty() && my_existsfile2(retroarch_config_file.c_str());
 +	bool retroarch_config_exists = !retroarch_config_file.empty() && my_existsfile2(retroarch_config_file.c_str());
-+
-+	if (!retroarch_config_exists && !did->udev_name.empty())
++	if (!retroarch_config_exists && !did->path.empty())
 +	{
-+		const auto sanitized_name = sanitize_retroarch_name(did->udev_name);
-+		retroarch_config_file = controllers + sanitized_name + ".cfg";
-+		write_log("Joystick udev name: '%s', sanitized to: '%s'\n", did->joystick_name.c_str(), sanitized_name.c_str());
-+		write_log("Checking for Retroarch cfg file using udev: '%s'\n", retroarch_config_file.c_str());
++		const auto udev_name = get_udev_name(did->path);
++		if (!udev_name.empty())
++		{
++			retroarch_config_file = controllers + sanitize_retroarch_name(udev_name) + ".cfg";
++			write_log("Checking for Retroarch cfg file by udev name: '%s'\n", retroarch_config_file.c_str());
++			retroarch_config_exists = my_existsfile2(retroarch_config_file.c_str());
++		}
 +	}
-+	
-+	retroarch_config_exists = !retroarch_config_file.empty() && my_existsfile2(retroarch_config_file.c_str());
  	const bool retroarch_file_exists = my_existsfile2(retroarch_file.c_str());
-+	
  
  	if (retroarch_config_exists || retroarch_file_exists)
- 	{
-
---- a/src/osdep/amiberry_input.h
-+++ b/src/osdep/amiberry_input.h
-@@ -49,6 +49,7 @@
- 	int type{};
- 	int acquired{};
- 	std::string name{};
-+	std::string udev_name{};
- 	std::string controller_name{};
- 	std::string joystick_name{};
- 

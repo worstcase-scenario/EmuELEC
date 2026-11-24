@@ -1,8 +1,9 @@
 diff --git a/src/osdep/amiberry_gui.cpp b/src/osdep/amiberry_gui.cpp
+index 7b317bc..470684e 100644
 --- a/src/osdep/amiberry_gui.cpp
 +++ b/src/osdep/amiberry_gui.cpp
-@@ -551,7 +551,10 @@ static int scan_roms_3(UAEREG* fkey, TCHAR** paths, const TCHAR* path)
- 	realpath(path, pathp);
+@@ -487,7 +487,10 @@ static int scan_roms_3(UAEREG* fkey, TCHAR** paths, const TCHAR* path)
+ #endif
  	if (!pathp[0])
  		return ret;
 -	if (_tcsicmp(pathp, get_rom_path().c_str()) == 0)

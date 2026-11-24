@@ -2,55 +2,44 @@
 # Copyright (C) 2018-present Frank Hartung (supervisedthinking (@) gmail.com)
 
 PKG_NAME="amiberry"
-PKG_VERSION="452783ae8c94a67984b664e9b24f0b99ad163dcd"
+PKG_VERSION="2a622d2674c4114d3600c4cda004c857d4878bdf" # v8.5.0
 PKG_ARCH="aarch64 arm"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/BlitterStudio/amiberry"
 PKG_URL="https://github.com/BlitterStudio/amiberry.git"
-PKG_DEPENDS_TARGET="toolchain zstd linux libpcap libenet glibc bzip2 zlib SDL2 SDL2_image SDL2_ttf capsimg freetype libxml2 flac libogg mpg123-compat libpng libmpeg2 libportmidi libserialport"
+PKG_DEPENDS_TARGET="toolchain SDL3 SDL3_image flac mpg123-compat libpng zlib zstd curl nlohmann-json libpcap libmpeg2 libportmidi libserialport libenet"
 PKG_LONGDESC="Amiberry is an optimized Amiga emulator for ARM-based boards."
 GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="cmake"
 PKG_EE_UPDATE=no
 
-PKG_BUILD_FLAGS="-O3 -fno-strict-aliasing -fomit-frame-pointer -ffast-math"
+# SDL renderer instead of OpenGL; FFmpeg 4.4 is too old (needs 5.1+);
+# curl-config would bake the build host's CA bundle path into the binary
+PKG_CMAKE_OPTS_TARGET="-DUSE_OPENGL=OFF \
+                       -DUSE_FFMPEG=OFF \
+                       -DUSE_WEBP=OFF \
+                       -DUSE_UAENET_PCAP=ON \
+                       -DCURL_CONFIG_EXECUTABLE=/bin/false"
 
 pre_configure_target() {
-  PKG_CMAKE_OPTS_TARGET="-DUSE_OPENGL=OFF -DCMAKE_BUILD_TYPE=Release -DUSE_UAENET_PCAP=ON"
+  # native file dialogs need xdg-desktop-portal, not available
+  rm -rf ${PKG_BUILD}/external/nativefiledialog-extended
 }
 
-makeinstall_target() {
-  # Create directories
-  mkdir -p ${INSTALL}/usr/bin
-  mkdir -p ${INSTALL}/usr/lib
+post_makeinstall_target() {
+  rm -rf ${INSTALL}/usr/share/{applications,doc,icons,man,metainfo,mime}
+
   mkdir -p ${INSTALL}/usr/config/amiberry
-  # mkdir -p ${INSTALL}/usr/config/amiberry/controller
+  cp -a ${PKG_DIR}/config/* ${INSTALL}/usr/config/amiberry/
+  ln -s /storage/roms/bios ${INSTALL}/usr/config/amiberry/kickstarts
+  ln -s /tmp/joypads ${INSTALL}/usr/config/amiberry/controller
 
-  # Copy ressources
-  cp -a ${PKG_DIR}/config/*           ${INSTALL}/usr/config/amiberry/
-  cp -a data                          ${INSTALL}/usr/config/amiberry/
-  cp -a roms                          ${INSTALL}/usr/config/amiberry/
-  mkdir -p savestates                 ${INSTALL}/usr/config/amiberry/
-  mkdir -p screenshots                ${INSTALL}/usr/config/amiberry/
-  cp -a whdboot                       ${INSTALL}/usr/config/amiberry/
-  ln -s /storage/roms/bios 			  ${INSTALL}/usr/config/amiberry/kickstarts
-  mkdir -p							  ${INSTALL}/usr/config/amiberry/plugins
-  cp ${PKG_BUILD}/.${TARGET_NAME}/external/floppybridge/libfloppybridge.so ${INSTALL}/usr/config/amiberry/plugins/
-  cp ${PKG_BUILD}/.${TARGET_NAME}/external/capsimage/*.so ${INSTALL}/usr/config/amiberry/plugins/
+  cp -a ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
 
-  # Create links to Retroarch controller files
-  # ln -s /usr/share/retroarch/autoconfig/udev/8Bitdo_Pro_SF30_BT_B.cfg "${INSTALL}/usr/config/amiberry/controller/8Bitdo SF30 Pro.cfg"
-  ln -s "/tmp/joypads" "${INSTALL}/usr/config/amiberry/controller"
+  for i in ${INSTALL}/usr/config/amiberry/conf/*.uae; do
+    echo -e "gfx_center_vertical=smart\ngfx_center_horizontal=smart" >> ${i}
+  done
 
-  # Copy binary, scripts & link libcapsimg
-  cp -a amiberry* ${INSTALL}/usr/bin/amiberry
-  cp -a ${PKG_DIR}/scripts/*          ${INSTALL}/usr/bin
-  
-  
-  UAE="${INSTALL}/usr/config/amiberry/conf/*.uae"
-  for i in ${UAE}; do echo -e "gfx_center_vertical=smart\ngfx_center_horizontal=smart" >> ${i}; done
-
-  mkdir -p "${INSTALL}/usr/config/emuelec/configs"
-  ln -sf "/storage/.config/amiberry" "${INSTALL}/usr/config/emuelec/configs/amiberry"
-
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs
+  ln -sf /storage/.config/amiberry ${INSTALL}/usr/config/emuelec/configs/amiberry
 }

@@ -24,6 +24,14 @@ echo "Trying to boot this game: ${TARGET_FILE}" >> "${AMIBERRY_LOG}"
 # Force SDL audio backend
 export SDL_AUDIODRIVER=alsa
 
+if [ "${AMIBERRY_EXE}" = "amiberry" ]; then
+  # older amiberry.conf files lack these paths, default would be /storage/Amiberry
+  CONF="${AMIBERRY_CONFIG_DIR}/amiberry.conf"
+  for KEY in shaders bezels; do
+    [ -f "${CONF}" ] && ! grep -q "^${KEY}_path=" "${CONF}" && echo "${KEY}_path=${AMIBERRY_DIR}/${KEY}/" >> "${CONF}"
+  done
+fi
+
 # Amiberry loads assets relative to its working directory
 cd "${AMIBERRY_DIR}"
 
