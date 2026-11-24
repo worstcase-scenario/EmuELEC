@@ -285,7 +285,8 @@ add_or_increment_id() {
 # Cleans all the inputs for the gamepad with name ${GAMEPAD} and player ${1}
 clean_pad() {
 
-  declare -a params=(".*Stick\/Modifier\/Range" ".*Stick\/Dead\ Zone")
+  # keeps user settings: stick range/dead zone and the Triforce buttons (Test/Service/Coin)
+  declare -a params=(".*Stick\/Modifier\/Range" ".*Stick\/Dead\ Zone" "Triforce\/.*")
   jc_wipe_config_sub_heading "${CONFIG}" "[GCPad${1}]" "${CONFIG_TMP}" "${params[@]}"
 
   jc_wipe_config_sub_heading "${WII_CONFIG}" "[Wiimote${1}]" "${WII_CONFIG_TMP}"
