@@ -29,6 +29,11 @@ awk 'function flush() { if (k != "") { if (v != " 1 0 3 2 4 5 6 7 8 9 10 11 12 1
      /^controller-binds:$/ { k = $0 "\n"; next }
      $0 != "controller-binds: [1, 0, 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]" { print }
      END { flush() }' "$CFG" > "$CFG.tmp" && mv "$CFG.tmp" "$CFG"
+# ES internal resolution, only for this start: the old value is restored on exit
+# Vita3K ends the file with a YAML end marker (...), drop it so the key stays in the document
+setres() { sed -i '/^resolution-multiplier:/d; /^\.\.\.$/d' "$CFG"; [ -n "$1" ] && echo "$1" >> "$CFG"; }
+OLDRES="$(grep '^resolution-multiplier:' "$CFG")"
+[ -n "$EE_IRES" ] && setres "resolution-multiplier: $EE_IRES"
 # install firmware on first start; second try covers the upstream first-run crash
 PUP="/storage/roms/bios/PSVUPDAT.PUP"
 FW="$XDG_DATA_HOME/Vita3K/Vita3K/vs0"
@@ -51,6 +56,7 @@ modetest -M meson -w 31:"pixel blend mode":2 >/dev/null 2>&1
 "$BIN" -F -l 5 "${ARGS[@]}" < /dev/null
 RC=$?
 modetest -M meson -w 31:"pixel blend mode":0 >/dev/null 2>&1
+[ -n "$EE_IRES" ] && setres "$OLDRES"
 # newly installed .vpk/.zip: create matching .psvita next to it
 if [ "$ext" != "psvita" ]; then
     for id in $(ls "$APPS" 2>/dev/null); do

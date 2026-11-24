@@ -18,6 +18,7 @@ if [ ! -L "${CONFIG_DIR}" ]; then
 fi
 
 mkdir -p /storage/roms/dolphin/dolphin-emu/StateSaves
+mkdir -p /storage/roms/dolphin/dolphin-emu/Triforce
 mkdir -p /storage/.cache/dolphin-emu
 
 AUTOGP=$(get_ee_setting dolphin_auto_gamepad)
@@ -29,8 +30,8 @@ export XDG_CONFIG_HOME=/emuelec/configs
 export XDG_DATA_HOME=/storage/roms/dolphin
 
 if [ "${EE_DEVICE}" == "Amlogic-no" ]; then
-	 dolphin-emu-nogui -p drm "${1}" 2>&1
+	 dolphin-emu-nogui -p drm ${EE_IRES:+-C Graphics.Settings.InternalResolution=${EE_IRES}} "${1}" 2>&1
 else
 	fbfix $( emuelec-utils getmainfb )
-	dolphin-emu-nogui -p fbdev "${1}"
+	dolphin-emu-nogui -p fbdev ${EE_IRES:+-C Graphics.Settings.InternalResolution=${EE_IRES}} "${1}"
 fi

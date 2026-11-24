@@ -38,5 +38,12 @@ if [[ "$(get_ee_setting yabasanshiro_auto_gamepad)" == "1" ]]; then
   set_yabasanshiro_joy1_5.sh "${CFG}"
 fi
 
+# Resolution from the ES game/system options; unset = the in-game menu setting
+RES=""
+case "$(get_ee_setting yaba_resolution saturn "${ROMNAME}")" in
+  native) RES="-r 0" ;; 4x) RES="-r 1" ;; 2x) RES="-r 2" ;;
+  original) RES="-r 3" ;; 720p) RES="-r 4" ;; 1080p) RES="-r 5" ;;
+esac
+
 # We use { } to avoid SIGUSR signal showing text and messing up with the error handling
-{ ${BIN} -r 2 -i "${1}" ${BIOS}; } > /emuelec/logs/emuelec.log 2>&1
+{ ${BIN} ${RES} -i "${1}" ${BIOS}; } > /emuelec/logs/emuelec.log 2>&1

@@ -1,0 +1,29 @@
+diff --git a/yabause/src/retro_arena/main.cpp b/yabause/src/retro_arena/main.cpp
+index 5cd7b1d..fe65265 100644
+--- a/yabause/src/retro_arena/main.cpp
++++ b/yabause/src/retro_arena/main.cpp
+@@ -224,6 +224,7 @@ static void GlCleanShutdown(void)
+ }
+ int g_EnagleFPS = 0; /* FPS overlay; set from the "Show Fps" config key at start, toggled from the menu */
+ int g_resolution_mode = 0;
++int g_resolution_cli = 0; /* -r given: overrides the per-game config */
+ int g_rotate_resolution_mode = 0;
+ int g_keep_aspect_rate = 0;
+ int g_scsp_sync = 1;
+@@ -414,7 +415,7 @@ int yabauseinit()
+   g_scsp_dsp_off = pre.getIntOnlyGlobal("sound dsp", 1) ? 0 : 1;
+   /* Half-height interlaced backgrounds, "interlace half" config key (default off). */
+   g_interlace_half_menu = pre.getInt("interlace half", 0) ? 1 : 0;
+-  yinit.resolution_mode = pre.getInt( "Resolution" ,g_resolution_mode);
++  yinit.resolution_mode = g_resolution_cli ? g_resolution_mode : pre.getInt( "Resolution" ,g_resolution_mode);
+   /* The Vulkan core was staying at RES_NATIVE whatever the per-game config
+      said. Print what the front end actually read, so the log says whether the
+      value is lost here (config/Preference) or later (VideoSetSetting ->
+@@ -745,6 +746,7 @@ int main(int argc, char** argv)
+     }
+ 		else if(( x == "-r" || x == "--resolution_mode") && (i+1<all_args.size() ) ) {
+       g_resolution_mode = std::stoi( all_args[i+1] );
++      g_resolution_cli = 1;
+     }
+ 		else if(( x == "-rr" || x == "--rotate_resolution_mode") && (i+1<all_args.size() ) ) {
+       g_rotate_resolution_mode = std::stoi( all_args[i+1] );

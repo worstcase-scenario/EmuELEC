@@ -17,4 +17,4 @@ fi
 flycastcheevos.sh
 # Window size must match the display mode, otherwise kmsdrm shows a black screen
 read -r W H <<< "$(get_resolution)"
-flycast -config window:fullscreen=yes -config window:width="${W:-1920}" -config window:height="${H:-1080}" "${1}"
+flycast -config window:fullscreen=yes -config window:width="${W:-1920}" -config window:height="${H:-1080}" ${EE_IRES:+-config config:rend.Resolution=$((EE_IRES * 480))} "${1}"

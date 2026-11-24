@@ -37,4 +37,13 @@ fi
 # Controller bindings from the connected pads (disable with armsx2_auto_gamepad=0)
 [ "$(get_ee_setting armsx2_auto_gamepad)" != "0" ] && set_armsx2_joy.sh
 
+# ES internal resolution, only for this start: the old value is restored on exit
+INI="${CONF_DIR}/inis/PCSX2.ini"
+setres() { sed -i "/^\[EmuCore\/GS\]/,/^\[/ s/^upscale_multiplier *=.*/upscale_multiplier = $1/" "${INI}"; }
+OLDRES=$(sed -n "/^\[EmuCore\/GS\]/,/^\[/ s/^upscale_multiplier *= *//p" "${INI}")
+[ -n "${EE_IRES}" ] && setres "${EE_IRES}"
+
 /usr/share/armsx2SA/armsx2-sdl "${ROM}"
+RC=$?
+[ -n "${EE_IRES}" ] && [ -n "${OLDRES}" ] && setres "${OLDRES}"
+exit ${RC}

@@ -93,6 +93,9 @@ EMULATOR="${EMULATOR%% *}"  # until a space is found
 
 ROMNAME="${1}"
 BASEROMNAME="${ROMNAME##*/}"
+# ES "internal resolution" (1x..4x) for the standalone start scripts, empty = emulator setting
+EE_IRES=$(get_ee_setting internal_resolution "${PLATFORM}" "${BASEROMNAME}")
+export EE_IRES="${EE_IRES%x}"
 GAMEFOLDER="${ROMNAME//${BASEROMNAME}}"
 
 KILLTHIS="none"
