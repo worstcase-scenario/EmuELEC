@@ -1,0 +1,21 @@
+--- a/pcsx2/GS/Renderers/Vulkan/GSDeviceVK.cpp
++++ b/pcsx2/GS/Renderers/Vulkan/GSDeviceVK.cpp
+@@ -561,8 +561,17 @@
+ 	m_optional_extensions.vk_khr_push_descriptor = SupportsExtension(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, false);
+ 	m_optional_extensions.vk_ext_provoking_vertex = SupportsExtension(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, false);
+ 	m_optional_extensions.vk_ext_memory_budget = SupportsExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
++	// A loader older than 1.3.278 does not know the KHR entry points: the call jumps to address 0.
++	u32 loader_version = VK_API_VERSION_1_0;
++	if (vkEnumerateInstanceVersion)
++		vkEnumerateInstanceVersion(&loader_version);
++	const bool loader_has_khr_calibrated = loader_version >= VK_MAKE_API_VERSION(0, 1, 3, 278);
+ 	const Vulkan::CalibratedTimestampsName calibrated_timestamps = Vulkan::PickCalibratedTimestampsName(
+-		[&SupportsExtension](const char* name) { return SupportsExtension(name, false); });
++		[&SupportsExtension, loader_has_khr_calibrated](const char* name) {
++			return (loader_has_khr_calibrated ||
++					   std::string_view(name) != VK_KHR_CALIBRATED_TIMESTAMPS_EXTENSION_NAME) &&
++				   SupportsExtension(name, false);
++		});
+ 	m_optional_extensions.vk_calibrated_timestamps =
+ 		(calibrated_timestamps != Vulkan::CalibratedTimestampsName::Unsupported);
+ 	m_optional_extensions.vk_calibrated_timestamps_is_khr =
