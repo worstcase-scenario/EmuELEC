@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="malisx2"
-PKG_VERSION="0.6.0"
+PKG_VERSION="0.6.1"
 PKG_ARCH="aarch64"
 PKG_LICENSE="MIT"
 PKG_SITE="https://github.com/bmdhacks/malisx2"
