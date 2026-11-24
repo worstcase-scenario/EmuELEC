@@ -2,12 +2,12 @@
 # Copyright (C) 2018-present Frank Hartung (supervisedthinking (@) gmail.com)
 
 PKG_NAME="amiberry-lite"
-PKG_VERSION="e535218c72071b9579debad0d30ae99390d681c3"
+PKG_VERSION="4388acde6e9a8f41a8c673ef8e85f15fdc9e86dd" # v5.9.6
 PKG_ARCH="aarch64 arm"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/BlitterStudio/amiberry-lite"
 PKG_URL="https://github.com/BlitterStudio/amiberry-lite.git"
-PKG_DEPENDS_TARGET="toolchain linux zstd libpcap glibc bzip2 zlib SDL2 SDL2_image SDL2_ttf capsimg freetype libxml2 flac libogg mpg123-compat libpng libmpeg2 libportmidi libserialport libenet"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_image SDL2_ttf flac mpg123-compat libpng zlib zstd libmpeg2 libportmidi libserialport libenet nlohmann-json"
 PKG_LONGDESC="Amiberry is an optimized Amiga emulator for ARM-based boards."
 GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="cmake"
@@ -43,7 +43,7 @@ makeinstall_target() {
   ln -s "/tmp/joypads" "${INSTALL}/usr/config/amiberry-lite/controller"
 
   # Copy binary, scripts & link libcapsimg
-  cp -a amiberry* ${INSTALL}/usr/bin/amiberry-lite
+  cp -a amiberry-lite ${INSTALL}/usr/bin/
     
   UAE="${INSTALL}/usr/config/amiberry-lite/conf/*.uae"
   for i in ${UAE}; do echo -e "gfx_center_vertical=smart\ngfx_center_horizontal=smart" >> ${i}; done

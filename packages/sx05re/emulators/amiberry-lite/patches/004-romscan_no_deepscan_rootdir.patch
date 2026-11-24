@@ -1,4 +1,5 @@
 diff --git a/src/osdep/amiberry_gui.cpp b/src/osdep/amiberry_gui.cpp
+index 668f53c..faf13b6 100644
 --- a/src/osdep/amiberry_gui.cpp
 +++ b/src/osdep/amiberry_gui.cpp
 @@ -551,7 +551,10 @@ static int scan_roms_3(UAEREG* fkey, TCHAR** paths, const TCHAR* path)

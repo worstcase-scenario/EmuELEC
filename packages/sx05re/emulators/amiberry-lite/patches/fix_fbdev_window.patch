@@ -1,17 +1,8 @@
-From 4a2a96134121d857099461ac27de15a848baaece Mon Sep 17 00:00:00 2001
-From: Adventurous Programmer <47227694+Diegrosan@users.noreply.github.com>
-Date: Mon, 13 Oct 2025 22:25:33 -0300
-Subject: [PATCH] Update main_window.cpp
-
----
- src/osdep/gui/main_window.cpp | 369 +++++++++++++++++++++++++++-------
- 1 file changed, 291 insertions(+), 78 deletions(-)
-
 diff --git a/src/osdep/gui/main_window.cpp b/src/osdep/gui/main_window.cpp
-index b464a011..ae0ea703 100644
+index a4cb850..50c215d 100644
 --- a/src/osdep/gui/main_window.cpp
 +++ b/src/osdep/gui/main_window.cpp
-@@ -26,6 +26,15 @@
+@@ -27,6 +27,15 @@
  #include "inputdevice.h"
  #include "xwin.h"
  
@@ -27,7 +18,7 @@ index b464a011..ae0ea703 100644
  bool ctrl_state = false, shift_state = false, alt_state = false, win_state = false;
  int last_x = 0;
  int last_y = 0;
-@@ -246,6 +255,12 @@ void update_gui_screen()
+@@ -247,6 +256,12 @@ void update_gui_screen()
  {
  	const AmigaMonitor* mon = &AMonitors[0];
  
@@ -40,7 +31,7 @@ index b464a011..ae0ea703 100644
  	SDL_UpdateTexture(gui_texture, nullptr, gui_screen->pixels, gui_screen->pitch);
  	if (amiberry_options.rotation_angle == 0 || amiberry_options.rotation_angle == 180)
  		gui_renderQuad = { 0, 0, gui_screen->w, gui_screen->h };
-@@ -259,23 +274,70 @@ void update_gui_screen()
+@@ -260,23 +275,70 @@ void update_gui_screen()
  		show_screen(0, 0);
  }
  
@@ -117,7 +108,7 @@ index b464a011..ae0ea703 100644
  	SDL_GetCurrentDisplayMode(0, &sdl_mode);
  
  	//-------------------------------------------------
-@@ -285,23 +347,22 @@ void amiberry_gui_init()
+@@ -286,23 +348,22 @@ void amiberry_gui_init()
  	{
  		gui_screen = SDL_CreateRGBSurface(0, GUI_WIDTH, GUI_HEIGHT, 16, 0, 0, 0, 0);
  		check_error_sdl(gui_screen == nullptr, "Unable to create GUI surface:");
@@ -143,41 +134,7 @@ index b464a011..ae0ea703 100644
  			mode = SDL_WINDOW_FULLSCREEN_DESKTOP;
  		}
  
-@@ -311,14 +372,13 @@ void amiberry_gui_init()
-             mode |= SDL_WINDOW_HIDDEN;
-         else
-             mode |= SDL_WINDOW_SHOWN;
--		// Set Window allow high DPI by default
- 		mode |= SDL_WINDOW_ALLOW_HIGHDPI;
- 
-         if (amiberry_options.rotation_angle == 0 || amiberry_options.rotation_angle == 180)
-         {
- 			mon->gui_window = SDL_CreateWindow("Amiberry GUI",
--				gui_window_rect.x != 0 ? gui_window_rect.x : SDL_WINDOWPOS_CENTERED,
--				gui_window_rect.y != 0 ? gui_window_rect.y : SDL_WINDOWPOS_CENTERED,
-+				gui_window_rect.x,
-+				gui_window_rect.y,
- 				gui_window_rect.w,
- 				gui_window_rect.h,
- 				mode);
-@@ -326,13 +386,14 @@ void amiberry_gui_init()
-         else
-         {
- 			mon->gui_window = SDL_CreateWindow("Amiberry GUI",
--				gui_window_rect.y != 0 ? gui_window_rect.y : SDL_WINDOWPOS_CENTERED,
--				gui_window_rect.x != 0 ? gui_window_rect.x : SDL_WINDOWPOS_CENTERED,
-+				gui_window_rect.y,
-+				gui_window_rect.x,
- 				gui_window_rect.h,
- 				gui_window_rect.w,
- 				mode);
-         }
-         check_error_sdl(mon->gui_window == nullptr, "Unable to create window:");
-+		write_log("New GUI window created\n");
- 
- 		auto* const icon_surface = IMG_Load(prefix_with_data_path("amiberry.png").c_str());
- 		if (icon_surface != nullptr)
-@@ -341,16 +402,23 @@ void amiberry_gui_init()
+@@ -342,16 +403,23 @@ void amiberry_gui_init()
  			SDL_FreeSurface(icon_surface);
  		}
  	}
@@ -203,7 +160,7 @@ index b464a011..ae0ea703 100644
  	DPIHandler::set_render_scale(mon->gui_renderer);
  
  	gui_texture = SDL_CreateTexture(mon->gui_renderer, gui_screen->format->format, SDL_TEXTUREACCESS_STREAMING, gui_screen->w,
-@@ -364,31 +432,34 @@ void amiberry_gui_init()
+@@ -365,31 +433,34 @@ void amiberry_gui_init()
  
  	SDL_SetRelativeMouseMode(SDL_FALSE);
  	SDL_ShowCursor(SDL_ENABLE);
@@ -246,7 +203,7 @@ index b464a011..ae0ea703 100644
  	delete gui_imageLoader;
  	gui_imageLoader = nullptr;
  	delete gui_input;
-@@ -396,30 +467,135 @@ void amiberry_gui_halt()
+@@ -397,28 +468,62 @@ void amiberry_gui_halt()
  	delete gui_graphics;
  	gui_graphics = nullptr;
  
@@ -315,13 +272,11 @@ index b464a011..ae0ea703 100644
 +	write_log("=== GUI HALT COMPLETE ===\n");
  }
  
-+
-+
-+// ============================================================
-+// ADICIONE ESTAS FUNÇÕES AUXILIARES 
-+// (antes da função check_input)
-+// ============================================================
-+
+ std::string get_filename_extension(const TCHAR* filename);
+@@ -457,6 +562,65 @@ static void handle_drop_file_event(const SDL_Event& event)
+ 	SDL_free(dropped_file);
+ }
+ 
 +void restore_input_after_modal()
 +{
 +	const AmigaMonitor* mon = &AMonitors[0];
@@ -381,15 +336,10 @@ index b464a011..ae0ea703 100644
 +	write_log("=== Input restoration complete ===\n");
 +}
 +
-+
-+// ============================================================
-+// SUBSTITUA A FUNÇÃO check_input() COMPLETA POR ESTA VERSÃO
-+// ============================================================
-+
  void check_input()
  {
  	const AmigaMonitor* mon = &AMonitors[0];
-@@ -428,8 +604,67 @@ void check_input()
+@@ -465,8 +629,67 @@ void check_input()
  	didata* did = &di_joystick[0];
  	didata* existing_did;
  	
@@ -457,7 +407,7 @@ index b464a011..ae0ea703 100644
  		switch (gui_event.type)
  		{
  		case SDL_WINDOWEVENT:
-@@ -445,6 +680,16 @@ void check_input()
+@@ -482,6 +705,16 @@ void check_input()
  					gui_window_rect.w = gui_event.window.data1;
  					gui_window_rect.h = gui_event.window.data2;
  					break;
@@ -474,7 +424,7 @@ index b464a011..ae0ea703 100644
  				default: 
  					break;
  				}
-@@ -454,15 +699,11 @@ void check_input()
+@@ -491,15 +724,11 @@ void check_input()
  		
  		case SDL_QUIT:
  			got_event = 1;
@@ -490,7 +440,7 @@ index b464a011..ae0ea703 100644
  			existing_did = &di_joystick[gui_event.jdevice.which];
  			if (existing_did->guid.empty())
  			{
-@@ -472,6 +713,7 @@ void check_input()
+@@ -509,6 +738,7 @@ void check_input()
  				RefreshPanelInput();
  			}
  			return;
@@ -498,7 +448,7 @@ index b464a011..ae0ea703 100644
  		case SDL_JOYDEVICEREMOVED:
  			write_log("GUI: SDL2 Controller/Joystick removed, re-running import joysticks...\n");
  			if (inputdevice_devicechange(&currprefs))
-@@ -495,16 +737,10 @@ void check_input()
+@@ -532,16 +762,10 @@ void check_input()
  				{
  					if (emulating && cmdStart->isEnabled())
  					{
@@ -515,7 +465,7 @@ index b464a011..ae0ea703 100644
  						uae_reset(0, 1);
  						gui_running = false;
  					}
-@@ -512,18 +748,17 @@ void check_input()
+@@ -549,18 +773,17 @@ void check_input()
  				else if (SDL_JoystickGetButton(gui_joystick, did->mapping.button[SDL_CONTROLLER_BUTTON_DPAD_UP]) || hat & SDL_HAT_UP)
  				{
  					if (handle_navigation(DIRECTION_UP))
@@ -536,7 +486,7 @@ index b464a011..ae0ea703 100644
  				else if ((did->mapping.is_retroarch || !did->is_controller)
  					&& SDL_JoystickGetButton(gui_joystick, did->mapping.button[SDL_CONTROLLER_BUTTON_LEFTSHOULDER])
  					|| SDL_GameControllerGetButton(did->controller,
-@@ -544,18 +779,17 @@ void check_input()
+@@ -581,18 +804,17 @@ void check_input()
  						PushFakeKey(SDLK_DOWN);
  					}
  				}
@@ -557,7 +507,7 @@ index b464a011..ae0ea703 100644
  					PushFakeKey(SDLK_LEFT);
  					break;
  				}
-@@ -570,22 +804,18 @@ void check_input()
+@@ -607,22 +829,18 @@ void check_input()
  					PushFakeKey(SDLK_RETURN);
  					continue;
  				}
@@ -580,7 +530,7 @@ index b464a011..ae0ea703 100644
  					gui_running = false;
  				}
  			}
-@@ -601,14 +831,14 @@ void check_input()
+@@ -638,14 +856,14 @@ void check_input()
  					{
  						last_x = 1;
  						if (handle_navigation(DIRECTION_RIGHT))
@@ -597,7 +547,7 @@ index b464a011..ae0ea703 100644
  						PushFakeKey(SDLK_LEFT);
  					}
  					else if (gui_event.jaxis.value > -joystick_dead_zone && gui_event.jaxis.value < joystick_dead_zone)
-@@ -622,14 +852,14 @@ void check_input()
+@@ -659,14 +877,14 @@ void check_input()
  					{
  						last_y = -1;
  						if (handle_navigation(DIRECTION_UP))
@@ -614,7 +564,7 @@ index b464a011..ae0ea703 100644
  						PushFakeKey(SDLK_DOWN);
  					}
  					else if (gui_event.jaxis.value > -joystick_dead_zone && gui_event.jaxis.value < joystick_dead_zone)
-@@ -673,16 +903,10 @@ void check_input()
+@@ -710,16 +928,10 @@ void check_input()
  				{
  					if (emulating && cmdStart->isEnabled())
  					{
@@ -631,7 +581,7 @@ index b464a011..ae0ea703 100644
  						uae_reset(0, 1);
  						gui_running = false;
  					}
-@@ -693,14 +917,10 @@ void check_input()
+@@ -730,14 +942,10 @@ void check_input()
  				switch (gui_event.key.keysym.sym)
  				{
  				case SDLK_q:
@@ -646,7 +596,7 @@ index b464a011..ae0ea703 100644
  						uae_quit();
  						gui_running = false;
  					}
-@@ -713,32 +933,29 @@ void check_input()
+@@ -750,32 +958,29 @@ void check_input()
  
  				case VK_Green:
  				case VK_Blue:
@@ -685,7 +635,7 @@ index b464a011..ae0ea703 100644
  					break;
  
  				case SDLK_F1:
-@@ -822,12 +1039,8 @@ void check_input()
+@@ -863,12 +1068,8 @@ void check_input()
  	
  	if (got_event)
  	{
