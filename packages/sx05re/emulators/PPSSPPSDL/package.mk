@@ -30,8 +30,7 @@ else
 fi
 
 if [ ${DEVICE} = "Amlogic-no" ]; then
-	PKG_CMAKE_OPTS_TARGET+="-DUSE_WAYLAND_WSI=ON \
-                        -DUSE_VULKAN_DISPLAY_KHR=ON"
+	PKG_CMAKE_OPTS_TARGET+=" -DUSE_VULKAN_DISPLAY_KHR=ON"
 fi
 
 pre_configure_target() {
