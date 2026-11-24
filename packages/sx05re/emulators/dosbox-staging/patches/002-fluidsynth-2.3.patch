@@ -1,0 +1,15 @@
+diff --git a/src/midi/fluidsynth.cpp b/src/midi/fluidsynth.cpp
+index 0f7fa5503..40f42947f 100644
+--- a/src/midi/fluidsynth.cpp
++++ b/src/midi/fluidsynth.cpp
+@@ -722,8 +722,10 @@ MidiDeviceFluidSynth::MidiDeviceFluidSynth()
+ 	// portamento time is 7 bits wide, using only CC5, and the concave curve
+ 	// ranges from 0s to 480s. The curve was reverse engineered from a
+ 	// Roland SC-55 v1.21 hardware unit.
++#if FLUIDSYNTH_VERSION_MAJOR > 2 || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR >= 5)
+ 	fluid_synth_set_portamento_time_mode(fluid_synth.get(),
+ 	                                     FLUID_PORTAMENTO_TIME_MODE_XG_GS);
++#endif
+ 
+ 	SetChorus();
+ 	SetReverb();
