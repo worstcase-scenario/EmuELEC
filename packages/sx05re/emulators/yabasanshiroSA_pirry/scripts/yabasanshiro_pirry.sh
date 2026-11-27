@@ -45,5 +45,11 @@ case "$(get_ee_setting yaba_resolution saturn "${ROMNAME}")" in
   original) RES="-r 3" ;; 720p) RES="-r 4" ;; 1080p) RES="-r 5" ;;
 esac
 
+# Cartridge from the ES game/system options; unset = 4MB RAM
+CART=""
+case "$(get_ee_setting yaba_cart saturn "${ROMNAME}")" in
+  none) CART="-c 0" ;; 1mb) CART="-c 6" ;; 4mb) CART="-c 7" ;;
+esac
+
 # We use { } to avoid SIGUSR signal showing text and messing up with the error handling
-{ ${BIN} ${RES} -i "${1}" ${BIOS}; } > /emuelec/logs/emuelec.log 2>&1
+{ ${BIN} ${RES} ${CART} -i "${1}" ${BIOS}; } > /emuelec/logs/emuelec.log 2>&1
