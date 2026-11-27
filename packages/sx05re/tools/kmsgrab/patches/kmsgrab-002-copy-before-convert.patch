@@ -1,0 +1,32 @@
+diff --git a/kmsgrab.c b/kmsgrab.c
+index 5cbe099..cb925a9 100644
+--- a/kmsgrab.c
++++ b/kmsgrab.c
+@@ -92,6 +92,15 @@ static int save_png(drmModeFB *fb, int prime_fd, const char *png_fn)
+ 		goto out_free_picture;
+ 	}
+ 
++	/* Copy the live scanout buffer in one go before the next page flip,
++	 * instead of reading it pixel by pixel during conversion (tearing) */
++	void *copy = malloc((fb->bpp >> 3) * fb->width * fb->height);
++	if (copy) {
++		memcpy(copy, buffer, (fb->bpp >> 3) * fb->width * fb->height);
++		munmap(buffer, (fb->bpp >> 3) * fb->width * fb->height);
++		buffer = copy;
++	}
++
+ 	/* Drop privileges, to write PNG with user rights */
+ 	seteuid(getuid());
+ 
+@@ -148,7 +157,10 @@ out_free_png:
+ out_fclose:
+ 	fclose(pngfile);
+ out_unmap_buffer:
+-	munmap(buffer, (fb->bpp >> 3) * fb->width * fb->height);
++	if (copy)
++		free(buffer);
++	else
++		munmap(buffer, (fb->bpp >> 3) * fb->width * fb->height);
+ out_free_picture:
+ 	free(picture);
+ 	return ret;

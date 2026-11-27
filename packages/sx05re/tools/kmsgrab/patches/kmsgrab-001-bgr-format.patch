@@ -1,0 +1,39 @@
+diff --git a/kmsgrab.c b/kmsgrab.c
+index 596baac..5cbe099 100644
+--- a/kmsgrab.c
++++ b/kmsgrab.c
+@@ -24,6 +24,8 @@ typedef struct {
+ 	uint8_t r, g, b;
+ } uint24_t;
+ 
++static int swap_rb; /* framebuffer is XBGR/ABGR8888 */
++
+ static inline uint24_t rgb16_to_24(uint16_t px)
+ {
+ 	uint24_t pixel;
+@@ -43,6 +45,11 @@ static inline uint24_t rgb32_to_24(uint32_t px)
+ 	pixel.b = px & 0xff;
+ 	pixel.g = (px >> 8) & 0xff;
+ 	pixel.r = (px >> 16) & 0xff;
++	if (swap_rb) {
++		uint8_t t = pixel.r;
++		pixel.r = pixel.b;
++		pixel.b = t;
++	}
+ 
+ 	return pixel;
+ }
+@@ -223,6 +230,13 @@ int main(int argc, char **argv)
+ 		goto out_free_resources;
+ 	}
+ 
++	drmModeFB2 *fb2 = drmModeGetFB2(drm_fd, fb_id);
++	if (fb2) {
++		swap_rb = fb2->pixel_format == DRM_FORMAT_XBGR8888 ||
++			  fb2->pixel_format == DRM_FORMAT_ABGR8888;
++		drmModeFreeFB2(fb2);
++	}
++
+ 	err = drmPrimeHandleToFD(drm_fd, fb->handle, O_RDONLY, &prime_fd);
+ 	if (err < 0) {
+ 		fprintf(stderr, "Failed to retrieve prime handler: %s\n",
