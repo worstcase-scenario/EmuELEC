@@ -19,6 +19,7 @@ fi
 
 mkdir -p /storage/roms/dolphin/dolphin-emu/StateSaves
 mkdir -p /storage/roms/dolphin/dolphin-emu/Triforce
+mkdir -p /storage/roms/dolphin/dolphin-emu/GameSettings
 mkdir -p /storage/.cache/dolphin-emu
 
 AUTOGP=$(get_ee_setting dolphin_auto_gamepad)

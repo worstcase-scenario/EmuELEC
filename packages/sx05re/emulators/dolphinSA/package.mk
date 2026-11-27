@@ -46,6 +46,5 @@ mkdir -p ${INSTALL}/usr/share/dolphin-emu
 cp -rf ${PKG_BUILD}/Data/Sys ${INSTALL}/usr/share/dolphin-emu/
 
 mkdir -p ${INSTALL}/usr/config/emuelec/configs/dolphin-emu
-cp -rf ${PKG_BUILD}/Data/Sys/* ${INSTALL}/usr/config/emuelec/configs/dolphin-emu
 cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/dolphin-emu
 }
