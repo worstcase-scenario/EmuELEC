@@ -1,0 +1,25 @@
+diff --git a/src/main.c b/src/main.c
+index 0cd3902..7f371cf 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1729,16 +1729,16 @@ emulator_loop(void *param)
+ 			new_frame |= video_step(MHZ, clocks, false);
+ 		}
+ 
+-		for (uint32_t i = 0; i < clocks; i++) {
+-			i2c_step();
+-		}
++		i2c_step();
+ 		rtc_step(clocks);
+ 
+ 		if (!headless) {
+ 			audio_step(clocks);
+ 		}
+ 
+-		midi_serial_step(clocks);
++		if (has_midi_card) {
++			midi_serial_step(clocks);
++		}
+ 
+ 		if (!headless && new_frame) {
+ 			if (nvram_dirty && nvram_path) {

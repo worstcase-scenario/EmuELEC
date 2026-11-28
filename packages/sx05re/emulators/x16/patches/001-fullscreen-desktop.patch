@@ -1,0 +1,22 @@
+diff --git a/src/video.c b/src/video.c
+index 8335be5..dceae7c 100644
+--- a/src/video.c
++++ b/src/video.c
+@@ -338,7 +338,7 @@ video_init(int window_scale, float screen_x_scale, char *quality, bool fullscree
+ 	SDL_SetWindowIcon(window, CommanderX16Icon());
+ 	if (fullscreen) {
+ 		is_fullscreen = true;
+-		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
++		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+ 	} else {
+ 		int winX, winY;
+ 		SDL_GetWindowPosition(window, &winX, &winY);
+@@ -1401,7 +1401,7 @@ video_update()
+ 					consumed = true;
+ 				} else if (event.key.keysym.sym == SDLK_f || event.key.keysym.sym == SDLK_RETURN) {
+ 					is_fullscreen = !is_fullscreen;
+-					SDL_SetWindowFullscreen(window, is_fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
++					SDL_SetWindowFullscreen(window, is_fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+ 					consumed = true;
+ 				} else if (event.key.keysym.sym == SDLK_PLUS || event.key.keysym.sym == SDLK_EQUALS) {
+ 					machine_toggle_warp();
